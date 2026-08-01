@@ -43,13 +43,13 @@ import "./components/home-todo.css";
 import FlipClock from "./components/FlipClock";
 
 const weekDayNames = [
+  "Sunday",
   "Monday",
   "Tuesday",
   "Wednesday",
   "Thursday",
   "Friday",
   "Saturday",
-  "Sunday",
 ];
 
 function padNumber(value: number) {
@@ -78,13 +78,8 @@ function getCurrentWeekStart(
   const result = new Date(date);
   const currentDay = result.getDay();
 
-  const mondayOffset =
-    currentDay === 0
-      ? -6
-      : 1 - currentDay;
-
   result.setDate(
-    result.getDate() + mondayOffset
+    result.getDate() - currentDay
   );
 
   result.setHours(0, 0, 0, 0);

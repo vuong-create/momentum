@@ -16,13 +16,13 @@ import {
 } from "../planner/services/plannerService";
 
 const days = [
+  "Sunday",
   "Monday",
   "Tuesday",
   "Wednesday",
   "Thursday",
   "Friday",
   "Saturday",
-  "Sunday",
 ];
 
 const pillars = [
