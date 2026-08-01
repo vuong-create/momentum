@@ -530,7 +530,7 @@ export default function HomeDashboard() {
 
         <section className="home-thoughts">
           <h2 className="font-pixel">
-            Thoughts
+            Thoughts - Test
           </h2>
 
           <div
