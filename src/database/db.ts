@@ -14,9 +14,12 @@ export type Difficulty = "easy" | "medium" | "hard";
 export type ActivityStatus =
   | "planned"
   | "completed"
-  | "missed"
   | "dismissed"
   | "cancelled";
+
+export type ActivityDisplayStatus =
+  | ActivityStatus
+  | "missed";
 
 export interface PlannedActivity {
   id?: number;
@@ -36,6 +39,21 @@ export interface PlannedActivity {
   important?: boolean;
   notes?: string;
   completedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  dismissedAt?: string;
+  cancelledAt?: string;
+  deletedAt?: string;
+}
+
+export interface ActivityEvent {
+  id?: number;
+  plannedActivityId: number;
+  pillar: Pillar;
+  occurredAt: string;
+  effortTier: Difficulty;
+  plannedBeforeCompletion: boolean;
+  voidedAt?: string;
 }
 
 export interface XPEvent {
@@ -43,6 +61,13 @@ export interface XPEvent {
   amount: number;
   source: string;
   date: string;
+  dedupeKey?: string;
+  activityEventId?: number;
+  pillar?: Pillar;
+  baseXP?: number;
+  plannedBonusXP?: number;
+  finalXP?: number;
+  voidedAt?: string;
 }
 
 export interface StreakRecord {
@@ -76,6 +101,7 @@ export interface SavedQuote {
 
 class MomentumDatabase extends Dexie {
   plannedActivities!: Table<PlannedActivity>;
+  activityEvents!: Table<ActivityEvent>;
   xpEvents!: Table<XPEvent>;
   streakRecords!: Table<StreakRecord>;
   journalEntries!: Table<JournalEntry>;
@@ -170,6 +196,36 @@ class MomentumDatabase extends Dexie {
             : "planned";
           activity.important = activity.important ?? false;
           activity.sortOrder = activity.sortOrder ?? activity.id ?? 0;
+        });
+    });
+
+    this.version(9).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, scheduledTime, pillar, sortOrder, deletedAt",
+      activityEvents:
+        "++id, plannedActivityId, occurredAt, pillar, voidedAt",
+      xpEvents:
+        "++id, &dedupeKey, activityEventId, source, date, voidedAt",
+      streakRecords:
+        "++id, date, completed",
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate",
+      notes:
+        "++id, createdAt, updatedAt",
+      savedQuotes:
+        "++id, &quoteKey, savedAt",
+    }).upgrade(async (transaction) => {
+      await transaction
+        .table("plannedActivities")
+        .toCollection()
+        .modify((activity) => {
+          const createdAt = activity.createdAt ?? activity.date;
+
+          activity.status = activity.completed
+            ? "completed"
+            : activity.status ?? "planned";
+          activity.createdAt = createdAt;
+          activity.updatedAt = activity.updatedAt ?? createdAt;
         });
     });
   }

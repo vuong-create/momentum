@@ -1,20 +1,10 @@
-import type {
-  Difficulty,
-  Pillar,
-  PlannedActivity,
-} from "../../database/db";
+import type { PlannedActivity } from "../../database/db";
+
+import type { CreateActivityInput } from "../activities/types";
 
 export type PlannerActivity = PlannedActivity;
 
-export interface CreateActivityInput {
-  title: string;
-  scheduledDate: string;
-  pillar?: Pillar;
-  difficulty?: Difficulty;
-  scheduledTime?: string;
-  important?: boolean;
-  notes?: string;
-}
+export type { CreateActivityInput };
 
 export interface PlannerDay {
   date: Date;

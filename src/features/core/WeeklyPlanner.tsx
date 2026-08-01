@@ -3,6 +3,17 @@ import { useState } from "react";
 import { db } from "../../database/db";
 import TaskCard from "../../components/TaskCard";
 import Card from "../../components/Card";
+import {
+  createPlannedActivity,
+  softDeletePlannedActivity,
+  togglePlannedActivity,
+} from "../activities/services/activityService";
+import { isActivityVisible } from "../activities/services/activityLifecycle";
+import {
+  addDays,
+  getWeekStart,
+  toDateKey,
+} from "../planner/services/plannerService";
 
 const days = [
   "Monday",
@@ -34,44 +45,37 @@ export default function WeeklyPlanner() {
     useState<Difficulty>("medium");
 
   const tasks = useLiveQuery(
-    () => db.plannedActivities.toArray(),
+    () =>
+      db.plannedActivities
+        .filter(isActivityVisible)
+        .toArray(),
     []
   );
 
   async function addTask() {
     if (!task.trim()) return;
 
-    const xp =
-      difficulty === "easy"
-        ? 5
-        : difficulty === "hard"
-        ? 25
-        : 10;
+    const dayIndex = days.indexOf(day);
+    const scheduledDate = toDateKey(
+      addDays(getWeekStart(), dayIndex)
+    );
 
-    await db.plannedActivities.add({
+    await createPlannedActivity({
       title: task.trim(),
-      completed: false,
-      date: new Date().toISOString(),
-      day,
+      scheduledDate,
       pillar,
       difficulty,
-      xpReward: xp,
     });
 
     setTask("");
   }
 
-  async function toggleTask(
-    id: number,
-    completed: boolean
-  ) {
-    await db.plannedActivities.update(id, {
-      completed: !completed,
-    });
+  async function toggleTask(id: number) {
+    await togglePlannedActivity(id);
   }
 
   async function deleteTask(id: number) {
-    await db.plannedActivities.delete(id);
+    await softDeletePlannedActivity(id);
   }
 
   return (
@@ -153,10 +157,7 @@ export default function WeeklyPlanner() {
                   xpReward={item.xpReward}
                   completed={item.completed}
                   onToggle={() =>
-                    toggleTask(
-                      item.id!,
-                      item.completed
-                    )
+                    toggleTask(item.id!)
                   }
                   onDelete={() =>
                     deleteTask(item.id!)

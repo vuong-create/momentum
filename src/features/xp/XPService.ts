@@ -15,7 +15,8 @@ export async function getTotalXP() {
   const events = await db.xpEvents.toArray();
 
   return events.reduce(
-    (total, event) => total + event.amount,
+    (total, event) =>
+      event.voidedAt ? total : total + event.amount,
     0
   );
 }
