@@ -15,12 +15,16 @@ import {
   completePlannedActivity,
   createPlannedActivity,
   dismissPlannedActivity,
+  duplicatePlannedActivity,
   getPlannedActivity,
   movePlannedActivity,
+  movePlannedActivities,
   reopenPlannedActivity,
   restoreDismissedActivity,
   restoreSoftDeletedActivity,
   softDeletePlannedActivity,
+  setPlannedActivityOrder,
+  unschedulePlannedActivity,
   updateActivityDetails,
 } from "./activityService";
 
@@ -36,6 +40,90 @@ afterAll(async () => {
 });
 
 describe("activity service", () => {
+  it("creates and schedules an activity held in an unscheduled week", async () => {
+    const activityId = await createPlannedActivity({
+      title: "Plan August goals",
+      planningWeekStart: "2026-08-02",
+    });
+
+    expect(await getPlannedActivity(activityId)).toMatchObject({
+      day: "Unscheduled",
+      planningWeekStart: "2026-08-02",
+      scheduledDate: undefined,
+    });
+
+    await movePlannedActivity(activityId, "2026-08-05");
+
+    const scheduled = await getPlannedActivity(activityId);
+    expect(scheduled).toMatchObject({
+      day: "Wednesday",
+      scheduledDate: "2026-08-05",
+    });
+    expect(scheduled?.planningWeekStart).toBeUndefined();
+  });
+
+  it("unschedules an activity without retaining its previous date", async () => {
+    const activityId = await createPlannedActivity({
+      title: "Practice serves",
+      scheduledDate: "2026-08-05",
+    });
+
+    await unschedulePlannedActivity(activityId, "2026-08-02", 42);
+
+    const unscheduled = await getPlannedActivity(activityId);
+    expect(unscheduled).toMatchObject({
+      day: "Unscheduled",
+      planningWeekStart: "2026-08-02",
+      sortOrder: 42,
+    });
+    expect(unscheduled?.scheduledDate).toBeUndefined();
+  });
+
+  it("duplicates into a requested date or unscheduled week", async () => {
+    const sourceId = await createPlannedActivity({
+      title: "Chinese review",
+      scheduledDate: "2026-08-03",
+      pillar: "chinese",
+      important: true,
+    });
+
+    const datedCopyId = await duplicatePlannedActivity(sourceId, {
+      scheduledDate: "2026-08-06",
+    });
+    const unscheduledCopyId = await duplicatePlannedActivity(sourceId, {
+      planningWeekStart: "2026-08-02",
+    });
+
+    expect(await getPlannedActivity(datedCopyId)).toMatchObject({
+      title: "Chinese review",
+      scheduledDate: "2026-08-06",
+      pillar: "chinese",
+      important: true,
+    });
+    expect(await getPlannedActivity(unscheduledCopyId)).toMatchObject({
+      scheduledDate: undefined,
+      planningWeekStart: "2026-08-02",
+      day: "Unscheduled",
+    });
+  });
+
+  it("persists manual order and bulk day moves", async () => {
+    const firstId = await createPlannedActivity({ title: "First", scheduledDate: "2026-08-03" });
+    const secondId = await createPlannedActivity({ title: "Second", scheduledDate: "2026-08-03" });
+
+    await setPlannedActivityOrder([secondId, firstId]);
+    const second = await getPlannedActivity(secondId);
+    const first = await getPlannedActivity(firstId);
+    expect(second!.sortOrder!).toBeLessThan(first!.sortOrder!);
+
+    await movePlannedActivities([secondId, firstId], "2026-08-07");
+    const moved = await db.plannedActivities.bulkGet([secondId, firstId]);
+    expect(moved.map((activity) => activity?.scheduledDate)).toEqual([
+      "2026-08-07",
+      "2026-08-07",
+    ]);
+  });
+
   it("creates one completion event and one XP event", async () => {
     const activityId = await createPlannedActivity({
       title: "Read",

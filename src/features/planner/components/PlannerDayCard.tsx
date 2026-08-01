@@ -3,11 +3,15 @@ import {
   type PillarKey,
 } from "../../../app/theme";
 import { isActivityCompleted } from "../../activities/services/activityLifecycle";
-import { sortActivitiesForFocus } from "../services/plannerService";
+import {
+  formatActivityTime,
+  sortActivitiesForFocus,
+} from "../services/plannerService";
 import type {
   PlannerActivity,
   PlannerDay,
 } from "../types";
+import { useState } from "react";
 
 type PlannerDayCardProps = {
   day: PlannerDay;
@@ -31,6 +35,7 @@ export default function PlannerDayCard({
   onComplete,
   onMove,
 }: PlannerDayCardProps) {
+  const [dragOver, setDragOver] = useState(false);
   const completed = day.activities.filter(isActivityCompleted).length;
   const incomplete = sortActivitiesForFocus(
     day.activities.filter((activity) => !isActivityCompleted(activity))
@@ -43,11 +48,14 @@ export default function PlannerDayCard({
       className={[
         "planner-day-card",
         day.isToday ? "planner-day-card-today" : "",
+        dragOver ? "is-drag-over" : "",
       ]
         .filter(Boolean)
         .join(" ")}
-      onDragOver={(event) => event.preventDefault()}
+      onDragOver={(event) => { event.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
       onDrop={(event) => {
+        setDragOver(false);
         const transferred = event.dataTransfer.getData(
           "application/momentum-activity"
         );
@@ -67,9 +75,12 @@ export default function PlannerDayCard({
         className="planner-day-card-header"
         onClick={() => onOpenDay(day.dateKey)}
       >
-        <span>
-          <small>{day.dayName}</small>
-          <strong>{day.dayNumber}</strong>
+        <span className="planner-day-card-date">
+          {day.isToday && <em>Today</em>}
+          <span>
+            <small>{day.dayName}</small>
+            <strong>{day.dayNumber}</strong>
+          </span>
         </span>
 
         <span className="planner-day-card-count">
@@ -134,7 +145,7 @@ export default function PlannerDayCard({
                     <i />
                     {theme.shortLabel}
                     {activity.scheduledTime && (
-                      <time>{activity.scheduledTime}</time>
+                      <time>{formatActivityTime(activity.scheduledTime)}</time>
                     )}
                     {activity.important && <b>Important</b>}
                   </span>

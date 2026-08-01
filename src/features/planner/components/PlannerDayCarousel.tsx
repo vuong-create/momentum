@@ -29,14 +29,30 @@ export default function PlannerDayCarousel({
   const trackRef = useRef<HTMLDivElement>(null);
   const [canMoveBackward, setCanMoveBackward] = useState(false);
   const [canMoveForward, setCanMoveForward] = useState(true);
+  const [position, setPosition] = useState(0);
   const weekStartKey = days[0]?.dateKey;
+  const todayIndex = days.findIndex((day) => day.isToday);
 
   useEffect(() => {
     const track = trackRef.current;
 
     if (!track) return;
 
-    track.scrollLeft = 0;
+    const saved = sessionStorage.getItem(
+      `momentum.planner.carousel.${weekStartKey}`
+    );
+    const savedPosition = saved === null ? null : Number(saved);
+    const initialPosition = savedPosition !== null && Number.isFinite(savedPosition) && savedPosition >= 0
+      ? savedPosition
+      : todayIndex >= 5
+        ? todayIndex - 4
+        : 0;
+
+    requestAnimationFrame(() => {
+      const card = track.querySelector<HTMLElement>(".planner-day-card");
+      const distance = (card?.offsetWidth ?? track.clientWidth * 0.8) + 10;
+      track.scrollTo({ left: distance * initialPosition, behavior: "auto" });
+    });
 
     function updateControls() {
       if (!track) return;
@@ -44,6 +60,14 @@ export default function PlannerDayCarousel({
       setCanMoveBackward(track.scrollLeft > 2);
       setCanMoveForward(
         track.scrollLeft + track.clientWidth < track.scrollWidth - 2
+      );
+      const card = track.querySelector<HTMLElement>(".planner-day-card");
+      const distance = (card?.offsetWidth ?? track.clientWidth * 0.8) + 10;
+      const nextPosition = Math.max(0, Math.min(6, Math.round(track.scrollLeft / distance)));
+      setPosition(nextPosition);
+      sessionStorage.setItem(
+        `momentum.planner.carousel.${weekStartKey}`,
+        String(nextPosition)
       );
     }
 
@@ -55,9 +79,17 @@ export default function PlannerDayCarousel({
       track.removeEventListener("scroll", updateControls);
       window.removeEventListener("resize", updateControls);
     };
-  }, [weekStartKey]);
+  }, [weekStartKey, todayIndex]);
 
-  function moveViewport(direction: -1 | 1) {
+  function moveToPosition(nextPosition: number, behavior: ScrollBehavior = "smooth") {
+    const track = trackRef.current;
+    if (!track) return;
+    const card = track.querySelector<HTMLElement>(".planner-day-card");
+    const distance = (card?.offsetWidth ?? track.clientWidth * 0.8) + 10;
+    track.scrollTo({ left: distance * nextPosition, behavior });
+  }
+
+  function moveViewport(direction: -1 | 1, jumpToEnd = false) {
     const track = trackRef.current;
 
     if (!track) return;
@@ -65,10 +97,11 @@ export default function PlannerDayCarousel({
     const card = track.querySelector<HTMLElement>(".planner-day-card");
     const distance = (card?.offsetWidth ?? track.clientWidth * 0.8) + 10;
 
-    track.scrollBy({
-      left: distance * direction,
-      behavior: "smooth",
-    });
+    if (jumpToEnd) {
+      track.scrollTo({ left: direction < 0 ? 0 : track.scrollWidth, behavior: "smooth" });
+    } else {
+      track.scrollBy({ left: distance * direction, behavior: "smooth" });
+    }
   }
 
   return (
@@ -76,7 +109,7 @@ export default function PlannerDayCarousel({
       <button
         type="button"
         className="planner-day-carousel-arrow planner-day-carousel-previous"
-        onClick={() => moveViewport(-1)}
+        onClick={(event) => moveViewport(-1, event.shiftKey)}
         disabled={!canMoveBackward}
         aria-label="Show earlier days"
       >
@@ -100,12 +133,18 @@ export default function PlannerDayCarousel({
       <button
         type="button"
         className="planner-day-carousel-arrow planner-day-carousel-next"
-        onClick={() => moveViewport(1)}
+        onClick={(event) => moveViewport(1, event.shiftKey)}
         disabled={!canMoveForward}
         aria-label="Show later days"
       >
         →
       </button>
+
+      <div className="planner-day-carousel-dots" aria-label={`Day viewport position ${position + 1} of 7`}>
+        {days.map((day, index) => (
+          <button key={day.dateKey} type="button" className={index === position ? "is-active" : ""} onClick={() => moveToPosition(index)} aria-label={`Show ${day.dayName}`} />
+        ))}
+      </div>
     </section>
   );
 }

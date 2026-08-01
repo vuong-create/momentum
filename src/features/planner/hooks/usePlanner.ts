@@ -1,23 +1,37 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 
 import {
   addWeeks,
   buildPlannerDays,
   createActivity,
+  duplicateActivity,
   getActivitiesForWeek,
   getWeekStart,
   moveActivity,
+  moveActivities,
+  renameActivity,
+  reorderActivities,
   toggleActivity,
   toggleImportant,
   toDateKey,
+  unscheduleActivity,
 } from "../services/plannerService";
 
 import type { CreateActivityInput, PlannerActivity } from "../types";
 
 export default function usePlanner() {
   const [weekStartKey, setWeekStartKey] =
-    useState(() => toDateKey(getWeekStart()));
+    useState(() => {
+      const saved = sessionStorage.getItem("momentum.planner.week");
+      return /^\d{4}-\d{2}-\d{2}$/.test(saved ?? "")
+        ? saved!
+        : toDateKey(getWeekStart());
+    });
+
+  useEffect(() => {
+    sessionStorage.setItem("momentum.planner.week", weekStartKey);
+  }, [weekStartKey]);
 
   const liveActivities = useLiveQuery(
     () => getActivitiesForWeek(weekStartKey),
@@ -32,6 +46,12 @@ export default function usePlanner() {
   const days = useMemo(
     () => buildPlannerDays(weekStartKey, activities),
     [weekStartKey, activities]
+  );
+
+  const unscheduledActivities = activities.filter(
+    (activity) =>
+      !activity.scheduledDate &&
+      activity.planningWeekStart === weekStartKey
   );
 
   const eligibleActivities = activities.filter(
@@ -93,10 +113,37 @@ export default function usePlanner() {
     await toggleImportant(activity);
   }
 
+  async function copyActivity(
+    activity: PlannerActivity,
+    destination: { scheduledDate?: string; planningWeekStart?: string } = {}
+  ) {
+    return duplicateActivity(activity, destination);
+  }
+
+  async function changeTitle(activity: PlannerActivity, title: string) {
+    await renameActivity(activity, title);
+  }
+
+  async function reorderActivityList(ids: number[]) {
+    await reorderActivities(ids);
+  }
+
+  async function rescheduleActivities(
+    selectedActivities: PlannerActivity[],
+    scheduledDate: string
+  ) {
+    await moveActivities(selectedActivities, scheduledDate);
+  }
+
+  async function moveToUnscheduled(activity: PlannerActivity) {
+    await unscheduleActivity(activity, weekStartKey);
+  }
+
   return {
     weekStartKey,
     days,
     activities,
+    unscheduledActivities,
     totalActivities,
     completedActivities,
     completionPercentage,
@@ -107,5 +154,10 @@ export default function usePlanner() {
     completeActivity,
     rescheduleActivity,
     markImportant,
+    copyActivity,
+    changeTitle,
+    reorderActivityList,
+    rescheduleActivities,
+    moveToUnscheduled,
   };
 }

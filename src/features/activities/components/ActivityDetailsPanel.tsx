@@ -97,7 +97,9 @@ function ActivityDetailsForm({
   const titleRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(activity.title);
   const [scheduledDate, setScheduledDate] = useState(
-    resolveActivityScheduledDate(activity, todayKey) ?? todayKey
+    activity.planningWeekStart
+      ? ""
+      : resolveActivityScheduledDate(activity, todayKey) ?? todayKey
   );
   const [scheduledTime, setScheduledTime] = useState(
     activity.scheduledTime ?? ""
@@ -111,7 +113,7 @@ function ActivityDetailsForm({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const status = getActivityDisplayStatus(activity, todayKey);
-  const quickDates = getQuickDates(scheduledDate);
+  const quickDates = getQuickDates(scheduledDate || todayKey);
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -129,6 +131,7 @@ function ActivityDetailsForm({
     return {
       title: activity.title,
       scheduledDate: activity.scheduledDate,
+      planningWeekStart: activity.planningWeekStart,
       scheduledTime: activity.scheduledTime,
       pillar: activity.pillar,
       important: activity.important,
@@ -149,7 +152,10 @@ function ActivityDetailsForm({
 
       await updateActivityDetails(activity.id, {
         title,
-        scheduledDate,
+        scheduledDate: scheduledDate || undefined,
+        planningWeekStart: scheduledDate
+          ? undefined
+          : activity.planningWeekStart,
         scheduledTime: scheduledTime || undefined,
         pillar,
         important,
@@ -269,6 +275,11 @@ function ActivityDetailsForm({
             value={scheduledDate}
             onChange={(event) => setScheduledDate(event.target.value)}
           />
+          {activity.planningWeekStart && !scheduledDate && (
+            <small className="activity-date-unscheduled">
+              Unscheduled this week
+            </small>
+          )}
         </fieldset>
 
         <fieldset className="activity-fieldset">
