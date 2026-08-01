@@ -23,7 +23,7 @@ import {
   type PillarKey,
 } from "../../app/theme";
 
-import usePresence from "../../presence/usePresence";
+import useExperience from "../../experience/useExperience";
 
 import {
   getLevel,
@@ -110,7 +110,7 @@ function resolveActivityDate(
 }
 
 export default function HomeDashboard() {
-  const presence = usePresence();
+  const experience = useExperience();
   const navigate = useNavigate();
 
   const thoughtsRef =
@@ -146,7 +146,7 @@ export default function HomeDashboard() {
       []
     ) ?? [];
 
-  const today = presence.now;
+  const today = experience.now;
   const todayKey = toDateKey(today);
 
   const quote = getDailyQuote(todayKey);
@@ -428,9 +428,9 @@ export default function HomeDashboard() {
             <FlipClock />
           </div>
 
-          {presence.greeting && (
+          {experience.greeting && (
             <span className="living-home-greeting">
-              {presence.greeting}
+              {experience.greeting}
             </span>
           )}
 

@@ -4,9 +4,11 @@ import {
 } from "../../../app/theme";
 
 import type { PlannerActivity } from "../types";
+import { calculatePlannedXP } from "../../activities/services/activityLifecycle";
 
 type PlannerTaskProps = {
   activity: PlannerActivity;
+  celebrating?: boolean;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
   onDismiss: (activity: PlannerActivity) => Promise<void>;
@@ -14,6 +16,7 @@ type PlannerTaskProps = {
 
 export default function PlannerTask({
   activity,
+  celebrating = false,
   onComplete,
   onToggleImportant,
   onDismiss,
@@ -34,6 +37,7 @@ export default function PlannerTask({
         "planner-task",
         theme.className,
         activity.completed ? "planner-task-complete" : "",
+        celebrating ? "planner-task-celebrating" : "",
         activity.important ? "planner-task-important" : "",
       ]
         .filter(Boolean)
@@ -89,6 +93,12 @@ export default function PlannerTask({
           ×
         </button>
       </div>
+
+      {celebrating && (
+        <span className="planner-task-xp">
+          +{calculatePlannedXP(activity.xpReward).finalXP} XP
+        </span>
+      )}
     </article>
   );
 }

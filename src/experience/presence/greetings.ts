@@ -8,7 +8,6 @@ const greetings: Record<TimePeriod, string[]> = {
     "Let’s start.",
     "",
   ],
-
   afternoon: [
     "Good afternoon.",
     "Keep going.",
@@ -16,7 +15,6 @@ const greetings: Record<TimePeriod, string[]> = {
     "One thing at a time.",
     "",
   ],
-
   evening: [
     "Good evening.",
     "Welcome back.",
@@ -24,7 +22,6 @@ const greetings: Record<TimePeriod, string[]> = {
     "Take your time.",
     "",
   ],
-
   night: [
     "Good night.",
     "A quiet moment.",

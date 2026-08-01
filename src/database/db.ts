@@ -99,6 +99,13 @@ export interface SavedQuote {
   savedAt: string;
 }
 
+export interface AppSettings {
+  id: "preferences";
+  soundsEnabled: boolean;
+  animationsEnabled: boolean;
+  updatedAt: string;
+}
+
 class MomentumDatabase extends Dexie {
   plannedActivities!: Table<PlannedActivity>;
   activityEvents!: Table<ActivityEvent>;
@@ -107,6 +114,7 @@ class MomentumDatabase extends Dexie {
   journalEntries!: Table<JournalEntry>;
   notes!: Table<Note>;
   savedQuotes!: Table<SavedQuote>;
+  appSettings!: Table<AppSettings, "preferences">;
 
   constructor() {
     super("MomentumDatabase");
@@ -227,6 +235,25 @@ class MomentumDatabase extends Dexie {
           activity.createdAt = createdAt;
           activity.updatedAt = activity.updatedAt ?? createdAt;
         });
+    });
+
+    this.version(10).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, scheduledTime, pillar, sortOrder, deletedAt",
+      activityEvents:
+        "++id, plannedActivityId, occurredAt, pillar, voidedAt",
+      xpEvents:
+        "++id, &dedupeKey, activityEventId, source, date, voidedAt",
+      streakRecords:
+        "++id, date, completed",
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate",
+      notes:
+        "++id, createdAt, updatedAt",
+      savedQuotes:
+        "++id, &quoteKey, savedAt",
+      appSettings:
+        "&id",
     });
   }
 }

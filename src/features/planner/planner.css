@@ -542,6 +542,29 @@
   text-decoration: line-through;
 }
 
+.planner-task-celebrating .planner-task-toggle {
+  animation:
+    momentum-check-pop
+    var(--duration-celebrate)
+    var(--ease-spring)
+    both;
+}
+
+.planner-task-xp {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  color: var(--color-text-primary);
+  font-size: 7px;
+  font-weight: 720;
+  pointer-events: none;
+  animation:
+    momentum-xp-rise
+    var(--duration-celebrate)
+    var(--ease-out)
+    both;
+}
+
 .planner-day-add {
   min-height: 42px;
   display: flex;

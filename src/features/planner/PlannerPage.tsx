@@ -1,6 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import useExperience from "../../experience/useExperience";
 import usePlanner from "./hooks/usePlanner";
+
+import type {
+  CreateActivityInput,
+  PlannerActivity,
+} from "./types";
 
 import WeekHeader from "./components/WeekHeader";
 import PlannerComposer from "./components/PlannerComposer";
@@ -10,10 +16,15 @@ import "./planner.css";
 
 export default function PlannerPage() {
   const planner = usePlanner();
+  const experience = useExperience();
   const [requestedDateKey, setRequestedDateKey] = useState<string | null>(
     null
   );
   const [composerFocusRequest, setComposerFocusRequest] = useState(0);
+  const [celebratingActivityId, setCelebratingActivityId] = useState<
+    number | null
+  >(null);
+  const celebrationTimer = useRef<number | null>(null);
 
   const preferredDay =
     planner.days.find((day) => day.isToday) ?? planner.days[0];
@@ -33,6 +44,45 @@ export default function PlannerPage() {
     navigate();
   }
 
+  useEffect(() => {
+    return () => {
+      if (celebrationTimer.current) {
+        window.clearTimeout(celebrationTimer.current);
+      }
+    };
+  }, []);
+
+  async function addActivity(input: CreateActivityInput) {
+    await planner.addActivity(input);
+    experience.playFeedback("task-added");
+  }
+
+  async function completeActivity(activity: PlannerActivity) {
+    const willComplete = !activity.completed;
+
+    await planner.completeActivity(activity);
+    experience.playFeedback(
+      willComplete ? "task-completed" : "task-reopened"
+    );
+
+    if (
+      willComplete &&
+      activity.id &&
+      experience.motionEnabled
+    ) {
+      setCelebratingActivityId(activity.id);
+
+      if (celebrationTimer.current) {
+        window.clearTimeout(celebrationTimer.current);
+      }
+
+      celebrationTimer.current = window.setTimeout(
+        () => setCelebratingActivityId(null),
+        700
+      );
+    }
+  }
+
   return (
     <div className="planner-page">
       <WeekHeader
@@ -50,7 +100,7 @@ export default function PlannerPage() {
         selectedDateKey={selectedDateKey}
         focusRequest={composerFocusRequest}
         onSelectDate={setRequestedDateKey}
-        onAdd={planner.addActivity}
+        onAdd={addActivity}
       />
 
       <div className="planner-board">
@@ -59,7 +109,8 @@ export default function PlannerPage() {
             key={day.dateKey}
             day={day}
             onRequestAdd={requestComposer}
-            onComplete={planner.completeActivity}
+            celebratingActivityId={celebratingActivityId}
+            onComplete={completeActivity}
             onMove={planner.rescheduleActivity}
             onToggleImportant={planner.markImportant}
             onDismiss={planner.dismiss}

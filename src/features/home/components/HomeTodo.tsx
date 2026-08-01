@@ -1,9 +1,12 @@
 import {
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
 import type { PlannedActivity } from "../../../database/db";
+import useExperience from "../../../experience/useExperience";
 
 import HomeTodoItem from "./HomeTodoItem";
 
@@ -17,59 +20,6 @@ type HomeTodoProps = {
     activity: PlannedActivity
   ) => Promise<void>;
 };
-
-function playCompletionSound() {
-  try {
-    const AudioContextClass =
-      window.AudioContext ||
-      (
-        window as typeof window & {
-          webkitAudioContext?: typeof AudioContext;
-        }
-      ).webkitAudioContext;
-
-    if (!AudioContextClass) return;
-
-    const context = new AudioContextClass();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-
-    oscillator.type = "sine";
-
-    oscillator.frequency.setValueAtTime(
-      590,
-      context.currentTime
-    );
-
-    oscillator.frequency.exponentialRampToValueAtTime(
-      830,
-      context.currentTime + 0.11
-    );
-
-    gain.gain.setValueAtTime(
-      0.0001,
-      context.currentTime
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-      0.045,
-      context.currentTime + 0.015
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      context.currentTime + 0.18
-    );
-
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.19);
-  } catch {
-    // Sound feedback is optional.
-  }
-}
 
 function sortIncomplete(
   activities: PlannedActivity[]
@@ -99,8 +49,12 @@ export default function HomeTodo({
   onAdd,
   onToggle,
 }: HomeTodoProps) {
+  const experience = useExperience();
   const [newTask, setNewTask] = useState("");
   const [adding, setAdding] = useState(false);
+  const [showAddedFeedback, setShowAddedFeedback] = useState(false);
+  const addedFeedbackTimer = useRef<number | null>(null);
+  const completionFeedbackTimer = useRef<number | null>(null);
 
   const [
     celebratingActivityId,
@@ -129,6 +83,26 @@ export default function HomeTodo({
     todayActivities.length > 0 &&
     incompleteToday.length === 0;
 
+  useEffect(() => {
+    return () => {
+      [addedFeedbackTimer, completionFeedbackTimer].forEach((timer) => {
+        if (timer.current) window.clearTimeout(timer.current);
+      });
+    };
+  }, []);
+
+  function scheduleFeedbackClear(
+    timer: typeof addedFeedbackTimer,
+    callback: () => void,
+    delay: number
+  ) {
+    if (timer.current) {
+      window.clearTimeout(timer.current);
+    }
+
+    timer.current = window.setTimeout(callback, delay);
+  }
+
   async function submitTask() {
     const title = newTask.trim();
 
@@ -139,6 +113,16 @@ export default function HomeTodo({
     try {
       await onAdd(title);
       setNewTask("");
+      experience.playFeedback("task-added");
+
+      if (experience.motionEnabled) {
+        setShowAddedFeedback(true);
+        scheduleFeedbackClear(
+          addedFeedbackTimer,
+          () => setShowAddedFeedback(false),
+          420
+        );
+      }
     } finally {
       setAdding(false);
     }
@@ -149,16 +133,23 @@ export default function HomeTodo({
   ) {
     const willComplete = !activity.completed;
 
-    if (willComplete && activity.id) {
+    if (
+      willComplete &&
+      activity.id &&
+      experience.motionEnabled
+    ) {
       setCelebratingActivityId(activity.id);
-      playCompletionSound();
-
-      window.setTimeout(() => {
-        setCelebratingActivityId(null);
-      }, 700);
+      scheduleFeedbackClear(
+        completionFeedbackTimer,
+        () => setCelebratingActivityId(null),
+        700
+      );
     }
 
     await onToggle(activity);
+    experience.playFeedback(
+      willComplete ? "task-completed" : "task-reopened"
+    );
 
     if (!willComplete) {
       setShowCompleted(true);
@@ -181,7 +172,14 @@ export default function HomeTodo({
         </span>
       </div>
 
-      <div className="home-todo-input-strip">
+      <div
+        className={[
+          "home-todo-input-strip",
+          showAddedFeedback ? "home-todo-input-strip-confirmed" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
         <span aria-hidden="true">+</span>
 
         <input

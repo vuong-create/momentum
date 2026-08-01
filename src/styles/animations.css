@@ -43,6 +43,58 @@
   }
 }
 
+@keyframes momentum-confirm-settle {
+  0% {
+    transform: scale(1);
+  }
+
+  38% {
+    transform: scale(0.992);
+  }
+
+  72% {
+    transform: scale(1.004);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes momentum-check-pop {
+  0% {
+    transform: scale(1);
+  }
+
+  32% {
+    transform: scale(0.72);
+  }
+
+  68% {
+    transform: scale(1.16);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes momentum-xp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.94);
+  }
+
+  24% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-18px) scale(1);
+  }
+}
+
 .animate-fade-in {
   animation:
     momentum-fade-in

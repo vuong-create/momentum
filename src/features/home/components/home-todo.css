@@ -76,6 +76,14 @@
     0 14px 36px rgba(0, 0, 0, 0.22);
 }
 
+.home-todo-input-strip-confirmed {
+  animation:
+    momentum-confirm-settle
+    420ms
+    var(--ease-spring)
+    both;
+}
+
 .home-todo-input-strip > span {
   color: var(--color-text-muted);
   font-size: 19px;

@@ -1,0 +1,129 @@
+.experience-root {
+  position: relative;
+  min-height: 100vh;
+  overflow: clip;
+
+  --experience-primary: rgba(255, 255, 255, 0.055);
+  --experience-secondary: rgba(255, 255, 255, 0.025);
+  --experience-background: #090909;
+
+  background:
+    radial-gradient(
+      circle at 50% -20%,
+      var(--experience-primary),
+      transparent 44%
+    ),
+    var(--experience-background);
+  transition: background-color 1200ms var(--ease-standard);
+}
+
+.experience-content {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+}
+
+.experience-light {
+  position: fixed;
+  z-index: 0;
+  width: 48vw;
+  height: 48vw;
+  min-width: 560px;
+  min-height: 560px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(110px);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.experience-light-primary {
+  top: -28vw;
+  right: -12vw;
+  opacity: 0.82;
+  background: var(--experience-primary);
+  animation:
+    experience-drift-primary
+    110s
+    ease-in-out
+    infinite alternate;
+}
+
+.experience-light-secondary {
+  bottom: -34vw;
+  left: 8vw;
+  opacity: 0.64;
+  background: var(--experience-secondary);
+  animation:
+    experience-drift-secondary
+    150s
+    ease-in-out
+    infinite alternate;
+}
+
+.experience-morning {
+  --experience-background: #080a0d;
+  --experience-primary: rgba(132, 166, 214, 0.095);
+  --experience-secondary: rgba(203, 219, 240, 0.036);
+}
+
+.experience-afternoon {
+  --experience-background: #090909;
+  --experience-primary: rgba(255, 255, 255, 0.078);
+  --experience-secondary: rgba(255, 255, 255, 0.03);
+}
+
+.experience-evening {
+  --experience-background: #090807;
+  --experience-primary: rgba(224, 177, 121, 0.075);
+  --experience-secondary: rgba(151, 117, 89, 0.035);
+}
+
+.experience-night {
+  --experience-background: #060708;
+  --experience-primary: rgba(91, 111, 153, 0.068);
+  --experience-secondary: rgba(128, 105, 160, 0.028);
+}
+
+@keyframes experience-drift-primary {
+  0% {
+    transform: translate3d(-4%, -3%, 0) scale(0.96);
+  }
+
+  50% {
+    transform: translate3d(7%, 6%, 0) scale(1.04);
+  }
+
+  100% {
+    transform: translate3d(-1%, 10%, 0) scale(1);
+  }
+}
+
+@keyframes experience-drift-secondary {
+  0% {
+    transform: translate3d(0, 5%, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(12%, -4%, 0) scale(1.08);
+  }
+
+  100% {
+    transform: translate3d(-8%, -8%, 0) scale(0.95);
+  }
+}
+
+.experience-motion-disabled *,
+.experience-motion-disabled *::before,
+.experience-motion-disabled *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-light {
+    animation: none;
+  }
+}

@@ -1846,6 +1846,21 @@ Version 1 can start with:
 soundsEnabled: true / false
 ```
 
+Current implementation:
+
+```text
+appSettings
+
+id: "preferences"
+soundsEnabled: boolean
+animationsEnabled: boolean
+updatedAt: ISO timestamp
+```
+
+Both preferences default to enabled and are stored locally in IndexedDB.
+System reduced-motion preferences still take precedence over the in-app
+animation setting.
+
 ---
 
 # 74. Application Metadata
