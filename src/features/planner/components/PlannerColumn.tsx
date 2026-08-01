@@ -1,15 +1,13 @@
 import type {
-  CreateActivityInput,
   PlannerActivity,
   PlannerDay,
 } from "../types";
 
 import PlannerTask from "./PlannerTask";
-import QuickAdd from "./QuickAdd";
 
 type PlannerColumnProps = {
   day: PlannerDay;
-  onAdd: (input: CreateActivityInput) => Promise<void>;
+  onRequestAdd: (dateKey: string) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onMove: (
     activity: PlannerActivity,
@@ -21,7 +19,7 @@ type PlannerColumnProps = {
 
 export default function PlannerColumn({
   day,
-  onAdd,
+  onRequestAdd,
   onComplete,
   onMove,
   onToggleImportant,
@@ -85,7 +83,15 @@ export default function PlannerColumn({
         )}
       </div>
 
-      <QuickAdd day={day} onAdd={onAdd} />
+      <button
+        className="planner-day-add"
+        type="button"
+        onClick={() => onRequestAdd(day.dateKey)}
+        aria-label={`Add activity to ${day.dayName}`}
+      >
+        <span>+</span>
+        Add to {day.shortDayName}
+      </button>
     </section>
   );
 }

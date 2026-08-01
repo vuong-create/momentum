@@ -92,14 +92,14 @@ The Weekly Plan is one of Momentum's primary global systems.
 
 It displays all seven days:
 
-**Monday → Sunday**
+**Sunday → Saturday**
 
 Example:
 
-| MON        | TUE          | WED           | THU      | FRI        | SAT      | SUN          |
-| ---------- | ------------ | ------------- | -------- | ---------- | -------- | ------------ |
-| 🏋️ Push ✓ | 🇨🇳 Tutor ✓ | 🏐 Volleyball | 🏋️ Pull | 💰 Finance | 🏋️ Legs | 🍳 Meal Prep |
-| 📖 Read    | 🍳 Tacos     | 📌 Laundry    | 📖 Read  |            |          |              |
+| SUN          | MON        | TUE          | WED           | THU      | FRI        | SAT      |
+| ------------ | ---------- | ------------ | ------------- | -------- | ---------- | -------- |
+| 🍳 Meal Prep | 🏋️ Push ✓ | 🇨🇳 Tutor ✓ | 🏐 Volleyball | 🏋️ Pull | 💰 Finance | 🏋️ Legs |
+|              | 📖 Read    | 🍳 Tacos     | 📌 Laundry    | 📖 Read  |            |          |
 
 The entire week should be visible without requiring separate daily pages.
 

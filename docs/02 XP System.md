@@ -1074,7 +1074,7 @@ Weekly completion bonuses are awarded once the week closes.
 
 The default Momentum week is:
 
-> **Monday → Sunday**
+> **Sunday → Saturday**
 
 The weekly result can be processed when the user next opens Momentum after the week ends.
 
