@@ -20,6 +20,7 @@ import {
   isActivityVisible,
   resolveActivityScheduledDate,
 } from "../activities/services/activityLifecycle";
+import { materializeOccurrencesForWeek } from "../activities/services/recurrenceService";
 
 import {
   pillarThemes,
@@ -94,6 +95,8 @@ function getCurrentWeekStart(
 export default function HomeDashboard() {
   const experience = useExperience();
   const navigate = useNavigate();
+  const today = experience.now;
+  const todayKey = toDateKey(today);
 
   const thoughtsRef =
     useRef<HTMLTextAreaElement>(null);
@@ -107,8 +110,13 @@ export default function HomeDashboard() {
   ] = useState<string | null>(null);
 
   const liveTasks = useLiveQuery(
-    () => db.plannedActivities.toArray(),
-    []
+    async () => {
+      await materializeOccurrencesForWeek(
+        toDateKey(getCurrentWeekStart(new Date(`${todayKey}T00:00:00`)))
+      );
+      return db.plannedActivities.toArray();
+    },
+    [todayKey]
   );
 
   const tasks = useMemo(
@@ -127,9 +135,6 @@ export default function HomeDashboard() {
       () => db.savedQuotes.toArray(),
       []
     ) ?? [];
-
-  const today = experience.now;
-  const todayKey = toDateKey(today);
 
   const quote = getDailyQuote(todayKey);
 

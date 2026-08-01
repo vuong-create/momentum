@@ -11,7 +11,8 @@ import {
   type PillarKey,
 } from "../../../app/theme";
 
-import type { Pillar } from "../../../database/db";
+import type { Pillar, RecurrencePattern } from "../../../database/db";
+import RecurrenceControls from "../../activities/components/RecurrenceControls";
 import type {
   CreateActivityInput,
   PlannerDay,
@@ -44,6 +45,8 @@ export default function PlannerComposer({
   );
   const [scheduledTime, setScheduledTime] = useState("");
   const [important, setImportant] = useState(false);
+  const [recurrence, setRecurrence] = useState<RecurrencePattern>();
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [notes, setNotes] = useState("");
   const [showOptions, setShowOptions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,6 +78,8 @@ export default function PlannerComposer({
         scheduledTime,
         important,
         notes,
+        recurrence,
+        saveAsTemplate,
       });
 
       localStorage.setItem("momentum.planner.pillar", pillar);
@@ -85,6 +90,8 @@ export default function PlannerComposer({
       setScheduledTime("");
       setImportant(false);
       setNotes("");
+      setRecurrence(undefined);
+      setSaveAsTemplate(false);
       if (!keepOptionsRef.current) setShowOptions(false);
       keepOptionsRef.current = false;
       titleRef.current?.focus();
@@ -221,6 +228,24 @@ export default function PlannerComposer({
               placeholder="Optional context"
             />
           </label>
+
+          <RecurrenceControls
+            compact
+            value={recurrence}
+            startDate={selectedDateKey}
+            onChange={setRecurrence}
+          />
+
+          <button
+            type="button"
+            className={`planner-composer-template-toggle ${
+              saveAsTemplate ? "is-selected" : ""
+            }`}
+            aria-pressed={saveAsTemplate}
+            onClick={() => setSaveAsTemplate((current) => !current)}
+          >
+            {saveAsTemplate ? "✓ Saved as reusable template" : "Save as reusable template"}
+          </button>
         </div>
       )}
 

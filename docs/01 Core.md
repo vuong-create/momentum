@@ -440,6 +440,22 @@ Examples:
 
 Recurring tasks should automatically populate the appropriate future schedule.
 
+## Current Recurrence Implementation
+
+Momentum materializes recurring occurrences only when Home or Planner views a
+week. Each occurrence receives a stable series/date key, so reopening a week
+cannot create duplicates and moving one occurrence does not cause the original
+date to reappear.
+
+Activity Details supports **This occurrence** and **This and future** editing,
+plus Skip and End Recurrence actions. Planner Quick Add supports daily,
+weekdays, weekly, monthly, and custom interval rules. Optional end dates remain
+hidden with the rest of the recurrence controls until Repeat is enabled.
+
+Reusable templates appear in a compact row beside the Planner capture flow.
+They remember the activity defaults and may also remember a recurrence preset.
+Workout exercise templates remain owned by the future Athletics feature.
+
 ---
 
 # 18. Weekly Navigation

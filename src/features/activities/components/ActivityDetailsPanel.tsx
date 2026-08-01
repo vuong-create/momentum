@@ -15,6 +15,8 @@ import {
 import type {
   Pillar,
   PlannedActivity,
+  RecurrencePattern,
+  RecurrenceRule,
 } from "../../../database/db";
 import useExperience from "../../../experience/useExperience";
 import {
@@ -32,6 +34,19 @@ import {
 } from "../services/activityService";
 import type { ActivityDetailsPatch } from "../types";
 import type { ActivityUndoNotice } from "./ActivityUndoToast";
+import RecurrenceControls from "./RecurrenceControls";
+import {
+  applyRecurrenceToActivity,
+  captureRecurrenceSeries,
+  describeRecurrence,
+  endRecurrence,
+  getRecurrenceRule,
+  removeRecurrenceFromActivity,
+  restoreRecurrenceSeries,
+  skipOccurrence,
+  updateFutureOccurrences,
+  updateSingleOccurrence,
+} from "../services/recurrenceService";
 
 import "./activity-controls.css";
 
@@ -43,6 +58,7 @@ type ActivityDetailsPanelProps = {
 
 type ActivityDetailsFormProps = {
   activity: PlannedActivity;
+  recurrenceRule?: RecurrenceRule;
   onClose: () => void;
   onMutation: (notice: ActivityUndoNotice) => void;
 };
@@ -89,6 +105,7 @@ function formatTimestamp(value?: string) {
 
 function ActivityDetailsForm({
   activity,
+  recurrenceRule,
   onClose,
   onMutation,
 }: ActivityDetailsFormProps) {
@@ -111,6 +128,22 @@ function ActivityDetailsForm({
   const [notes, setNotes] = useState(activity.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const [editScope, setEditScope] = useState<"occurrence" | "future">(
+    activity.recurrenceRuleId ? "occurrence" : "future"
+  );
+  const [recurrence, setRecurrence] = useState<RecurrencePattern | undefined>(
+    recurrenceRule
+      ? {
+          frequency: recurrenceRule.frequency,
+          interval: recurrenceRule.interval,
+          weekdays: recurrenceRule.weekdays,
+          monthDay: recurrenceRule.monthDay,
+          endDate: recurrenceRule.endDate,
+        }
+      : undefined
+  );
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
 
   const status = getActivityDisplayStatus(activity, todayKey);
   const quickDates = getQuickDates(scheduledDate || todayKey);
@@ -149,8 +182,7 @@ function ActivityDetailsForm({
 
     try {
       const previous = getPreviousDetails();
-
-      await updateActivityDetails(activity.id, {
+      const patch: ActivityDetailsPatch = {
         title,
         scheduledDate: scheduledDate || undefined,
         planningWeekStart: scheduledDate
@@ -160,7 +192,36 @@ function ActivityDetailsForm({
         pillar,
         important,
         notes: notes || undefined,
-      });
+      };
+      const snapshot = activity.recurrenceRuleId
+        ? await captureRecurrenceSeries(activity)
+        : null;
+
+      if (activity.recurrenceRuleId && editScope === "future") {
+        if (recurrence) {
+          await updateFutureOccurrences(activity, patch, recurrence);
+        } else {
+          await updateSingleOccurrence(activity, patch);
+          await endRecurrence(activity);
+        }
+      } else {
+        await updateSingleOccurrence(activity, patch);
+      }
+
+      let createdSeries:
+        | { templateId: number; ruleId: number }
+        | undefined;
+      if (!activity.recurrenceRuleId && recurrence && scheduledDate) {
+        createdSeries = await applyRecurrenceToActivity(
+          {
+            ...activity,
+            ...patch,
+            scheduledDate,
+          },
+          recurrence,
+          saveAsTemplate
+        );
+      }
 
       experience.playFeedback("task-updated");
       onMutation({
@@ -168,7 +229,20 @@ function ActivityDetailsForm({
           scheduledDate !== activity.scheduledDate
             ? "Activity rescheduled"
             : "Activity updated",
-        undo: () => updateActivityDetails(activity.id!, previous),
+        undo: async () => {
+          if (snapshot) {
+            await restoreRecurrenceSeries(snapshot);
+          } else if (createdSeries) {
+            await removeRecurrenceFromActivity(
+              activity.id!,
+              createdSeries.templateId,
+              createdSeries.ruleId
+            );
+            await updateActivityDetails(activity.id!, previous);
+          } else {
+            await updateActivityDetails(activity.id!, previous);
+          }
+        },
       });
       onClose();
     } finally {
@@ -217,6 +291,36 @@ function ActivityDetailsForm({
     onMutation({
       message: "Activity deleted",
       undo: () => restoreSoftDeletedActivity(activity.id!),
+    });
+    onClose();
+  }
+
+  async function handleSkipOccurrence() {
+    const snapshot = await captureRecurrenceSeries(activity);
+    await skipOccurrence(activity);
+    experience.playFeedback("task-dismissed");
+    onMutation({
+      message: "Occurrence skipped",
+      undo: () => snapshot
+        ? restoreRecurrenceSeries(snapshot)
+        : Promise.resolve(),
+    });
+    onClose();
+  }
+
+  async function handleEndRecurrence() {
+    if (!confirmingEnd) {
+      setConfirmingEnd(true);
+      return;
+    }
+    const snapshot = await captureRecurrenceSeries(activity);
+    await endRecurrence(activity);
+    experience.playFeedback("task-updated");
+    onMutation({
+      message: "Recurrence ended",
+      undo: () => snapshot
+        ? restoreRecurrenceSeries(snapshot)
+        : Promise.resolve(),
     });
     onClose();
   }
@@ -339,6 +443,39 @@ function ActivityDetailsForm({
           />
         </label>
 
+        <fieldset className="activity-fieldset activity-recurrence-fieldset">
+          <legend>Recurrence</legend>
+          {activity.recurrenceRuleId && recurrenceRule && (
+            <>
+              <div className="activity-series-summary">
+                <span>↻</span>
+                <div>
+                  <strong>{describeRecurrence(recurrenceRule)}</strong>
+                  <small>Part of a recurring series</small>
+                </div>
+              </div>
+              <div className="activity-edit-scope">
+                <button type="button" className={editScope === "occurrence" ? "is-selected" : ""} onClick={() => setEditScope("occurrence")}>This occurrence</button>
+                <button type="button" className={editScope === "future" ? "is-selected" : ""} onClick={() => setEditScope("future")}>This and future</button>
+              </div>
+            </>
+          )}
+
+          {(!activity.recurrenceRuleId || editScope === "future") && scheduledDate && (
+            <RecurrenceControls
+              value={recurrence}
+              startDate={activity.recurrenceDate ?? scheduledDate}
+              onChange={setRecurrence}
+            />
+          )}
+
+          {!activity.recurrenceRuleId && recurrence && (
+            <button type="button" className={`activity-save-template ${saveAsTemplate ? "is-selected" : ""}`} onClick={() => setSaveAsTemplate((current) => !current)}>
+              {saveAsTemplate ? "✓ Save as reusable template" : "Save this series as a reusable template"}
+            </button>
+          )}
+        </fieldset>
+
         <div className="activity-history">
           <span>Created {formatTimestamp(activity.createdAt ?? activity.date)}</span>
           {activity.completedAt && (
@@ -353,6 +490,16 @@ function ActivityDetailsForm({
           {!activity.completed && (
             <button type="button" onClick={handleDismiss}>
               Dismiss
+            </button>
+          )}
+          {activity.recurrenceRuleId && !activity.completed && (
+            <button type="button" onClick={handleSkipOccurrence}>
+              Skip this occurrence
+            </button>
+          )}
+          {activity.recurrenceRuleId && (
+            <button type="button" className={confirmingEnd ? "is-confirming" : ""} onClick={handleEndRecurrence}>
+              {confirmingEnd ? "Confirm end series" : "End recurrence"}
             </button>
           )}
           <button
@@ -382,8 +529,16 @@ export default function ActivityDetailsPanel({
   onClose,
   onMutation,
 }: ActivityDetailsPanelProps) {
-  const activity = useLiveQuery(
-    () => (activityId ? getPlannedActivity(activityId) : undefined),
+  const details = useLiveQuery(
+    async () => {
+      const activity = activityId
+        ? await getPlannedActivity(activityId)
+        : undefined;
+      const recurrenceRule = await getRecurrenceRule(
+        activity?.recurrenceRuleId
+      );
+      return { activity, recurrenceRule };
+    },
     [activityId]
   );
 
@@ -406,10 +561,11 @@ export default function ActivityDetailsPanel({
         aria-modal="true"
         aria-label="Activity details"
       >
-        {activity ? (
+        {details?.activity ? (
           <ActivityDetailsForm
-            key={`${activity.id}-${activity.updatedAt}`}
-            activity={activity}
+            key={`${details.activity.id}-${details.activity.updatedAt}`}
+            activity={details.activity}
+            recurrenceRule={details.recurrenceRule}
             onClose={onClose}
             onMutation={onMutation}
           />

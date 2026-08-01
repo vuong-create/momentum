@@ -11,6 +11,16 @@ export type Pillar =
 
 export type Difficulty = "easy" | "medium" | "hard";
 
+export type RecurrenceFrequency = "daily" | "weekly" | "monthly";
+
+export interface RecurrencePattern {
+  frequency: RecurrenceFrequency;
+  interval: number;
+  weekdays?: number[];
+  monthDay?: number;
+  endDate?: string;
+}
+
 export type ActivityStatus =
   | "planned"
   | "completed"
@@ -45,6 +55,35 @@ export interface PlannedActivity {
   dismissedAt?: string;
   cancelledAt?: string;
   deletedAt?: string;
+  templateId?: number;
+  recurrenceRuleId?: number;
+  recurrenceDate?: string;
+  recurrenceKey?: string;
+  recurrenceOverride?: boolean;
+}
+
+export interface ActivityTemplate {
+  id?: number;
+  title: string;
+  pillar: Pillar;
+  difficulty: Difficulty;
+  scheduledTime?: string;
+  important?: boolean;
+  notes?: string;
+  recurrencePreset?: RecurrencePattern;
+  saved: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface RecurrenceRule extends RecurrencePattern {
+  id?: number;
+  templateId: number;
+  startDate: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ActivityEvent {
@@ -116,6 +155,8 @@ class MomentumDatabase extends Dexie {
   notes!: Table<Note>;
   savedQuotes!: Table<SavedQuote>;
   appSettings!: Table<AppSettings, "preferences">;
+  activityTemplates!: Table<ActivityTemplate>;
+  recurrenceRules!: Table<RecurrenceRule>;
 
   constructor() {
     super("MomentumDatabase");
@@ -260,6 +301,29 @@ class MomentumDatabase extends Dexie {
     this.version(11).stores({
       plannedActivities:
         "++id, title, completed, status, date, day, scheduledDate, planningWeekStart, scheduledTime, pillar, sortOrder, deletedAt",
+      activityEvents:
+        "++id, plannedActivityId, occurredAt, pillar, voidedAt",
+      xpEvents:
+        "++id, &dedupeKey, activityEventId, source, date, voidedAt",
+      streakRecords:
+        "++id, date, completed",
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate",
+      notes:
+        "++id, createdAt, updatedAt",
+      savedQuotes:
+        "++id, &quoteKey, savedAt",
+      appSettings:
+        "&id",
+    });
+
+    this.version(12).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, planningWeekStart, scheduledTime, pillar, sortOrder, deletedAt, templateId, recurrenceRuleId, recurrenceDate, &recurrenceKey",
+      activityTemplates:
+        "++id, title, pillar, saved, updatedAt, deletedAt",
+      recurrenceRules:
+        "++id, templateId, frequency, startDate, active, endDate",
       activityEvents:
         "++id, plannedActivityId, occurredAt, pillar, voidedAt",
       xpEvents:

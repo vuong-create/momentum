@@ -2,7 +2,6 @@ import { db } from "../../../database/db";
 import type { PlannedActivity } from "../../../database/db";
 
 import {
-  createPlannedActivity,
   duplicatePlannedActivity,
   movePlannedActivities,
   movePlannedActivity,
@@ -12,6 +11,10 @@ import {
   unschedulePlannedActivity,
   updateActivityDetails,
 } from "../../activities/services/activityService";
+import {
+  createActivityPlan,
+  materializeOccurrencesForWeek,
+} from "../../activities/services/recurrenceService";
 import { isActivityVisible } from "../../activities/services/activityLifecycle";
 
 import type {
@@ -180,6 +183,7 @@ function resolveScheduledDate(
 export async function getActivitiesForWeek(
   weekStartKey: string
 ) {
+  await materializeOccurrencesForWeek(weekStartKey);
   const weekStart = fromDateKey(weekStartKey);
   const weekEnd = addDays(weekStart, 6);
 
@@ -212,7 +216,7 @@ export async function getActivitiesForWeek(
 export async function createActivity(
   input: CreateActivityInput
 ) {
-  await createPlannedActivity(input);
+  return createActivityPlan(input);
 }
 
 export async function duplicateActivity(

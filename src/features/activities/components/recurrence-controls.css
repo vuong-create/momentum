@@ -1,0 +1,97 @@
+.recurrence-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.recurrence-controls label,
+.recurrence-weekdays {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.recurrence-controls label > span,
+.recurrence-weekdays legend {
+  color: var(--color-text-muted);
+  font-size: 7px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.recurrence-controls select,
+.recurrence-controls input {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 7px;
+  color: var(--color-text-secondary);
+  background: rgba(0, 0, 0, 0.24);
+  font-size: 8px;
+  color-scheme: dark;
+}
+
+.recurrence-custom-row {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 7px;
+}
+
+.recurrence-weekdays {
+  grid-column: 1 / -1;
+}
+
+.recurrence-weekdays > div {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.recurrence-weekdays button {
+  min-height: 27px;
+  padding: 0;
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 7px;
+}
+
+.recurrence-weekdays button.is-selected {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.recurrence-controls > small {
+  grid-column: 1 / -1;
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.recurrence-controls.is-compact {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 10px 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 680px) {
+  .recurrence-controls,
+  .recurrence-controls.is-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .recurrence-weekdays,
+  .recurrence-controls > small {
+    grid-column: 1;
+  }
+}

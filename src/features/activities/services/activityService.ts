@@ -89,6 +89,24 @@ export async function updateActivityDetails(
     normalizedPatch.notes = patch.notes.trim() || undefined;
   }
 
+  const changesOccurrence = [
+    patch.title,
+    patch.scheduledDate,
+    patch.planningWeekStart,
+    patch.scheduledTime,
+    patch.pillar,
+    patch.important,
+    patch.notes,
+  ].some((value) => value !== undefined);
+
+  if (
+    activity.recurrenceRuleId &&
+    changesOccurrence &&
+    patch.recurrenceOverride === undefined
+  ) {
+    normalizedPatch.recurrenceOverride = true;
+  }
+
   if (patch.scheduledDate) {
     normalizedPatch.scheduledDate = patch.scheduledDate;
     normalizedPatch.planningWeekStart = undefined;
@@ -112,13 +130,14 @@ export async function movePlannedActivity(
   scheduledDate: string,
   sortOrder = Date.now()
 ) {
-  await requireActivity(id);
+  const activity = await requireActivity(id);
 
   await db.plannedActivities.update(id, {
     scheduledDate,
     planningWeekStart: undefined,
     day: getDayName(scheduledDate),
     sortOrder,
+    recurrenceOverride: Boolean(activity.recurrenceRuleId),
     updatedAt: new Date().toISOString(),
   });
 }
@@ -128,13 +147,14 @@ export async function unschedulePlannedActivity(
   planningWeekStart: string,
   sortOrder = Date.now()
 ) {
-  await requireActivity(id);
+  const activity = await requireActivity(id);
 
   await db.plannedActivities.update(id, {
     scheduledDate: undefined,
     planningWeekStart,
     day: "Unscheduled",
     sortOrder,
+    recurrenceOverride: Boolean(activity.recurrenceRuleId),
     updatedAt: new Date().toISOString(),
   });
 }
@@ -191,13 +211,16 @@ export async function movePlannedActivities(
   await db.transaction("rw", db.plannedActivities, async () => {
     await Promise.all(
       ids.map((id, index) =>
-        db.plannedActivities.update(id, {
-          scheduledDate,
-          planningWeekStart: undefined,
-          day: getDayName(scheduledDate),
-          sortOrder: baseOrder + index,
-          updatedAt: now.toISOString(),
-        })
+        db.plannedActivities.get(id).then((activity) =>
+          db.plannedActivities.update(id, {
+            scheduledDate,
+            planningWeekStart: undefined,
+            day: getDayName(scheduledDate),
+            sortOrder: baseOrder + index,
+            recurrenceOverride: Boolean(activity?.recurrenceRuleId),
+            updatedAt: now.toISOString(),
+          })
+        )
       )
     );
   });
@@ -208,6 +231,7 @@ export async function toggleActivityImportance(id: number) {
 
   await db.plannedActivities.update(id, {
     important: !activity.important,
+    recurrenceOverride: Boolean(activity.recurrenceRuleId),
     updatedAt: new Date().toISOString(),
   });
 }

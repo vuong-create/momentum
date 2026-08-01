@@ -366,6 +366,125 @@
   text-transform: none;
 }
 
+.planner-composer-template-toggle {
+  grid-column: 1 / -1;
+  min-height: 30px;
+  justify-self: start;
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 7px;
+}
+
+.planner-composer-template-toggle.is-selected {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.planner-templates {
+  margin: -7px 0 18px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.planner-templates-heading {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 13px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.planner-templates-heading > span:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.planner-templates-heading strong {
+  color: var(--color-text-secondary);
+  font-size: 8px;
+  font-weight: 540;
+}
+
+.planner-templates-heading small,
+.planner-templates-heading > span:last-child {
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.planner-template-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 9px 11px 11px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.planner-template {
+  min-width: 150px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 7px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.planner-template-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--pillar-color);
+}
+
+.planner-template-use {
+  min-width: 0;
+  min-height: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.planner-template-use strong {
+  max-width: 150px;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 8px;
+  font-weight: 520;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planner-template-use small {
+  color: var(--color-text-disabled);
+  font-size: 6px;
+}
+
+.planner-template-delete {
+  width: 20px;
+  min-height: 20px;
+  padding: 0;
+  border-color: transparent;
+  color: var(--color-text-disabled);
+  background: transparent;
+  font-size: 11px;
+}
+
 .planner-composer-details textarea {
   min-height: 52px;
   padding-top: 8px;
@@ -967,7 +1086,9 @@
   z-index: 75;
   inset: 0;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
 
 .planner-day-panel-backdrop {
@@ -986,18 +1107,20 @@
 .planner-day-panel {
   position: relative;
   z-index: 1;
-  width: min(760px, calc(100vw - 24px));
-  height: 100%;
+  width: min(760px, calc(100vw - 48px));
+  height: min(900px, calc(100vh - 48px));
   display: grid;
   grid-template-rows: auto auto auto auto minmax(0, 1fr);
-  border-left: 1px solid var(--color-border-default);
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
   background:
     linear-gradient(
       155deg,
       rgba(31, 31, 31, 0.985),
       rgba(11, 11, 11, 0.995) 48%
     );
-  box-shadow: -28px 0 80px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62);
   animation:
     planner-day-panel-enter
     var(--duration-slow)
@@ -1457,12 +1580,12 @@
 @keyframes planner-day-panel-enter {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateY(14px) scale(0.985);
   }
 
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -1496,6 +1619,10 @@
 }
 
 @media (max-width: 680px) {
+  .planner-day-panel-layer {
+    padding: 0;
+  }
+
   .planner-week-header {
     grid-template-columns: 1fr;
     align-items: start;
@@ -1553,6 +1680,8 @@
 
   .planner-day-panel {
     width: 100%;
+    height: 100%;
+    border-radius: 0;
   }
 
   .planner-day-panel-header,
