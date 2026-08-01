@@ -1,8 +1,9 @@
-import ProgressBar from "../../../components/ProgressBar";
+import SegmentedProgress from "../../../components/SegmentedProgress";
 
 import {
   addDays,
   fromDateKey,
+  getRelativeWeekLabel,
 } from "../services/plannerService";
 
 type WeekHeaderProps = {
@@ -51,6 +52,8 @@ export default function WeekHeader({
   onNextWeek,
   onCurrentWeek,
 }: WeekHeaderProps) {
+  const weekLabel = getRelativeWeekLabel(weekStartKey);
+
   return (
     <header className="planner-week-header">
       <div className="planner-week-title">
@@ -59,27 +62,34 @@ export default function WeekHeader({
         <p>{getWeekLabel(weekStartKey)}</p>
       </div>
 
-      <div className="planner-week-navigation">
-        <button
-          className="planner-arrow-button"
-          onClick={onPreviousWeek}
-          aria-label="Previous week"
-        >
-          ←
-        </button>
-        <button
-          className="planner-today-button"
-          onClick={onCurrentWeek}
-        >
-          Today
-        </button>
-        <button
-          className="planner-arrow-button"
-          onClick={onNextWeek}
-          aria-label="Next week"
-        >
-          →
-        </button>
+      <div className="planner-week-controls">
+        <div className="planner-week-navigation">
+          <button
+            className="planner-arrow-button"
+            onClick={onPreviousWeek}
+            aria-label="Previous week"
+          >
+            ←
+          </button>
+          <span className="planner-viewed-week-label">{weekLabel}</span>
+          <button
+            className="planner-arrow-button"
+            onClick={onNextWeek}
+            aria-label="Next week"
+          >
+            →
+          </button>
+        </div>
+
+        {weekLabel !== "This week" && (
+          <button
+            className="planner-return-button"
+            type="button"
+            onClick={onCurrentWeek}
+          >
+            Return to this week
+          </button>
+        )}
       </div>
 
       <div className="planner-progress-summary">
@@ -91,11 +101,13 @@ export default function WeekHeader({
           </strong>
         </div>
 
-        <ProgressBar value={percentage} label="Weekly completion" />
+        <strong className="planner-percentage">{percentage}%</strong>
 
-        <span className="planner-percentage">
-          {percentage}%
-        </span>
+        <SegmentedProgress
+          value={percentage}
+          label={`${percentage}% of weekly activities completed`}
+          className="planner-week-segments"
+        />
       </div>
     </header>
   );

@@ -41,9 +41,9 @@ export default function PlannerComposer({
   const [scheduledTime, setScheduledTime] = useState("");
   const [important, setImportant] = useState(false);
   const [notes, setNotes] = useState("");
-  const [showTime, setShowTime] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const selectedDay = days.find((day) => day.dateKey === selectedDateKey);
 
   useEffect(() => {
     if (focusRequest === 0) return;
@@ -76,8 +76,7 @@ export default function PlannerComposer({
       setScheduledTime("");
       setImportant(false);
       setNotes("");
-      setShowTime(false);
-      setShowNotes(false);
+      setShowOptions(false);
       titleRef.current?.focus();
     } finally {
       setIsSubmitting(false);
@@ -92,7 +91,11 @@ export default function PlannerComposer({
     >
       <div className="planner-composer-heading">
         <span className="text-label">Quick add</span>
-        <span>Enter to add · day and pillar stay selected</span>
+        <span>
+          {selectedDay
+            ? `${selectedDay.dayName}, ${selectedDay.dayNumber}`
+            : "Select a day"}
+        </span>
       </div>
 
       <div className="planner-composer-input-row">
@@ -160,55 +163,47 @@ export default function PlannerComposer({
         <div className="planner-composer-options">
           <button
             type="button"
-            className={showTime ? "is-selected" : ""}
-            aria-pressed={showTime}
-            onClick={() => setShowTime((current) => !current)}
+            className={showOptions ? "is-selected" : ""}
+            aria-pressed={showOptions}
+            onClick={() => setShowOptions((current) => !current)}
           >
-            {showTime ? "Hide time" : "Add time"}
-          </button>
-          <button
-            type="button"
-            className={important ? "is-selected" : ""}
-            aria-pressed={important}
-            onClick={() => setImportant((current) => !current)}
-          >
-            {important ? "Important ✓" : "Important"}
-          </button>
-          <button
-            type="button"
-            className={showNotes ? "is-selected" : ""}
-            aria-pressed={showNotes}
-            onClick={() => setShowNotes((current) => !current)}
-          >
-            {showNotes ? "Hide notes" : "Notes"}
+            {showOptions ? "Hide options" : "Options"}
           </button>
         </div>
       </div>
 
-      {(showTime || showNotes) && (
+      {showOptions && (
         <div className="planner-composer-details">
-          {showTime && (
-            <label>
-              <span>Time</span>
-              <input
-                type="time"
-                value={scheduledTime}
-                onChange={(event) => setScheduledTime(event.target.value)}
-              />
-            </label>
-          )}
+          <label>
+            <span>Time</span>
+            <input
+              type="time"
+              value={scheduledTime}
+              onChange={(event) => setScheduledTime(event.target.value)}
+            />
+          </label>
 
-          {showNotes && (
-            <label className="planner-composer-notes">
-              <span>Notes</span>
-              <textarea
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                rows={2}
-                placeholder="Optional context"
-              />
-            </label>
-          )}
+          <button
+            type="button"
+            className={`planner-composer-important ${
+              important ? "is-selected" : ""
+            }`}
+            aria-pressed={important}
+            onClick={() => setImportant((current) => !current)}
+          >
+            <span>{important ? "★" : "☆"}</span>
+            {important ? "Marked important" : "Mark important"}
+          </button>
+
+          <label className="planner-composer-notes">
+            <span>Notes</span>
+            <textarea
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              rows={2}
+              placeholder="Optional context"
+            />
+          </label>
         </div>
       )}
     </form>

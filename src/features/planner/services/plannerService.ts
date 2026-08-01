@@ -65,6 +65,71 @@ export function addWeeks(date: Date, amount: number) {
   return addDays(date, amount * 7);
 }
 
+function getDateKeyUTCValue(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+
+  return Date.UTC(year, month - 1, day);
+}
+
+export function getRelativeWeekLabel(
+  weekStartKey: string,
+  referenceDate = new Date()
+) {
+  const referenceWeekKey = toDateKey(getWeekStart(referenceDate));
+  const weekOffset = Math.round(
+    (getDateKeyUTCValue(weekStartKey) -
+      getDateKeyUTCValue(referenceWeekKey)) /
+      (7 * 24 * 60 * 60 * 1000)
+  );
+
+  if (weekOffset === 0) return "This week";
+  if (weekOffset === 1) return "Next week";
+  if (weekOffset === -1) return "Last week";
+  if (weekOffset === 2) return "2 weeks ahead";
+  if (weekOffset === -2) return "2 weeks ago";
+
+  const start = fromDateKey(weekStartKey);
+  const end = addDays(start, 6);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return `Week of ${formatter.format(start)} – ${formatter.format(end)}`;
+}
+
+export function sortActivitiesForFocus(
+  activities: PlannedActivity[]
+) {
+  return [...activities].sort((first, second) => {
+    if (first.completed !== second.completed) {
+      return first.completed ? 1 : -1;
+    }
+
+    if (Boolean(first.important) !== Boolean(second.important)) {
+      return first.important ? -1 : 1;
+    }
+
+    if (Boolean(first.scheduledTime) !== Boolean(second.scheduledTime)) {
+      return first.scheduledTime ? -1 : 1;
+    }
+
+    if (first.scheduledTime && second.scheduledTime) {
+      const timeComparison = first.scheduledTime.localeCompare(
+        second.scheduledTime
+      );
+
+      if (timeComparison !== 0) return timeComparison;
+    }
+
+    return (
+      (first.sortOrder ?? first.id ?? 0) -
+      (second.sortOrder ?? second.id ?? 0)
+    );
+  });
+}
+
 function getLegacyScheduledDate(
   activity: PlannedActivity,
   requestedWeekStart: Date

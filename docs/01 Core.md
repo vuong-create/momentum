@@ -90,7 +90,7 @@ Completing an item here completes the same item everywhere else in Momentum.
 
 The Weekly Plan is one of Momentum's primary global systems.
 
-It displays all seven days:
+It contains all seven days in Sunday-first order:
 
 **Sunday → Saturday**
 
@@ -101,7 +101,14 @@ Example:
 | 🍳 Meal Prep | 🏋️ Push ✓ | 🇨🇳 Tutor ✓ | 🏐 Volleyball | 🏋️ Pull | 💰 Finance | 🏋️ Legs |
 |              | 📖 Read    | 🍳 Tacos     | 📌 Laundry    | 📖 Read  |            |          |
 
-The entire week should be visible without requiring separate daily pages.
+The Planner presents the week as a horizontal set of day cards. Five cards are
+typically visible on a laptop, with arrows and natural horizontal scrolling for
+the remaining days. Wider layouts may reveal more cards.
+
+Each card previews a small number of unfinished activities. Opening a card
+reveals the complete day in a large Day Focus inspector, allowing ten or more
+activities to remain readable without making every weekly card excessively
+tall.
 
 ---
 
@@ -211,13 +218,15 @@ Detailed reading tracking is not required for Version 1.
 
 Adding something to the Weekly Plan should require as little effort as possible.
 
-Each day contains a:
+Each day card contains a compact:
 
 `+`
 
 button.
 
-Clicking the `+` under Wednesday automatically assigns the new item to Wednesday.
+Clicking the `+` on Wednesday automatically selects Wednesday in the compact
+Quick Add bar. The Day Focus inspector also provides a title-only add field for
+that day.
 
 The user primarily needs to:
 
@@ -288,7 +297,7 @@ The interface should remain cohesive rather than becoming excessively color-code
 
 # 12. Task Interaction
 
-Weekly Plan tasks behave like lightweight draggable cards.
+Weekly Plan tasks behave like lightweight draggable rows and previews.
 
 Primary interactions:
 
@@ -301,9 +310,14 @@ Complete / uncomplete without leaving the current view.
 Open the shared activity details drawer for title, date, pillar, time,
 importance, notes, status, and history.
 
+### Day Card
+
+Open a large Day Focus inspector grouped into Important, Scheduled, Anytime,
+and collapsed Completed activities.
+
 ### Drag Between Days
 
-Reschedule.
+Reschedule by dropping onto another day card.
 
 ### Drag Within Day
 
