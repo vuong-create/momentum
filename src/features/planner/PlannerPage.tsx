@@ -9,6 +9,12 @@ import useExperience from "../../experience/useExperience";
 import ActivityDetailsPanel from "../activities/components/ActivityDetailsPanel";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
 import useActivityUndo from "../activities/hooks/useActivityUndo";
+import {
+  movePlannedActivity,
+  softDeletePlannedActivity,
+  unschedulePlannedActivity,
+  updateActivityDetails,
+} from "../activities/services/activityService";
 import usePlanner from "./hooks/usePlanner";
 
 import type {
@@ -20,6 +26,7 @@ import WeekHeader from "./components/WeekHeader";
 import PlannerComposer from "./components/PlannerComposer";
 import PlannerDayCarousel from "./components/PlannerDayCarousel";
 import PlannerDayPanel from "./components/PlannerDayPanel";
+import PlannerUnscheduled from "./components/PlannerUnscheduled";
 
 import "./planner.css";
 
@@ -28,7 +35,7 @@ export default function PlannerPage() {
   const experience = useExperience();
   const activityUndo = useActivityUndo();
   const [requestedDateKey, setRequestedDateKey] = useState<string | null>(
-    null
+    () => sessionStorage.getItem("momentum.planner.composer-day")
   );
   const [composerFocusRequest, setComposerFocusRequest] = useState(0);
   const [celebratingActivityId, setCelebratingActivityId] = useState<
@@ -38,9 +45,23 @@ export default function PlannerPage() {
     number | null
   >(null);
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(
-    null
+    () => sessionStorage.getItem("momentum.planner.selected-day")
   );
   const celebrationTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (requestedDateKey) {
+      sessionStorage.setItem("momentum.planner.composer-day", requestedDateKey);
+    }
+  }, [requestedDateKey]);
+
+  useEffect(() => {
+    if (selectedDayKey) {
+      sessionStorage.setItem("momentum.planner.selected-day", selectedDayKey);
+    } else {
+      sessionStorage.removeItem("momentum.planner.selected-day");
+    }
+  }, [selectedDayKey]);
 
   const preferredDay =
     planner.days.find((day) => day.isToday) ?? planner.days[0];
@@ -118,6 +139,98 @@ export default function PlannerPage() {
     }
   }
 
+  function restoreActivityLocation(activity: PlannerActivity) {
+    if (!activity.id) return Promise.resolve();
+    if (activity.scheduledDate) {
+      return movePlannedActivity(
+        activity.id,
+        activity.scheduledDate,
+        activity.sortOrder
+      );
+    }
+    return unschedulePlannedActivity(
+      activity.id,
+      activity.planningWeekStart ?? planner.weekStartKey,
+      activity.sortOrder
+    );
+  }
+
+  async function moveActivity(activity: PlannerActivity, dateKey: string) {
+    await planner.rescheduleActivity(activity, dateKey);
+    experience.playFeedback("task-updated");
+    activityUndo.show({
+      message: `Moved to ${new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date(`${dateKey}T00:00:00`))}`,
+      undo: () => restoreActivityLocation(activity),
+    });
+  }
+
+  async function moveToUnscheduled(activity: PlannerActivity) {
+    if (!activity.scheduledDate && activity.planningWeekStart === planner.weekStartKey) return;
+    await planner.moveToUnscheduled(activity);
+    experience.playFeedback("task-updated");
+    activityUndo.show({
+      message: "Moved to Unscheduled This Week",
+      undo: () => restoreActivityLocation(activity),
+    });
+  }
+
+  async function duplicateActivity(activity: PlannerActivity, dateKey: string) {
+    const newId = await planner.copyActivity(activity, { scheduledDate: dateKey });
+    experience.playFeedback("task-added");
+    if (newId) {
+      activityUndo.show({
+        message: "Activity copied",
+        undo: () => softDeletePlannedActivity(newId),
+      });
+    }
+  }
+
+  async function renameActivity(activity: PlannerActivity, title: string) {
+    await planner.changeTitle(activity, title);
+    experience.playFeedback("task-updated");
+    activityUndo.show({
+      message: "Activity renamed",
+      undo: () => updateActivityDetails(activity.id!, { title: activity.title }),
+    });
+  }
+
+  async function reorderActivities(activities: PlannerActivity[]) {
+    const ids = activities.flatMap((activity) => activity.id ? [activity.id] : []);
+    const previous = [...activities]
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .flatMap((activity) => activity.id ? [activity.id] : []);
+    await planner.reorderActivityList(ids);
+    experience.playFeedback("task-updated");
+    activityUndo.show({ message: "Order updated", undo: () => planner.reorderActivityList(previous) });
+  }
+
+  async function sendToTop(activity: PlannerActivity, group: PlannerActivity[]) {
+    const next = [activity, ...group.filter((item) => item.id !== activity.id)];
+    await reorderActivities(next);
+  }
+
+  async function moveRemaining(activities: PlannerActivity[], dateKey: string) {
+    await planner.rescheduleActivities(activities, dateKey);
+    experience.playFeedback("task-updated");
+    activityUndo.show({
+      message: `${activities.length} ${activities.length === 1 ? "activity" : "activities"} moved`,
+      undo: async () => {
+        await Promise.all(activities.map(restoreActivityLocation));
+      },
+    });
+  }
+
+  function navigateDay(direction: -1 | 1) {
+    if (!selectedDay) return;
+    const index = planner.days.findIndex((day) => day.dateKey === selectedDay.dateKey);
+    const target = planner.days[index + direction];
+    if (target) setSelectedDayKey(target.dateKey);
+  }
+
+  async function addUnscheduled(title: string) {
+    await addActivity({ title, planningWeekStart: planner.weekStartKey, pillar: "core" });
+  }
+
   return (
     <div className="planner-page">
       <WeekHeader
@@ -138,25 +251,42 @@ export default function PlannerPage() {
         onAdd={addActivity}
       />
 
+      <PlannerUnscheduled
+        activities={planner.unscheduledActivities}
+        days={planner.days}
+        onAdd={addUnscheduled}
+        onOpenDetails={(activityId) => openActivityDetails(activityId)}
+        onSchedule={moveActivity}
+        onUnschedule={moveToUnscheduled}
+      />
+
       <PlannerDayCarousel
         days={planner.days}
         onOpenDay={setSelectedDayKey}
         onRequestAdd={requestComposer}
         onOpenDetails={openActivityDetails}
         onComplete={completeActivity}
-        onMove={planner.rescheduleActivity}
+        onMove={moveActivity}
       />
 
       {!selectedActivityId && (
         <PlannerDayPanel
           key={selectedDay?.dateKey ?? "closed"}
           day={selectedDay}
+          weekDays={planner.days}
           celebratingActivityId={celebratingActivityId}
           onClose={closeDayPanel}
+          onNavigate={navigateDay}
           onAdd={addActivity}
           onOpenDetails={(activityId) => openActivityDetails(activityId)}
           onComplete={completeActivity}
           onToggleImportant={planner.markImportant}
+          onRename={renameActivity}
+          onMove={moveActivity}
+          onDuplicate={duplicateActivity}
+          onSendToTop={sendToTop}
+          onReorder={reorderActivities}
+          onMoveRemaining={moveRemaining}
         />
       )}
 

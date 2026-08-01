@@ -30,6 +30,7 @@ export interface PlannedActivity {
   date: string;
   day: string;
   scheduledDate?: string;
+  planningWeekStart?: string;
   scheduledTime?: string;
   sortOrder?: number;
 
@@ -240,6 +241,25 @@ class MomentumDatabase extends Dexie {
     this.version(10).stores({
       plannedActivities:
         "++id, title, completed, status, date, day, scheduledDate, scheduledTime, pillar, sortOrder, deletedAt",
+      activityEvents:
+        "++id, plannedActivityId, occurredAt, pillar, voidedAt",
+      xpEvents:
+        "++id, &dedupeKey, activityEventId, source, date, voidedAt",
+      streakRecords:
+        "++id, date, completed",
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate",
+      notes:
+        "++id, createdAt, updatedAt",
+      savedQuotes:
+        "++id, &quoteKey, savedAt",
+      appSettings:
+        "&id",
+    });
+
+    this.version(11).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, planningWeekStart, scheduledTime, pillar, sortOrder, deletedAt",
       activityEvents:
         "++id, plannedActivityId, occurredAt, pillar, voidedAt",
       xpEvents:

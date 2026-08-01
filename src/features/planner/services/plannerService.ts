@@ -3,9 +3,14 @@ import type { PlannedActivity } from "../../../database/db";
 
 import {
   createPlannedActivity,
+  duplicatePlannedActivity,
+  movePlannedActivities,
   movePlannedActivity,
+  setPlannedActivityOrder,
   toggleActivityImportance,
   togglePlannedActivity,
+  unschedulePlannedActivity,
+  updateActivityDetails,
 } from "../../activities/services/activityService";
 import { isActivityVisible } from "../../activities/services/activityLifecycle";
 
@@ -63,6 +68,18 @@ export function addDays(date: Date, amount: number) {
 
 export function addWeeks(date: Date, amount: number) {
   return addDays(date, amount * 7);
+}
+
+export function formatActivityTime(time?: string) {
+  if (!time) return "";
+
+  const [hours, minutes] = time.split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return time;
+
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHour = hours % 12 || 12;
+
+  return `${displayHour}:${padNumber(minutes)} ${period}`;
 }
 
 function getDateKeyUTCValue(dateKey: string) {
@@ -178,7 +195,12 @@ export async function getActivitiesForWeek(
       weekStart
     );
 
-    if (!scheduledDate) return false;
+    if (!scheduledDate) {
+      return (
+        isActivityVisible(activity) &&
+        activity.planningWeekStart === startKey
+      );
+    }
 
     return isActivityVisible(activity) && (
       scheduledDate >= startKey &&
@@ -191,6 +213,44 @@ export async function createActivity(
   input: CreateActivityInput
 ) {
   await createPlannedActivity(input);
+}
+
+export async function duplicateActivity(
+  activity: PlannedActivity,
+  destination: { scheduledDate?: string; planningWeekStart?: string } = {}
+) {
+  if (!activity.id) return;
+  return duplicatePlannedActivity(activity.id, destination);
+}
+
+export async function renameActivity(
+  activity: PlannedActivity,
+  title: string
+) {
+  if (!activity.id) return;
+  await updateActivityDetails(activity.id, { title });
+}
+
+export async function reorderActivities(ids: number[]) {
+  await setPlannedActivityOrder(ids);
+}
+
+export async function moveActivities(
+  activities: PlannedActivity[],
+  scheduledDate: string
+) {
+  const ids = activities.flatMap((activity) =>
+    activity.id ? [activity.id] : []
+  );
+  await movePlannedActivities(ids, scheduledDate);
+}
+
+export async function unscheduleActivity(
+  activity: PlannedActivity,
+  planningWeekStart: string
+) {
+  if (!activity.id) return;
+  await unschedulePlannedActivity(activity.id, planningWeekStart);
 }
 
 export async function toggleActivity(

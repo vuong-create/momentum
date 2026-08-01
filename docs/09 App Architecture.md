@@ -797,6 +797,7 @@ PlannerPage
   WeekHeader
     SegmentedProgress (shared with Home)
   PlannerComposer
+  PlannerUnscheduled
   PlannerDayCarousel
     PlannerDayCard
   PlannerDayPanel
@@ -807,6 +808,17 @@ PlannerPage
 Opening activity details from a day retains the selected date as return
 context. Day Focus is temporarily replaced by Activity Details, then restored
 when the activity inspector closes; drawers are never stacked.
+
+Planner view context is session-persisted: the viewed week, carousel position,
+selected composer day, open Day Focus date, per-day collapse/filter choices,
+and Day Focus scroll position survive navigation away and back. The last-used
+pillar is local-persisted because it is a durable input preference rather than
+temporary view state.
+
+Task mutations remain service-owned. Inline rename, drag rescheduling,
+unscheduling, copying, manual ordering, quick moves, and bulk rollover all
+route through the activity/planner services and surface a reversible undo
+notice from `PlannerPage`.
 
 ---
 

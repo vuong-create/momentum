@@ -6,7 +6,8 @@ import type {
 
 export interface CreateActivityInput {
   title: string;
-  scheduledDate: string;
+  scheduledDate?: string;
+  planningWeekStart?: string;
   pillar?: Pillar;
   difficulty?: Difficulty;
   scheduledTime?: string;
@@ -20,6 +21,7 @@ export type ActivityDetailsPatch = Partial<
     | "title"
     | "pillar"
     | "scheduledDate"
+    | "planningWeekStart"
     | "scheduledTime"
     | "important"
     | "notes"

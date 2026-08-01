@@ -36,13 +36,18 @@ export default function PlannerComposer({
 }: PlannerComposerProps) {
   const composerRef = useRef<HTMLFormElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+  const keepOptionsRef = useRef(false);
   const [title, setTitle] = useState("");
-  const [pillar, setPillar] = useState<Pillar>("core");
+  const [pillar, setPillar] = useState<Pillar>(() =>
+    (localStorage.getItem("momentum.planner.pillar") as Pillar | null) ??
+    "core"
+  );
   const [scheduledTime, setScheduledTime] = useState("");
   const [important, setImportant] = useState(false);
   const [notes, setNotes] = useState("");
   const [showOptions, setShowOptions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmation, setConfirmation] = useState("");
   const selectedDay = days.find((day) => day.dateKey === selectedDateKey);
 
   useEffect(() => {
@@ -72,11 +77,16 @@ export default function PlannerComposer({
         notes,
       });
 
+      localStorage.setItem("momentum.planner.pillar", pillar);
+      setConfirmation(`Added to ${selectedDay?.dayName ?? "the week"}`);
+      window.setTimeout(() => setConfirmation(""), 2200);
+
       setTitle("");
       setScheduledTime("");
       setImportant(false);
       setNotes("");
-      setShowOptions(false);
+      if (!keepOptionsRef.current) setShowOptions(false);
+      keepOptionsRef.current = false;
       titleRef.current?.focus();
     } finally {
       setIsSubmitting(false);
@@ -104,6 +114,13 @@ export default function PlannerComposer({
           ref={titleRef}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+              event.preventDefault();
+              keepOptionsRef.current = true;
+              composerRef.current?.requestSubmit();
+            }
+          }}
           placeholder="What do you want to make happen?"
           aria-label="Activity title"
         />
@@ -205,6 +222,12 @@ export default function PlannerComposer({
             />
           </label>
         </div>
+      )}
+
+      {confirmation && (
+        <span className="planner-composer-confirmation" role="status">
+          ✓ {confirmation}
+        </span>
       )}
     </form>
   );

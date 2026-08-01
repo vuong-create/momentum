@@ -110,6 +110,17 @@ reveals the complete day in a large Day Focus inspector, allowing ten or more
 activities to remain readable without making every weekly card excessively
 tall.
 
+The Planner also includes **Unscheduled This Week** for work that belongs to
+the current week but does not yet deserve a specific day. Activities can be
+captured there without friction, then placed by dragging them onto a day or by
+using the compact day shortcuts. This is intentional planning space, not a
+second task list.
+
+Dense-day controls live inside Day Focus: collapsible sticky sections, an
+unfinished-only filter, manual ordering, quick move/copy actions, and a
+past-day action for moving remaining work forward. The weekly surface remains
+calm while the detailed view carries the operational depth.
+
 ---
 
 # 6. One Task, Multiple Views

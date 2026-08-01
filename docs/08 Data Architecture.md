@@ -194,6 +194,7 @@ activityType
 
 scheduledDate
 scheduledTime
+planningWeekStart
 
 status
 important
@@ -212,6 +213,13 @@ createdAt
 updatedAt
 completedAt
 ```
+
+`scheduledDate` and `planningWeekStart` are mutually exclusive planning
+locations. A dated activity uses `scheduledDate`; an item in **Unscheduled This
+Week** uses the Sunday date key in `planningWeekStart`. Scheduling an
+unscheduled activity clears `planningWeekStart`, and unscheduling a dated
+activity clears `scheduledDate`. The activity keeps the same identity,
+completion history, and pillar linkage throughout.
 
 ---
 
@@ -260,6 +268,8 @@ dismissal, deletion, and restoration. The current service layer provides:
 
 * Detail updates without creating a replacement record
 * Date moves that preserve identity and update the derived weekday
+* Week-scoped unscheduling that never leaves a stale scheduled date
+* Duplication, manual ordering, and bulk moves through the same service layer
 * Soft deletion through `deletedAt`
 * Restoration for dismissed and soft-deleted activities
 * Completion reversal that voids linked Activity and XP events

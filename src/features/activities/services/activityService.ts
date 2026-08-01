@@ -43,6 +43,10 @@ async function requireActivity(id: number) {
 export async function createPlannedActivity(
   input: CreateActivityInput
 ) {
+  if (!input.scheduledDate && !input.planningWeekStart) {
+    throw new Error("An activity needs a scheduled date or planning week.");
+  }
+
   const now = new Date().toISOString();
   const difficulty = input.difficulty ?? "medium";
 
@@ -53,8 +57,13 @@ export async function createPlannedActivity(
     date: now,
     createdAt: now,
     updatedAt: now,
-    day: getDayName(input.scheduledDate),
+    day: input.scheduledDate
+      ? getDayName(input.scheduledDate)
+      : "Unscheduled",
     scheduledDate: input.scheduledDate,
+    planningWeekStart: input.scheduledDate
+      ? undefined
+      : input.planningWeekStart,
     scheduledTime: input.scheduledTime || undefined,
     pillar: input.pillar ?? "core",
     difficulty,
@@ -82,13 +91,18 @@ export async function updateActivityDetails(
 
   if (patch.scheduledDate) {
     normalizedPatch.scheduledDate = patch.scheduledDate;
+    normalizedPatch.planningWeekStart = undefined;
+  } else if (patch.planningWeekStart) {
+    normalizedPatch.scheduledDate = undefined;
   }
 
   await db.plannedActivities.update(id, {
     ...normalizedPatch,
     day: patch.scheduledDate
       ? getDayName(patch.scheduledDate)
-      : activity.day,
+      : patch.planningWeekStart
+        ? "Unscheduled"
+        : activity.day,
     updatedAt: new Date().toISOString(),
   });
 }
@@ -102,9 +116,90 @@ export async function movePlannedActivity(
 
   await db.plannedActivities.update(id, {
     scheduledDate,
+    planningWeekStart: undefined,
     day: getDayName(scheduledDate),
     sortOrder,
     updatedAt: new Date().toISOString(),
+  });
+}
+
+export async function unschedulePlannedActivity(
+  id: number,
+  planningWeekStart: string,
+  sortOrder = Date.now()
+) {
+  await requireActivity(id);
+
+  await db.plannedActivities.update(id, {
+    scheduledDate: undefined,
+    planningWeekStart,
+    day: "Unscheduled",
+    sortOrder,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export async function duplicatePlannedActivity(
+  id: number,
+  destination: {
+    scheduledDate?: string;
+    planningWeekStart?: string;
+  } = {}
+) {
+  const activity = await requireActivity(id);
+  const scheduledDate = destination.planningWeekStart
+    ? undefined
+    : destination.scheduledDate ?? activity.scheduledDate;
+
+  return createPlannedActivity({
+    title: activity.title,
+    scheduledDate,
+    planningWeekStart: scheduledDate
+      ? undefined
+      : destination.planningWeekStart ?? activity.planningWeekStart,
+    scheduledTime: activity.scheduledTime,
+    pillar: activity.pillar,
+    difficulty: activity.difficulty,
+    important: activity.important,
+    notes: activity.notes,
+  });
+}
+
+export async function setPlannedActivityOrder(ids: number[]) {
+  const now = new Date();
+  const baseOrder = now.getTime();
+
+  await db.transaction("rw", db.plannedActivities, async () => {
+    await Promise.all(
+      ids.map((id, index) =>
+        db.plannedActivities.update(id, {
+          sortOrder: baseOrder + index,
+          updatedAt: now.toISOString(),
+        })
+      )
+    );
+  });
+}
+
+export async function movePlannedActivities(
+  ids: number[],
+  scheduledDate: string
+) {
+  const now = new Date();
+  const baseOrder = now.getTime();
+
+  await db.transaction("rw", db.plannedActivities, async () => {
+    await Promise.all(
+      ids.map((id, index) =>
+        db.plannedActivities.update(id, {
+          scheduledDate,
+          planningWeekStart: undefined,
+          day: getDayName(scheduledDate),
+          sortOrder: baseOrder + index,
+          updatedAt: now.toISOString(),
+        })
+      )
+    );
   });
 }
 
