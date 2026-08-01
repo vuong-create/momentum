@@ -1,0 +1,51 @@
+:root {
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+  --space-11: 80px;
+
+  /* Radius */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Borders */
+  --border-width: 1px;
+
+  /* Shadows */
+  --shadow-sm:
+    0 1px 2px rgba(0, 0, 0, 0.24),
+    0 4px 12px rgba(0, 0, 0, 0.12);
+
+  --shadow-md:
+    0 8px 24px rgba(0, 0, 0, 0.22),
+    0 2px 6px rgba(0, 0, 0, 0.18);
+
+  --shadow-lg:
+    0 24px 80px rgba(0, 0, 0, 0.34),
+    0 8px 24px rgba(0, 0, 0, 0.2);
+
+  /* Layout */
+  --sidebar-width: 236px;
+  --sidebar-width-collapsed: 76px;
+  --content-max-width: 1480px;
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --duration-slow: 300ms;
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0.8, 0.2, 1);
+}

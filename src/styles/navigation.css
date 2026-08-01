@@ -1,0 +1,414 @@
+.dock-wordmark {
+  position: relative;
+  width: 48px;
+  height: 48px;
+
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+
+  color: var(--color-text-primary);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.11),
+      rgba(255, 255, 255, 0.035)
+    );
+
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.07),
+    0 10px 28px rgba(0, 0, 0, 0.3);
+}
+
+.dock-wordmark-text,
+.dock-wordmark-ghost {
+  display: none;
+}
+
+.dock-wordmark-compact {
+  position: relative;
+  z-index: 2;
+
+  font-size: 17px;
+  font-weight: 680;
+  letter-spacing: -0.06em;
+}
+
+.dock-wordmark::after {
+  content: "";
+
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: -65%;
+
+  width: 28px;
+
+  opacity: 0.5;
+  filter: blur(4px);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+
+  transform: rotate(18deg);
+
+  animation:
+    dock-wordmark-shimmer
+    5.5s
+    ease-in-out
+    infinite;
+}
+
+.dock-navigation {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 28px;
+}
+
+.dock-item {
+  position: relative;
+
+  width: 48px;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+  border-radius: 15px;
+
+  color: var(--color-text-muted);
+  background: transparent;
+
+  transition:
+    color var(--duration-normal) var(--ease-standard),
+    background var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+.dock-item:hover {
+  z-index: 4;
+
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+  background: var(--color-surface-2);
+
+  transform:
+    translateX(3px)
+    scale(1.04);
+
+  box-shadow: var(--shadow-md);
+}
+
+.dock-item-active {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.11),
+      rgba(255, 255, 255, 0.045)
+    );
+
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.055),
+    0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.dock-item-active::before {
+  content: "";
+
+  position: absolute;
+  left: -8px;
+
+  width: 3px;
+  height: 18px;
+
+  border-radius: var(--radius-pill);
+  background: var(
+    --pillar-color,
+    var(--color-text-primary)
+  );
+}
+
+.dock-item-icon {
+  width: 22px;
+
+  display: grid;
+  place-items: center;
+
+  color: inherit;
+
+  font-size: 15px;
+  line-height: 1;
+}
+
+.dock-item-label {
+  position: absolute;
+  left: 60px;
+
+  min-width: max-content;
+
+  padding:
+    7px
+    10px;
+
+  visibility: hidden;
+  opacity: 0;
+
+  border: 1px solid var(--color-border-default);
+  border-radius: 9px;
+
+  color: var(--color-text-primary);
+  background: rgba(18, 18, 18, 0.94);
+
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
+
+  font-size: 11px;
+  font-weight: 540;
+
+  pointer-events: none;
+
+  transform: translateX(-5px);
+
+  transition:
+    opacity var(--duration-fast) ease,
+    visibility var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+.dock-item:hover .dock-item-label {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.dock-footer {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: auto;
+}
+
+.dock-status {
+  display: none;
+
+  align-items: center;
+  gap: 7px;
+
+  padding: 8px;
+
+  color: var(--color-text-disabled);
+  font-size: 9px;
+}
+
+.dock-status-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+
+  box-shadow:
+    0 0 10px rgba(53, 199, 111, 0.6);
+}
+
+@media (min-width: 1180px) {
+  .dock-wordmark {
+    width: 100%;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    padding: 0 15px;
+  }
+
+  .dock-wordmark-text,
+  .dock-wordmark-ghost {
+    display: block;
+
+    font-size: 20px;
+    font-weight: 620;
+    letter-spacing: -0.055em;
+  }
+
+  .dock-wordmark-text {
+    position: relative;
+    z-index: 2;
+  }
+
+  .dock-wordmark-ghost {
+    position: absolute;
+    z-index: 1;
+
+    color: rgba(255, 255, 255, 0.5);
+
+    filter: blur(6px);
+    opacity: 0.25;
+
+    animation:
+      dock-wordmark-drift
+      4.8s
+      var(--ease-standard)
+      infinite;
+  }
+
+  .dock-wordmark-compact {
+    display: none;
+  }
+
+  .dock-navigation {
+    align-items: stretch;
+  }
+
+  .dock-item {
+    width: 100%;
+    justify-content: flex-start;
+
+    gap: 12px;
+
+    padding:
+      0
+      13px;
+  }
+
+  .dock-item:hover {
+    transform: translateX(2px);
+  }
+
+  .dock-item-label {
+    position: static;
+
+    display: block;
+
+    min-width: 0;
+    padding: 0;
+
+    visibility: visible;
+    opacity: 1;
+
+    border: 0;
+
+    color: inherit;
+    background: transparent;
+
+    box-shadow: none;
+    backdrop-filter: none;
+
+    font-size: 12px;
+    font-weight: 520;
+
+    transform: none;
+  }
+
+  .dock-item-active::before {
+    left: -15px;
+  }
+
+  .dock-footer {
+    align-items: stretch;
+  }
+
+  .dock-status {
+    display: flex;
+  }
+}
+
+@media (max-width: 760px) {
+  .dock-wordmark,
+  .dock-footer,
+  .dock-navigation .dock-item:nth-child(n + 6) {
+    display: none;
+  }
+
+  .dock-navigation {
+    flex-direction: row;
+    justify-content: space-around;
+
+    gap: 4px;
+    margin: 0;
+  }
+
+  .dock-item {
+    width: 48px;
+  }
+
+  .dock-item:hover {
+    transform: translateY(-2px);
+  }
+
+  .dock-item-active::before {
+    top: auto;
+    bottom: -6px;
+    left: 50%;
+
+    width: 18px;
+    height: 3px;
+
+    transform: translateX(-50%);
+  }
+
+  .dock-item-label {
+    display: none;
+  }
+}
+
+@keyframes dock-wordmark-shimmer {
+  0%,
+  64%,
+  100% {
+    left: -65%;
+    opacity: 0;
+  }
+
+  72% {
+    opacity: 0.45;
+  }
+
+  88% {
+    left: 130%;
+    opacity: 0;
+  }
+}
+
+@keyframes dock-wordmark-drift {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translateX(-3px);
+  }
+
+  50% {
+    opacity: 0.38;
+    transform: translateX(4px);
+  }
+}

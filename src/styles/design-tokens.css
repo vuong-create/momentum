@@ -1,0 +1,96 @@
+:root {
+  /* Fonts */
+
+  --font-ui:
+    "Geist",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  --font-pixel:
+    "Geist Pixel",
+    "Geist",
+    sans-serif;
+
+  --font-quote:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  --font-mono:
+    "Geist Mono",
+    ui-monospace,
+    monospace;
+
+  /* Backgrounds */
+
+  --surface-page: #070707;
+  --surface-base: rgba(18, 18, 18, 0.82);
+  --surface-raised: rgba(28, 28, 28, 0.88);
+  --surface-hover: rgba(38, 38, 38, 0.9);
+
+  --surface-glass: rgba(255, 255, 255, 0.055);
+  --surface-glass-strong: rgba(255, 255, 255, 0.085);
+
+  /* Glass */
+
+  --glass-blur: 24px;
+  --glass-blur-strong: 34px;
+
+  --glass-border: rgba(255, 255, 255, 0.11);
+  --glass-highlight: rgba(255, 255, 255, 0.09);
+
+  /* Text */
+
+  --text-primary: rgba(255, 255, 255, 0.96);
+  --text-secondary: rgba(255, 255, 255, 0.72);
+  --text-muted: rgba(255, 255, 255, 0.48);
+  --text-faint: rgba(255, 255, 255, 0.28);
+
+  /* Shadows */
+
+  --shadow-soft:
+    0 8px 24px rgba(0, 0, 0, 0.2);
+
+  --shadow-medium:
+    0 16px 40px rgba(0, 0, 0, 0.3);
+
+  --shadow-floating:
+    0 26px 70px rgba(0, 0, 0, 0.42);
+
+  --shadow-inner-highlight:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+
+  /* Radius */
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Motion */
+
+  --duration-fast: 180ms;
+  --duration-normal: 250ms;
+  --duration-slow: 420ms;
+  --duration-celebrate: 650ms;
+
+  --ease-standard:
+    cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --ease-spring:
+    cubic-bezier(0.2, 1.35, 0.35, 1);
+
+  /* Spacing */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+}

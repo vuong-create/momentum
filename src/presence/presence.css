@@ -1,0 +1,155 @@
+.presence-root {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+
+  --presence-primary: rgba(255, 255, 255, 0.04);
+  --presence-secondary: rgba(255, 255, 255, 0.018);
+  --presence-background: #090909;
+
+  background:
+    radial-gradient(
+      circle at 50% -20%,
+      var(--presence-primary),
+      transparent 44%
+    ),
+    var(--presence-background);
+
+  transition:
+    background-color 1200ms ease,
+    color 1200ms ease;
+}
+
+.presence-content {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+}
+
+.presence-light {
+  position: fixed;
+  z-index: 0;
+
+  width: 48vw;
+  height: 48vw;
+
+  min-width: 560px;
+  min-height: 560px;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(110px);
+  will-change: transform;
+}
+
+.presence-light-primary {
+  top: -28vw;
+  right: -12vw;
+
+  opacity: 0.8;
+  background: var(--presence-primary);
+
+  animation:
+    presence-drift-primary
+    190s
+    ease-in-out
+    infinite alternate;
+}
+
+.presence-light-secondary {
+  bottom: -34vw;
+  left: 8vw;
+
+  opacity: 0.6;
+  background: var(--presence-secondary);
+
+  animation:
+    presence-drift-secondary
+    240s
+    ease-in-out
+    infinite alternate;
+}
+
+/* Morning */
+
+.presence-morning {
+  --presence-background: #090a0c;
+  --presence-primary: rgba(132, 166, 214, 0.075);
+  --presence-secondary: rgba(203, 219, 240, 0.026);
+}
+
+/* Afternoon */
+
+.presence-afternoon {
+  --presence-background: #0a0a0a;
+  --presence-primary: rgba(255, 255, 255, 0.065);
+  --presence-secondary: rgba(255, 255, 255, 0.024);
+}
+
+/* Evening */
+
+.presence-evening {
+  --presence-background: #090909;
+  --presence-primary: rgba(224, 177, 121, 0.055);
+  --presence-secondary: rgba(151, 117, 89, 0.025);
+}
+
+/* Night */
+
+.presence-night {
+  --presence-background: #060708;
+  --presence-primary: rgba(91, 111, 153, 0.048);
+  --presence-secondary: rgba(128, 105, 160, 0.018);
+}
+
+@keyframes presence-drift-primary {
+  0% {
+    transform:
+      translate3d(-4%, -3%, 0)
+      scale(0.96);
+  }
+
+  50% {
+    transform:
+      translate3d(7%, 6%, 0)
+      scale(1.04);
+  }
+
+  100% {
+    transform:
+      translate3d(-1%, 10%, 0)
+      scale(1);
+  }
+}
+
+@keyframes presence-drift-secondary {
+  0% {
+    transform:
+      translate3d(0, 5%, 0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate3d(12%, -4%, 0)
+      scale(1.08);
+  }
+
+  100% {
+    transform:
+      translate3d(-8%, -8%, 0)
+      scale(0.95);
+  }
+}
+
+.presence-reduced-motion .presence-light {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .presence-light {
+    animation: none;
+  }
+}

@@ -1,0 +1,150 @@
+html {
+  font-family: var(--font-ui);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+}
+
+body {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Signature typography */
+
+.font-pixel,
+.heading-primary {
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.015em;
+}
+
+.font-quote {
+  font-family: var(--font-quote);
+  font-weight: 400;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Global typography */
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  color: var(--text-primary);
+  font-size: clamp(42px, 5vw, 70px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+h2 {
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 560;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+h3 {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 560;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* Interface labels */
+
+.text-label,
+.page-eyebrow,
+.section-eyebrow,
+.living-home-label {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Ambient text */
+
+.text-ambient,
+.living-home-greeting {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.living-home-weekday {
+  color: var(--text-secondary);
+}
+
+/* Numeric displays */
+
+.text-number,
+.momentum-level-topline strong,
+.home-week-summary strong {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+}
+
+/* Links */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Form controls */
+
+button,
+input,
+textarea,
+select {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-faint);
+}
+
+/* Selection */
+
+::selection {
+  color: #080808;
+  background: rgba(255, 255, 255, 0.9);
+}

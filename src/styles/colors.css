@@ -1,0 +1,63 @@
+:root {
+  /* Core monochrome palette */
+  --color-background: #090909;
+  --color-background-raised: #0d0d0d;
+
+  --color-surface-1: rgba(255, 255, 255, 0.035);
+  --color-surface-2: rgba(255, 255, 255, 0.055);
+  --color-surface-3: rgba(255, 255, 255, 0.085);
+  --color-surface-hover: rgba(255, 255, 255, 0.075);
+
+  --color-text-primary: #f7f7f7;
+  --color-text-secondary: #b3b3b3;
+  --color-text-muted: #747474;
+  --color-text-disabled: #4d4d4d;
+  --color-text-inverse: #0a0a0a;
+
+  --color-border-subtle: rgba(255, 255, 255, 0.07);
+  --color-border-default: rgba(255, 255, 255, 0.11);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
+
+  --color-accent: #ffffff;
+  --color-accent-muted: rgba(255, 255, 255, 0.12);
+  --color-accent-soft: rgba(255, 255, 255, 0.07);
+
+  --color-success: #35c76f;
+  --color-warning: #f1b74a;
+  --color-danger: #ef5a5a;
+
+  /* Pillar identities */
+  --pillar-chinese: #d63b3b;
+  --pillar-chinese-soft: rgba(214, 59, 59, 0.14);
+
+  --pillar-athletics: #4388ff;
+  --pillar-athletics-soft: rgba(67, 136, 255, 0.14);
+
+  --pillar-cooking: #f2d3a2;
+  --pillar-cooking-soft: rgba(242, 211, 162, 0.12);
+
+  --pillar-finance: #34c979;
+  --pillar-finance-soft: rgba(52, 201, 121, 0.13);
+
+  --pillar-journal: #aa8bf4;
+  --pillar-journal-soft: rgba(170, 139, 244, 0.14);
+
+  --pillar-general: #b9b9b9;
+  --pillar-general-soft: rgba(185, 185, 185, 0.12);
+
+  /* Compatibility with existing components */
+  --background: var(--color-background);
+  --surface-1: var(--color-surface-1);
+  --surface-2: var(--color-surface-2);
+  --surface-3: var(--color-surface-3);
+
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+
+  --border: var(--color-border-default);
+
+  --accent: var(--color-accent);
+  --accent-hover: #ffffff;
+  --accent-bg: var(--color-accent-muted);
+}

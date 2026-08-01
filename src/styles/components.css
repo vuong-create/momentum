@@ -1,0 +1,409 @@
+/* Brand */
+
+.sidebar-brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  overflow: hidden;
+  padding:
+    var(--space-2)
+    var(--space-2)
+    var(--space-8);
+}
+
+.sidebar-brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  overflow: hidden;
+  padding:
+    var(--space-2)
+    var(--space-2)
+    var(--space-8);
+}
+
+.momentum-wordmark {
+  position: relative;
+  color: var(--color-text-primary);
+  font-weight: 620;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.momentum-wordmark-full {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  font-size: 20px;
+}
+
+.momentum-wordmark-text,
+.momentum-wordmark-compact-text {
+  position: relative;
+  z-index: 2;
+}
+
+.momentum-wordmark-blur,
+.momentum-wordmark-compact-blur {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  color: rgba(255, 255, 255, 0.55);
+  filter: blur(5px);
+  opacity: 0.4;
+  animation:
+    momentum-wordmark-drift
+    4.5s
+    var(--ease-standard)
+    infinite;
+}
+
+.momentum-wordmark-compact {
+  position: relative;
+  display: none;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  font-size: 17px;
+}
+
+.brand-subtitle {
+  color: var(--color-text-muted);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+/* Navigation */
+
+.nav-item {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 520;
+  transition:
+    color var(--duration-normal) var(--ease-standard),
+    background var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard);
+}
+
+.nav-item:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-1);
+}
+
+.nav-item-active {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+  background: var(--color-surface-2);
+}
+
+.nav-icon {
+  width: 20px;
+  display: inline-flex;
+  justify-content: center;
+  color: currentColor;
+  font-size: 14px;
+}
+
+.sidebar-message {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) 0;
+  color: var(--color-text-disabled);
+  font-size: 10px;
+}
+
+.sidebar-message-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-muted);
+}
+
+/* Surfaces */
+
+.card,
+.panel,
+.placeholder-card,
+.today-panel,
+.journal-capture,
+.level-summary {
+  border: 1px solid var(--color-border-subtle);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.047),
+      rgba(255, 255, 255, 0.022)
+    );
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(18px);
+}
+
+.card {
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+}
+
+.panel {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+}
+
+.surface {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-1);
+}
+
+/* Buttons */
+
+button {
+  min-height: 38px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface-2);
+  transition:
+    transform var(--duration-fast) var(--ease-standard),
+    background var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.35;
+}
+
+.button-primary,
+.journal-save-button {
+  color: var(--color-text-inverse);
+  border-color: #ffffff;
+  background: #ffffff;
+}
+
+.button-primary:hover:not(:disabled),
+.journal-save-button:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  border-color: #ffffff;
+  background: #e8e8e8;
+}
+
+.button-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+/* Inputs */
+
+input,
+select,
+textarea {
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  background: rgba(255, 255, 255, 0.035);
+  transition:
+    border-color var(--duration-normal) var(--ease-standard),
+    background var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+input,
+select {
+  min-height: 40px;
+  padding: 0 var(--space-3);
+}
+
+textarea {
+  padding: var(--space-4);
+  line-height: 1.65;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-disabled);
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(255, 255, 255, 0.34);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.055);
+}
+
+select option {
+  color: var(--color-text-primary);
+  background: #161616;
+}
+
+/* Progress */
+
+.progress-track,
+.xp-track,
+.weekly-progress {
+  overflow: hidden;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-fill,
+.xp-fill,
+.weekly-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #aaaaaa,
+    #ffffff
+  );
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+/* Badges */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 25px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-1);
+  font-size: 10px;
+  font-weight: 620;
+}
+
+/* Pillar accents */
+
+.pillar-chinese {
+  --pillar-color: var(--pillar-chinese);
+  --pillar-soft: var(--pillar-chinese-soft);
+}
+
+.pillar-athletics {
+  --pillar-color: var(--pillar-athletics);
+  --pillar-soft: var(--pillar-athletics-soft);
+}
+
+.pillar-cooking {
+  --pillar-color: var(--pillar-cooking);
+  --pillar-soft: var(--pillar-cooking-soft);
+}
+
+.pillar-finance {
+  --pillar-color: var(--pillar-finance);
+  --pillar-soft: var(--pillar-finance-soft);
+}
+
+.pillar-happiness,
+.pillar-journal {
+  --pillar-color: var(--pillar-journal);
+  --pillar-soft: var(--pillar-journal-soft);
+}
+
+.pillar-general,
+.pillar-core {
+  --pillar-color: var(--pillar-general);
+  --pillar-soft: var(--pillar-general-soft);
+}
+
+.pillar-accent {
+  color: var(--pillar-color);
+}
+
+.pillar-background {
+  background: var(--pillar-soft);
+}
+
+.pillar-border {
+  border-color: var(--pillar-color);
+}
+.progress {
+  width: 100%;
+}
+
+.progress-element {
+  width: 100%;
+  height: 6px;
+  display: block;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-pill);
+  appearance: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-element::-webkit-progress-bar {
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-element::-webkit-progress-value {
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    #a8a8a8,
+    #ffffff
+  );
+}
+
+.progress-element::-moz-progress-bar {
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    #a8a8a8,
+    #ffffff
+  );
+}
+
+.section-aside {
+  display: flex;
+  align-items: center;
+}
+
+.task-pillar-dot {
+  width: 5px;
+  height: 5px;
+  display: inline-block;
+  margin-right: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--pillar-color);
+}

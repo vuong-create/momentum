@@ -1,0 +1,110 @@
+@keyframes momentum-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes momentum-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes momentum-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes momentum-soft-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation:
+    momentum-fade-in
+    var(--duration-slow)
+    var(--ease-out)
+    both;
+}
+
+.animate-rise-in {
+  animation:
+    momentum-rise-in
+    var(--duration-slow)
+    var(--ease-out)
+    both;
+}
+
+.animate-scale-in {
+  animation:
+    momentum-scale-in
+    var(--duration-normal)
+    var(--ease-out)
+    both;
+}
+
+.interactive-lift {
+  transition:
+    transform var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+.interactive-lift:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+@keyframes momentum-wordmark-drift {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: translateX(-5px);
+  }
+
+  45% {
+    opacity: 0.5;
+    transform: translateX(5px);
+  }
+
+  65% {
+    opacity: 0.32;
+    transform: translateX(2px);
+  }
+}
