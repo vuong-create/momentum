@@ -16,7 +16,10 @@ import {
   createPlannedActivity,
   togglePlannedActivity as toggleActivityLifecycle,
 } from "../activities/services/activityService";
-import { isActivityVisible } from "../activities/services/activityLifecycle";
+import {
+  isActivityVisible,
+  resolveActivityScheduledDate,
+} from "../activities/services/activityLifecycle";
 
 import {
   pillarThemes,
@@ -87,28 +90,6 @@ function getCurrentWeekStart(
   return result;
 }
 
-function resolveActivityDate(
-  activity: PlannedActivity
-) {
-  if (activity.scheduledDate) {
-    return activity.scheduledDate;
-  }
-
-  const dayIndex =
-    weekDayNames.indexOf(activity.day);
-
-  if (dayIndex < 0) {
-    return null;
-  }
-
-  return toDateKey(
-    addDays(
-      getCurrentWeekStart(),
-      dayIndex
-    )
-  );
-}
-
 export default function HomeDashboard() {
   const experience = useExperience();
   const navigate = useNavigate();
@@ -175,7 +156,7 @@ export default function HomeDashboard() {
       tasks.filter(
         (activity) =>
           isActivityVisible(activity) &&
-          resolveActivityDate(activity) ===
+          resolveActivityScheduledDate(activity, todayKey) ===
           todayKey
       ),
     [tasks, todayKey]
@@ -186,7 +167,7 @@ export default function HomeDashboard() {
       tasks
         .filter((activity) => {
           const scheduledDate =
-            resolveActivityDate(activity);
+            resolveActivityScheduledDate(activity, todayKey);
 
           return (
             isActivityVisible(activity) &&
@@ -197,9 +178,9 @@ export default function HomeDashboard() {
         })
         .sort((first, second) =>
           (
-            resolveActivityDate(first) ?? ""
+            resolveActivityScheduledDate(first, todayKey) ?? ""
           ).localeCompare(
-            resolveActivityDate(second) ?? ""
+            resolveActivityScheduledDate(second, todayKey) ?? ""
           )
         ),
     [tasks, todayKey]
@@ -229,8 +210,9 @@ export default function HomeDashboard() {
             tasks.filter(
               (activity) =>
                 isActivityVisible(activity) &&
-                resolveActivityDate(
-                  activity
+                resolveActivityScheduledDate(
+                  activity,
+                  todayKey
                 ) === dateKey
             );
 

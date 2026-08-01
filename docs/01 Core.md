@@ -292,9 +292,14 @@ Weekly Plan tasks behave like lightweight draggable cards.
 
 Primary interactions:
 
-### Click
+### Checkbox
 
-Complete / uncomplete.
+Complete / uncomplete without leaving the current view.
+
+### Task Body / Details
+
+Open the shared activity details drawer for title, date, pillar, time,
+importance, notes, status, and history.
 
 ### Drag Between Days
 
@@ -373,6 +378,14 @@ Ideally:
 Dismiss leaves the item historically incomplete but removes it from the unfinished-task prompt.
 
 Momentum should not punish the user for dismissing an unfinished task.
+
+All unfinished-task decisions are recoverable for a short period through an
+Undo action. Moving and rescheduling preserve the same activity ID; dismissing
+changes lifecycle status instead of deleting the record.
+
+Current Home implementation groups unfinished activities into one calm,
+expandable review area. Each item exposes Move to Today, a Sunday-first
+next-week picker, an exact date picker, Details, and Dismiss.
 
 ---
 

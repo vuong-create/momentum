@@ -1,6 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import useExperience from "../../experience/useExperience";
+import ActivityDetailsPanel from "../activities/components/ActivityDetailsPanel";
+import ActivityUndoToast from "../activities/components/ActivityUndoToast";
+import useActivityUndo from "../activities/hooks/useActivityUndo";
 import usePlanner from "./hooks/usePlanner";
 
 import type {
@@ -17,11 +25,15 @@ import "./planner.css";
 export default function PlannerPage() {
   const planner = usePlanner();
   const experience = useExperience();
+  const activityUndo = useActivityUndo();
   const [requestedDateKey, setRequestedDateKey] = useState<string | null>(
     null
   );
   const [composerFocusRequest, setComposerFocusRequest] = useState(0);
   const [celebratingActivityId, setCelebratingActivityId] = useState<
+    number | null
+  >(null);
+  const [selectedActivityId, setSelectedActivityId] = useState<
     number | null
   >(null);
   const celebrationTimer = useRef<number | null>(null);
@@ -43,6 +55,10 @@ export default function PlannerPage() {
     setRequestedDateKey(null);
     navigate();
   }
+
+  const closeActivityDetails = useCallback(() => {
+    setSelectedActivityId(null);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -110,13 +126,24 @@ export default function PlannerPage() {
             day={day}
             onRequestAdd={requestComposer}
             celebratingActivityId={celebratingActivityId}
+            onOpenDetails={setSelectedActivityId}
             onComplete={completeActivity}
             onMove={planner.rescheduleActivity}
             onToggleImportant={planner.markImportant}
-            onDismiss={planner.dismiss}
           />
         ))}
       </div>
+
+      <ActivityDetailsPanel
+        activityId={selectedActivityId}
+        onClose={closeActivityDetails}
+        onMutation={activityUndo.show}
+      />
+      <ActivityUndoToast
+        notice={activityUndo.notice}
+        onDismiss={activityUndo.dismiss}
+        onUndo={activityUndo.undo}
+      />
     </div>
   );
 }

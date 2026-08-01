@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -7,8 +8,19 @@ import {
 
 import type { PlannedActivity } from "../../../database/db";
 import useExperience from "../../../experience/useExperience";
+import ActivityDetailsPanel from "../../activities/components/ActivityDetailsPanel";
+import ActivityUndoToast from "../../activities/components/ActivityUndoToast";
+import useActivityUndo from "../../activities/hooks/useActivityUndo";
+import {
+  dismissPlannedActivity,
+  movePlannedActivity,
+  restoreDismissedActivity,
+} from "../../activities/services/activityService";
+import { resolveActivityScheduledDate } from "../../activities/services/activityLifecycle";
+import { toDateKey } from "../../planner/services/plannerService";
 
 import HomeTodoItem from "./HomeTodoItem";
+import UnfinishedActivities from "./UnfinishedActivities";
 
 type HomeTodoProps = {
   todayActivities: PlannedActivity[];
@@ -50,9 +62,13 @@ export default function HomeTodo({
   onToggle,
 }: HomeTodoProps) {
   const experience = useExperience();
+  const activityUndo = useActivityUndo();
   const [newTask, setNewTask] = useState("");
   const [adding, setAdding] = useState(false);
   const [showAddedFeedback, setShowAddedFeedback] = useState(false);
+  const [selectedActivityId, setSelectedActivityId] = useState<
+    number | null
+  >(null);
   const addedFeedbackTimer = useRef<number | null>(null);
   const completionFeedbackTimer = useRef<number | null>(null);
 
@@ -82,6 +98,11 @@ export default function HomeTodo({
   const allTodayComplete =
     todayActivities.length > 0 &&
     incompleteToday.length === 0;
+  const todayKey = toDateKey(experience.now);
+  const closeActivityDetails = useCallback(
+    () => setSelectedActivityId(null),
+    []
+  );
 
   useEffect(() => {
     return () => {
@@ -156,6 +177,42 @@ export default function HomeTodo({
     }
   }
 
+  async function moveUnfinishedActivity(
+    activity: PlannedActivity,
+    scheduledDate: string,
+    message: string
+  ) {
+    if (!activity.id) return;
+
+    const previousDate = resolveActivityScheduledDate(activity, todayKey);
+
+    if (!previousDate) return;
+    const previousSortOrder = activity.sortOrder;
+
+    await movePlannedActivity(activity.id, scheduledDate);
+    experience.playFeedback("task-updated");
+    activityUndo.show({
+      message,
+      undo: () =>
+        movePlannedActivity(
+          activity.id!,
+          previousDate,
+          previousSortOrder
+        ),
+    });
+  }
+
+  async function dismissUnfinishedActivity(activity: PlannedActivity) {
+    if (!activity.id) return;
+
+    await dismissPlannedActivity(activity.id);
+    experience.playFeedback("task-dismissed");
+    activityUndo.show({
+      message: "Activity dismissed",
+      undo: () => restoreDismissedActivity(activity.id!),
+    });
+  }
+
   return (
     <section className="home-todo">
       <div className="home-todo-heading">
@@ -204,26 +261,22 @@ export default function HomeTodo({
       </div>
 
       <div className="home-todo-content">
-        {overdueActivities.length > 0 && (
-          <div className="home-todo-group">
-            <span className="home-todo-overdue-label">
-              Overdue
-            </span>
-
-            {overdueActivities.map((activity) => (
-              <HomeTodoItem
-                key={activity.id}
-                activity={activity}
-                overdue
-                celebrating={
-                  celebratingActivityId ===
-                  activity.id
-                }
-                onToggle={handleToggle}
-              />
-            ))}
-          </div>
-        )}
+        <UnfinishedActivities
+          activities={overdueActivities}
+          todayKey={todayKey}
+          onMoveToToday={(activity) =>
+            moveUnfinishedActivity(activity, todayKey, "Moved to Today")
+          }
+          onReschedule={(activity, scheduledDate) =>
+            moveUnfinishedActivity(
+              activity,
+              scheduledDate,
+              "Activity rescheduled"
+            )
+          }
+          onDismiss={dismissUnfinishedActivity}
+          onOpenDetails={setSelectedActivityId}
+        />
 
         {incompleteToday.length > 0 && (
           <div className="home-todo-group">
@@ -283,6 +336,17 @@ export default function HomeTodo({
           </div>
         )}
       </div>
+
+      <ActivityDetailsPanel
+        activityId={selectedActivityId}
+        onClose={closeActivityDetails}
+        onMutation={activityUndo.show}
+      />
+      <ActivityUndoToast
+        notice={activityUndo.notice}
+        onDismiss={activityUndo.dismiss}
+        onUndo={activityUndo.undo}
+      />
     </section>
   );
 }

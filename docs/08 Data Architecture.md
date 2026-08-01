@@ -253,6 +253,21 @@ The activity remained incomplete after its intended time.
 
 No punishment.
 
+## Current Lifecycle Implementation
+
+`PlannedActivity` remains the single record through edits, moves, completion,
+dismissal, deletion, and restoration. The current service layer provides:
+
+* Detail updates without creating a replacement record
+* Date moves that preserve identity and update the derived weekday
+* Soft deletion through `deletedAt`
+* Restoration for dismissed and soft-deleted activities
+* Completion reversal that voids linked Activity and XP events
+
+Dismissal of a previously completed activity first reopens it, ensuring its
+completion event and XP award are voided before the status becomes dismissed.
+This keeps visible task state, activity history, and level progress consistent.
+
 ---
 
 # 9. Why Status Matters

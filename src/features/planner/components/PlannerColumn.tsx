@@ -9,23 +9,23 @@ type PlannerColumnProps = {
   day: PlannerDay;
   celebratingActivityId: number | null;
   onRequestAdd: (dateKey: string) => void;
+  onOpenDetails: (activityId: number) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onMove: (
     activity: PlannerActivity,
     scheduledDate: string
   ) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
-  onDismiss: (activity: PlannerActivity) => Promise<void>;
 };
 
 export default function PlannerColumn({
   day,
   celebratingActivityId,
   onRequestAdd,
+  onOpenDetails,
   onComplete,
   onMove,
   onToggleImportant,
-  onDismiss,
 }: PlannerColumnProps) {
   const completed = day.activities.filter(
     (activity) => activity.completed
@@ -78,9 +78,9 @@ export default function PlannerColumn({
               key={activity.id}
               activity={activity}
               celebrating={celebratingActivityId === activity.id}
+              onOpenDetails={onOpenDetails}
               onComplete={onComplete}
               onToggleImportant={onToggleImportant}
-              onDismiss={onDismiss}
             />
           ))
         )}

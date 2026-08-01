@@ -3,7 +3,6 @@ import type { PlannedActivity } from "../../../database/db";
 
 import {
   createPlannedActivity,
-  dismissPlannedActivity,
   movePlannedActivity,
   toggleActivityImportance,
   togglePlannedActivity,
@@ -135,10 +134,6 @@ export async function toggleActivity(
   if (!activity.id) return;
 
   await togglePlannedActivity(activity.id);
-}
-
-export async function dismissActivity(id: number) {
-  await dismissPlannedActivity(id);
 }
 
 export async function toggleImportant(

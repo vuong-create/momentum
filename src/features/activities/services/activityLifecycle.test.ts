@@ -8,6 +8,7 @@ import {
   getActivityStatus,
   isActivityVisible,
   isActivityWeeklyEligible,
+  resolveActivityScheduledDate,
 } from "./activityLifecycle";
 
 function buildActivity(
@@ -61,5 +62,16 @@ describe("activity lifecycle rules", () => {
       plannedBonusXP: 3,
       finalXP: 13,
     });
+  });
+
+  it("resolves a legacy weekday against a Sunday-first reference week", () => {
+    const legacyActivity = buildActivity({
+      scheduledDate: undefined,
+      day: "Wednesday",
+    });
+
+    expect(
+      resolveActivityScheduledDate(legacyActivity, "2026-08-01")
+    ).toBe("2026-07-29");
   });
 });
