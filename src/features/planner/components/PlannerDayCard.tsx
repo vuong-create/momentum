@@ -148,6 +148,7 @@ export default function PlannerDayCard({
                       <time>{formatActivityTime(activity.scheduledTime)}</time>
                     )}
                     {activity.important && <b>Important</b>}
+                    {activity.recurrenceRuleId && <b>↻</b>}
                   </span>
                 </button>
               </article>

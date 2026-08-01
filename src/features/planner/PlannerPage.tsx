@@ -9,12 +9,18 @@ import useExperience from "../../experience/useExperience";
 import ActivityDetailsPanel from "../activities/components/ActivityDetailsPanel";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
 import useActivityUndo from "../activities/hooks/useActivityUndo";
+import type { ActivityTemplate } from "../../database/db";
 import {
   movePlannedActivity,
   softDeletePlannedActivity,
   unschedulePlannedActivity,
   updateActivityDetails,
 } from "../activities/services/activityService";
+import {
+  deleteActivityTemplate,
+  deleteCreatedActivityPlan,
+  restoreActivityTemplate,
+} from "../activities/services/recurrenceService";
 import usePlanner from "./hooks/usePlanner";
 
 import type {
@@ -27,6 +33,7 @@ import PlannerComposer from "./components/PlannerComposer";
 import PlannerDayCarousel from "./components/PlannerDayCarousel";
 import PlannerDayPanel from "./components/PlannerDayPanel";
 import PlannerUnscheduled from "./components/PlannerUnscheduled";
+import PlannerTemplates from "./components/PlannerTemplates";
 
 import "./planner.css";
 
@@ -139,20 +146,24 @@ export default function PlannerPage() {
     }
   }
 
-  function restoreActivityLocation(activity: PlannerActivity) {
+  async function restoreActivityLocation(activity: PlannerActivity) {
     if (!activity.id) return Promise.resolve();
     if (activity.scheduledDate) {
-      return movePlannedActivity(
+      await movePlannedActivity(
         activity.id,
         activity.scheduledDate,
         activity.sortOrder
       );
+    } else {
+      await unschedulePlannedActivity(
+        activity.id,
+        activity.planningWeekStart ?? planner.weekStartKey,
+        activity.sortOrder
+      );
     }
-    return unschedulePlannedActivity(
-      activity.id,
-      activity.planningWeekStart ?? planner.weekStartKey,
-      activity.sortOrder
-    );
+    await updateActivityDetails(activity.id, {
+      recurrenceOverride: activity.recurrenceOverride,
+    });
   }
 
   async function moveActivity(activity: PlannerActivity, dateKey: string) {
@@ -231,6 +242,24 @@ export default function PlannerPage() {
     await addActivity({ title, planningWeekStart: planner.weekStartKey, pillar: "core" });
   }
 
+  async function useTemplate(template: ActivityTemplate) {
+    const newId = await planner.addFromTemplate(template, selectedDateKey);
+    experience.playFeedback("task-added");
+    activityUndo.show({
+      message: `Added ${template.title}`,
+      undo: () => deleteCreatedActivityPlan(newId),
+    });
+  }
+
+  async function removeTemplate(template: ActivityTemplate) {
+    if (!template.id) return;
+    await deleteActivityTemplate(template.id);
+    activityUndo.show({
+      message: "Template removed",
+      undo: () => restoreActivityTemplate(template.id!),
+    });
+  }
+
   return (
     <div className="planner-page">
       <WeekHeader
@@ -249,6 +278,16 @@ export default function PlannerPage() {
         focusRequest={composerFocusRequest}
         onSelectDate={setRequestedDateKey}
         onAdd={addActivity}
+      />
+
+      <PlannerTemplates
+        templates={planner.templates}
+        selectedDayLabel={
+          planner.days.find((day) => day.dateKey === selectedDateKey)?.dayName ??
+          "the selected day"
+        }
+        onUse={useTemplate}
+        onDelete={removeTemplate}
       />
 
       <PlannerUnscheduled

@@ -2,6 +2,7 @@ import type {
   Difficulty,
   Pillar,
   PlannedActivity,
+  RecurrencePattern,
 } from "../../database/db";
 
 export interface CreateActivityInput {
@@ -13,6 +14,8 @@ export interface CreateActivityInput {
   scheduledTime?: string;
   important?: boolean;
   notes?: string;
+  recurrence?: RecurrencePattern;
+  saveAsTemplate?: boolean;
 }
 
 export type ActivityDetailsPatch = Partial<
@@ -26,6 +29,7 @@ export type ActivityDetailsPatch = Partial<
     | "important"
     | "notes"
     | "sortOrder"
+    | "recurrenceOverride"
   >
 >;
 

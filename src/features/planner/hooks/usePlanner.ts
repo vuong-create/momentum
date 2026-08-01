@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import type { ActivityTemplate } from "../../../database/db";
+import {
+  instantiateTemplate,
+  listSavedTemplates,
+} from "../../activities/services/recurrenceService";
 
 import {
   addWeeks,
@@ -37,11 +42,13 @@ export default function usePlanner() {
     () => getActivitiesForWeek(weekStartKey),
     [weekStartKey]
   );
+  const liveTemplates = useLiveQuery(() => listSavedTemplates(), []);
 
   const activities = useMemo(
     () => liveActivities ?? [],
     [liveActivities]
   );
+  const templates = liveTemplates ?? [];
 
   const days = useMemo(
     () => buildPlannerDays(weekStartKey, activities),
@@ -95,7 +102,14 @@ export default function usePlanner() {
   }
 
   async function addActivity(input: CreateActivityInput) {
-    await createActivity(input);
+    return createActivity(input);
+  }
+
+  async function addFromTemplate(
+    template: ActivityTemplate,
+    scheduledDate: string
+  ) {
+    return instantiateTemplate(template, scheduledDate);
   }
 
   async function completeActivity(activity: PlannerActivity) {
@@ -143,6 +157,7 @@ export default function usePlanner() {
     weekStartKey,
     days,
     activities,
+    templates,
     unscheduledActivities,
     totalActivities,
     completedActivities,
@@ -151,6 +166,7 @@ export default function usePlanner() {
     goToNextWeek,
     goToCurrentWeek,
     addActivity,
+    addFromTemplate,
     completeActivity,
     rescheduleActivity,
     markImportant,

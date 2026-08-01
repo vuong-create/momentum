@@ -447,6 +447,29 @@ Possible recurrence types:
 
 Momentum generates planner occurrences when needed.
 
+## Current Persistent Model
+
+The IndexedDB implementation stores `activityTemplates` and `recurrenceRules`
+separately. Generated `PlannedActivity` records may contain:
+
+```text
+templateId
+recurrenceRuleId
+recurrenceDate
+recurrenceKey
+recurrenceOverride
+```
+
+`recurrenceDate` is the nominal series date and remains stable if the activity
+is rescheduled. `recurrenceKey` uniquely combines rule and nominal date, making
+week generation idempotent. `recurrenceOverride` protects one-off edits from a
+later **This and future** update.
+
+Skipped and deleted occurrences remain as lifecycle records, so the generator
+recognizes their key and does not recreate them. Ending a series deactivates
+its rule and soft-deletes uncompleted future occurrences that were already
+materialized.
+
 ---
 
 # 14. Recurring Activity Templates

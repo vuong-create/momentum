@@ -170,6 +170,7 @@ export default function PlannerTask({
             {activity.scheduledTime && (
               <span>{formatActivityTime(activity.scheduledTime)}</span>
             )}
+            {activity.recurrenceRuleId && <span>↻ Repeat</span>}
           </div>
         </button>
       )}

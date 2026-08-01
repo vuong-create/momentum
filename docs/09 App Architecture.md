@@ -797,12 +797,15 @@ PlannerPage
   WeekHeader
     SegmentedProgress (shared with Home)
   PlannerComposer
+    RecurrenceControls
+  PlannerTemplates
   PlannerUnscheduled
   PlannerDayCarousel
     PlannerDayCard
   PlannerDayPanel
     PlannerTask
   ActivityDetailsPanel
+    RecurrenceControls
 ```
 
 Opening activity details from a day retains the selected date as return
@@ -819,6 +822,18 @@ Task mutations remain service-owned. Inline rename, drag rescheduling,
 unscheduling, copying, manual ordering, quick moves, and bulk rollover all
 route through the activity/planner services and surface a reversible undo
 notice from `PlannerPage`.
+
+Recurring activity behavior lives in
+`features/activities/services/recurrenceService.ts`. It owns template
+instantiation, recurrence normalization, duplicate-safe weekly
+materialization, one-versus-future updates, skipping, ending, and reversible
+series snapshots. Home and Planner both request materialization before reading
+a week, then continue rendering ordinary live `PlannedActivity` records.
+
+The Planner Day Focus and Activity Details surfaces are centered modal panels
+on desktop. They retain full-screen behavior on narrow mobile layouts, keeping
+scroll and action access reliable without preserving drawer-specific layout
+assumptions.
 
 ---
 
