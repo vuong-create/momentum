@@ -4,30 +4,48 @@ import { useLiveQuery } from "dexie-react-hooks";
 import {
   addWeeks,
   buildPlannerDays,
+  createActivity,
+  dismissActivity,
   getActivitiesForWeek,
   getWeekStart,
+  moveActivity,
+  toggleActivity,
+  toggleImportant,
   toDateKey,
 } from "../services/plannerService";
+
+import type { CreateActivityInput, PlannerActivity } from "../types";
 
 export default function usePlanner() {
   const [weekStartKey, setWeekStartKey] =
     useState(() => toDateKey(getWeekStart()));
 
-  const activities =
-    useLiveQuery(
-      () => getActivitiesForWeek(weekStartKey),
-      [weekStartKey]
-    ) ?? [];
+  const liveActivities = useLiveQuery(
+    () => getActivitiesForWeek(weekStartKey),
+    [weekStartKey]
+  );
+
+  const activities = useMemo(
+    () => liveActivities ?? [],
+    [liveActivities]
+  );
 
   const days = useMemo(
     () => buildPlannerDays(weekStartKey, activities),
     [weekStartKey, activities]
   );
 
-  const totalActivities = activities.length;
+  const eligibleActivities = activities.filter(
+    (activity) =>
+      activity.status !== "cancelled" &&
+      activity.status !== "dismissed"
+  );
 
-  const completedActivities = activities.filter(
-    (activity) => activity.completed
+  const totalActivities = eligibleActivities.length;
+
+  const completedActivities = eligibleActivities.filter(
+    (activity) =>
+      activity.status === "completed" || activity.completed
   ).length;
 
   const completionPercentage =
@@ -57,6 +75,29 @@ export default function usePlanner() {
     setWeekStartKey(toDateKey(getWeekStart()));
   }
 
+  async function addActivity(input: CreateActivityInput) {
+    await createActivity(input);
+  }
+
+  async function completeActivity(activity: PlannerActivity) {
+    await toggleActivity(activity);
+  }
+
+  async function rescheduleActivity(
+    activity: PlannerActivity,
+    scheduledDate: string
+  ) {
+    await moveActivity(activity, scheduledDate);
+  }
+
+  async function markImportant(activity: PlannerActivity) {
+    await toggleImportant(activity);
+  }
+
+  async function dismiss(activity: PlannerActivity) {
+    if (activity.id) await dismissActivity(activity.id);
+  }
+
   return {
     weekStartKey,
     days,
@@ -67,5 +108,10 @@ export default function usePlanner() {
     goToPreviousWeek,
     goToNextWeek,
     goToCurrentWeek,
+    addActivity,
+    completeActivity,
+    rescheduleActivity,
+    markImportant,
+    dismiss,
   };
 }

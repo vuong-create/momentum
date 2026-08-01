@@ -1,7 +1,6 @@
 import usePlanner from "./hooks/usePlanner";
 
 import WeekHeader from "./components/WeekHeader";
-import QuickAdd from "./components/QuickAdd";
 import PlannerColumn from "./components/PlannerColumn";
 
 import "./planner.css";
@@ -21,13 +20,16 @@ export default function PlannerPage() {
         onCurrentWeek={planner.goToCurrentWeek}
       />
 
-      <QuickAdd days={planner.days} />
-
       <div className="planner-board">
         {planner.days.map((day) => (
           <PlannerColumn
             key={day.dateKey}
             day={day}
+            onAdd={planner.addActivity}
+            onComplete={planner.completeActivity}
+            onMove={planner.rescheduleActivity}
+            onToggleImportant={planner.markImportant}
+            onDismiss={planner.dismiss}
           />
         ))}
       </div>
