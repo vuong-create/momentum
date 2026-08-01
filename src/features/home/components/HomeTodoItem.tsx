@@ -4,6 +4,7 @@ import {
 } from "../../../app/theme";
 
 import type { PlannedActivity } from "../../../database/db";
+import { calculatePlannedXP } from "../../activities/services/activityLifecycle";
 
 type HomeTodoItemProps = {
   activity: PlannedActivity;
@@ -75,7 +76,7 @@ export default function HomeTodoItem({
 
       {celebrating && (
         <span className="home-todo-xp">
-          +{activity.xpReward} XP
+          +{calculatePlannedXP(activity.xpReward).finalXP} XP
         </span>
       )}
     </button>

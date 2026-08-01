@@ -1,8 +1,14 @@
 import { db } from "../../../database/db";
-import type {
-  Difficulty,
-  PlannedActivity,
-} from "../../../database/db";
+import type { PlannedActivity } from "../../../database/db";
+
+import {
+  createPlannedActivity,
+  dismissPlannedActivity,
+  movePlannedActivity,
+  toggleActivityImportance,
+  togglePlannedActivity,
+} from "../../activities/services/activityService";
+import { isActivityVisible } from "../../activities/services/activityLifecycle";
 
 import type {
   CreateActivityInput,
@@ -62,13 +68,6 @@ export function addWeeks(date: Date, amount: number) {
   return addDays(date, amount * 7);
 }
 
-function getXPReward(difficulty: Difficulty) {
-  if (difficulty === "easy") return 5;
-  if (difficulty === "hard") return 25;
-
-  return 10;
-}
-
 function getLegacyScheduledDate(
   activity: PlannedActivity,
   requestedWeekStart: Date
@@ -119,8 +118,7 @@ export async function getActivitiesForWeek(
 
     if (!scheduledDate) return false;
 
-    return activity.status !== "dismissed" &&
-      activity.status !== "cancelled" && (
+    return isActivityVisible(activity) && (
       scheduledDate >= startKey &&
       scheduledDate <= endKey
     );
@@ -130,29 +128,7 @@ export async function getActivitiesForWeek(
 export async function createActivity(
   input: CreateActivityInput
 ) {
-  const scheduledDate = fromDateKey(
-    input.scheduledDate
-  );
-
-  const day = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-  }).format(scheduledDate);
-
-  await db.plannedActivities.add({
-    title: input.title.trim(),
-    completed: false,
-    status: "planned",
-    date: new Date().toISOString(),
-    day,
-    scheduledDate: input.scheduledDate,
-    scheduledTime: input.scheduledTime || undefined,
-    pillar: input.pillar ?? "core",
-    difficulty: input.difficulty ?? "medium",
-    xpReward: getXPReward(input.difficulty ?? "medium"),
-    important: input.important ?? false,
-    notes: input.notes?.trim() || undefined,
-    sortOrder: Date.now(),
-  });
+  await createPlannedActivity(input);
 }
 
 export async function toggleActivity(
@@ -160,20 +136,11 @@ export async function toggleActivity(
 ) {
   if (!activity.id) return;
 
-  await db.plannedActivities.update(activity.id, {
-    completed: !activity.completed,
-    status: activity.completed ? "planned" : "completed",
-    completedAt: activity.completed
-      ? undefined
-      : new Date().toISOString(),
-  });
+  await togglePlannedActivity(activity.id);
 }
 
 export async function dismissActivity(id: number) {
-  await db.plannedActivities.update(id, {
-    status: "dismissed",
-    completed: false,
-  });
+  await dismissPlannedActivity(id);
 }
 
 export async function toggleImportant(
@@ -181,9 +148,7 @@ export async function toggleImportant(
 ) {
   if (!activity.id) return;
 
-  await db.plannedActivities.update(activity.id, {
-    important: !activity.important,
-  });
+  await toggleActivityImportance(activity.id);
 }
 
 export async function moveActivity(
@@ -193,17 +158,11 @@ export async function moveActivity(
 ) {
   if (!activity.id) return;
 
-  const date = fromDateKey(scheduledDate);
-
-  const day = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-  }).format(date);
-
-  await db.plannedActivities.update(activity.id, {
+  await movePlannedActivity(
+    activity.id,
     scheduledDate,
-    day,
-    sortOrder,
-  });
+    sortOrder
+  );
 }
 
 export function buildPlannerDays(

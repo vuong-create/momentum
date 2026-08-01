@@ -12,6 +12,11 @@ import {
   db,
   type PlannedActivity,
 } from "../../database/db";
+import {
+  createPlannedActivity,
+  togglePlannedActivity as toggleActivityLifecycle,
+} from "../activities/services/activityService";
+import { isActivityVisible } from "../activities/services/activityLifecycle";
 
 import {
   pillarThemes,
@@ -124,11 +129,15 @@ export default function HomeDashboard() {
     setThoughtStatus,
   ] = useState<string | null>(null);
 
-  const tasks =
-    useLiveQuery(
-      () => db.plannedActivities.toArray(),
-      []
-    ) ?? [];
+  const liveTasks = useLiveQuery(
+    () => db.plannedActivities.toArray(),
+    []
+  );
+
+  const tasks = useMemo(
+    () => liveTasks ?? [],
+    [liveTasks]
+  );
 
   const xpEvents =
     useLiveQuery(
@@ -153,7 +162,8 @@ export default function HomeDashboard() {
   );
 
   const totalXP = xpEvents.reduce(
-    (sum, event) => sum + event.amount,
+    (sum, event) =>
+      event.voidedAt ? sum : sum + event.amount,
     0
   );
 
@@ -169,7 +179,7 @@ export default function HomeDashboard() {
     () =>
       tasks.filter(
         (activity) =>
-          activity.status !== "dismissed" &&
+          isActivityVisible(activity) &&
           resolveActivityDate(activity) ===
           todayKey
       ),
@@ -184,7 +194,7 @@ export default function HomeDashboard() {
             resolveActivityDate(activity);
 
           return (
-            activity.status !== "dismissed" &&
+            isActivityVisible(activity) &&
             Boolean(scheduledDate) &&
             scheduledDate! < todayKey &&
             !activity.completed
@@ -200,8 +210,13 @@ export default function HomeDashboard() {
     [tasks, todayKey]
   );
 
-  const weekStart =
-    getCurrentWeekStart(today);
+  const weekStart = useMemo(
+    () =>
+      getCurrentWeekStart(
+        new Date(`${todayKey}T00:00:00`)
+      ),
+    [todayKey]
+  );
 
   const weekDays = useMemo(
     () =>
@@ -218,8 +233,7 @@ export default function HomeDashboard() {
           const activities =
             tasks.filter(
               (activity) =>
-                activity.status !== "dismissed" &&
-                activity.status !== "cancelled" &&
+                isActivityVisible(activity) &&
                 resolveActivityDate(
                   activity
                 ) === dateKey
@@ -242,7 +256,7 @@ export default function HomeDashboard() {
           };
         }
       ),
-    [tasks, todayKey]
+    [tasks, todayKey, weekStart]
   );
 
   const weeklyActivities =
@@ -285,26 +299,11 @@ export default function HomeDashboard() {
   async function addTodayActivity(
     title: string
   ) {
-    const day =
-      new Intl.DateTimeFormat(
-        "en-US",
-        {
-          weekday: "long",
-        }
-      ).format(today);
-
-    await db.plannedActivities.add({
+    await createPlannedActivity({
       title,
-      completed: false,
-      status: "planned",
-      date: new Date().toISOString(),
-      day,
       scheduledDate: todayKey,
       pillar: "core",
       difficulty: "medium",
-      xpReward: 10,
-      important: false,
-      sortOrder: Date.now(),
     });
   }
 
@@ -315,29 +314,7 @@ export default function HomeDashboard() {
       return;
     }
 
-    const willComplete =
-      !activity.completed;
-
-    await db.plannedActivities.update(
-      activity.id,
-      {
-        completed: willComplete,
-        status: willComplete ? "completed" : "planned",
-        completedAt: willComplete
-          ? new Date().toISOString()
-          : undefined,
-      }
-    );
-
-    if (willComplete) {
-      await db.xpEvents.add({
-        amount: activity.xpReward,
-        source:
-          `activity:${activity.id}`,
-        date:
-          new Date().toISOString(),
-      });
-    }
+    await toggleActivityLifecycle(activity.id);
   }
 
   async function toggleQuote(
