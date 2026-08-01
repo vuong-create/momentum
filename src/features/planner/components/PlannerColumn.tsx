@@ -7,6 +7,7 @@ import PlannerTask from "./PlannerTask";
 
 type PlannerColumnProps = {
   day: PlannerDay;
+  celebratingActivityId: number | null;
   onRequestAdd: (dateKey: string) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onMove: (
@@ -19,6 +20,7 @@ type PlannerColumnProps = {
 
 export default function PlannerColumn({
   day,
+  celebratingActivityId,
   onRequestAdd,
   onComplete,
   onMove,
@@ -75,6 +77,7 @@ export default function PlannerColumn({
             <PlannerTask
               key={activity.id}
               activity={activity}
+              celebrating={celebratingActivityId === activity.id}
               onComplete={onComplete}
               onToggleImportant={onToggleImportant}
               onDismiss={onDismiss}

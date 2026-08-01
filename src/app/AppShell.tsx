@@ -7,6 +7,7 @@ import {
 import Layout from "../components/Layout";
 import HomeDashboard from "../features/home/HomeDashboard";
 import PlannerPage from "../features/planner/PlannerPage";
+import SettingsPage from "../features/settings/SettingsPage";
 import PlaceholderPage from "../pages/PlaceholderPage";
 
 export default function AppShell() {
@@ -80,13 +81,7 @@ export default function AppShell() {
 
         <Route
           path="/settings"
-          element={
-            <PlaceholderPage
-              title="Settings"
-              eyebrow="Momentum"
-              description="Appearance, sounds, data, backups, and application preferences."
-            />
-          }
+          element={<SettingsPage />}
         />
 
         <Route

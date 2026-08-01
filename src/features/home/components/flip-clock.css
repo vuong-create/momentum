@@ -1,7 +1,7 @@
 .flip-clock {
   position: relative;
   top: -18px;
-  left: 60px;   /* was 24px */
+  left: 60px;
 }
 
 .flip-clock-digits {

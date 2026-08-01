@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import PresenceProvider from "./presence/PresenceProvider";
+import ExperienceProvider from "./experience/ExperienceProvider";
 
 import "@fontsource/geist";
 import "@fontsource/cormorant-garamond/400.css";
@@ -14,9 +14,9 @@ import App from "./App.tsx";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <PresenceProvider>
+      <ExperienceProvider>
         <App />
-      </PresenceProvider>
+      </ExperienceProvider>
     </BrowserRouter>
   </StrictMode>
 );

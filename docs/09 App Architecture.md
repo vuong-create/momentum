@@ -478,6 +478,43 @@ This makes future visual redesigns easier.
 
 ---
 
+# 18.1 Experience System
+
+Time-aware ambience, interaction sound, and motion preferences belong to one
+cross-application experience system.
+
+Current structure:
+
+```text
+src/
+  experience/
+    ExperienceProvider.tsx
+    ExperienceContext.ts
+    useExperience.ts
+    audio/
+      audioEngine.ts
+    presence/
+      clock.ts
+      ambience.ts
+      greetings.ts
+```
+
+Responsibilities:
+
+* Presence calculates local time period, ambience, and greeting.
+* The audio engine owns reusable procedural feedback cues.
+* The provider applies the visible ambient layer and respects both app and
+  system motion preferences.
+* Feature UI requests semantic cues such as `task-added` or
+  `task-completed`; it does not construct audio directly.
+* Persistent preference writes remain in the Settings service.
+
+Normal UI feedback should be brief and non-blocking. Weekly completion,
+achievements, and level-up celebrations should use the same system but remain
+rarer and more expressive.
+
+---
+
 # 19. Avoid Premature UI Frameworks
 
 Version 1 does not need a huge prebuilt component library.

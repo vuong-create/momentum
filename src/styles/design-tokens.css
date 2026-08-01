@@ -70,19 +70,6 @@
   --radius-xl: 28px;
   --radius-pill: 999px;
 
-  /* Motion */
-
-  --duration-fast: 180ms;
-  --duration-normal: 250ms;
-  --duration-slow: 420ms;
-  --duration-celebrate: 650ms;
-
-  --ease-standard:
-    cubic-bezier(0.2, 0.8, 0.2, 1);
-
-  --ease-spring:
-    cubic-bezier(0.2, 1.35, 0.35, 1);
-
   /* Spacing */
 
   --space-1: 4px;
