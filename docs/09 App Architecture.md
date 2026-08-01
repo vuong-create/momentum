@@ -790,6 +790,24 @@ Home and Planner open the same details drawer and invoke the same lifecycle
 service. The UI requests semantic feedback cues, while mutation, XP, event,
 and restoration rules remain outside presentational components.
 
+The dense-week Planner composes those same records through view-specific UI:
+
+```text
+PlannerPage
+  WeekHeader
+    SegmentedProgress (shared with Home)
+  PlannerComposer
+  PlannerDayCarousel
+    PlannerDayCard
+  PlannerDayPanel
+    PlannerTask
+  ActivityDetailsPanel
+```
+
+Opening activity details from a day retains the selected date as return
+context. Day Focus is temporarily replaced by Activity Details, then restored
+when the activity inspector closes; drawers are never stacked.
+
 ---
 
 # 29. XP Service

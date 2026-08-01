@@ -27,6 +27,7 @@ import {
 } from "../../app/theme";
 
 import useExperience from "../../experience/useExperience";
+import SegmentedProgress from "../../components/SegmentedProgress";
 
 import {
   getLevel,
@@ -580,25 +581,11 @@ export default function HomeDashboard() {
           </div>
         </div>
 
-       <div
-  className="home-week-segments"
-  aria-label={`${weeklyPercentage}% of weekly activities completed`}
->
-  {Array.from({ length: 10 }).map((_, index) => {
-    const segmentThreshold = (index + 1) * 10;
-
-    return (
-      <span
-        key={index}
-        className={
-          weeklyPercentage >= segmentThreshold
-            ? "home-week-segment-complete"
-            : ""
-        }
-      />
-    );
-  })}
-</div>
+        <SegmentedProgress
+          value={weeklyPercentage}
+          label={`${weeklyPercentage}% of weekly activities completed`}
+          className="home-week-segments"
+        />
 
         <div className="home-week-grid">
           {weekDays.map((day) => (

@@ -18,7 +18,8 @@ import type {
 
 import WeekHeader from "./components/WeekHeader";
 import PlannerComposer from "./components/PlannerComposer";
-import PlannerColumn from "./components/PlannerColumn";
+import PlannerDayCarousel from "./components/PlannerDayCarousel";
+import PlannerDayPanel from "./components/PlannerDayPanel";
 
 import "./planner.css";
 
@@ -36,6 +37,9 @@ export default function PlannerPage() {
   const [selectedActivityId, setSelectedActivityId] = useState<
     number | null
   >(null);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(
+    null
+  );
   const celebrationTimer = useRef<number | null>(null);
 
   const preferredDay =
@@ -48,17 +52,32 @@ export default function PlannerPage() {
 
   function requestComposer(dateKey: string) {
     setRequestedDateKey(dateKey);
+    setSelectedDayKey(null);
     setComposerFocusRequest((request) => request + 1);
   }
 
   function navigateWeek(navigate: () => void) {
     setRequestedDateKey(null);
+    setSelectedDayKey(null);
+    setSelectedActivityId(null);
     navigate();
   }
 
   const closeActivityDetails = useCallback(() => {
     setSelectedActivityId(null);
   }, []);
+
+  const closeDayPanel = useCallback(() => {
+    setSelectedDayKey(null);
+  }, []);
+
+  const selectedDay =
+    planner.days.find((day) => day.dateKey === selectedDayKey) ?? null;
+
+  function openActivityDetails(activityId: number, dateKey?: string) {
+    if (dateKey) setSelectedDayKey(dateKey);
+    setSelectedActivityId(activityId);
+  }
 
   useEffect(() => {
     return () => {
@@ -119,20 +138,27 @@ export default function PlannerPage() {
         onAdd={addActivity}
       />
 
-      <div className="planner-board">
-        {planner.days.map((day) => (
-          <PlannerColumn
-            key={day.dateKey}
-            day={day}
-            onRequestAdd={requestComposer}
-            celebratingActivityId={celebratingActivityId}
-            onOpenDetails={setSelectedActivityId}
-            onComplete={completeActivity}
-            onMove={planner.rescheduleActivity}
-            onToggleImportant={planner.markImportant}
-          />
-        ))}
-      </div>
+      <PlannerDayCarousel
+        days={planner.days}
+        onOpenDay={setSelectedDayKey}
+        onRequestAdd={requestComposer}
+        onOpenDetails={openActivityDetails}
+        onComplete={completeActivity}
+        onMove={planner.rescheduleActivity}
+      />
+
+      {!selectedActivityId && (
+        <PlannerDayPanel
+          key={selectedDay?.dateKey ?? "closed"}
+          day={selectedDay}
+          celebratingActivityId={celebratingActivityId}
+          onClose={closeDayPanel}
+          onAdd={addActivity}
+          onOpenDetails={(activityId) => openActivityDetails(activityId)}
+          onComplete={completeActivity}
+          onToggleImportant={planner.markImportant}
+        />
+      )}
 
       <ActivityDetailsPanel
         activityId={selectedActivityId}

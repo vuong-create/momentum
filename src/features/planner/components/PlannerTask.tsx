@@ -44,6 +44,7 @@ export default function PlannerTask({
         .join(" ")}
     >
       <button
+        type="button"
         className="planner-task-toggle"
         onClick={() => onComplete(activity)}
         aria-label={
@@ -77,6 +78,7 @@ export default function PlannerTask({
 
       <div className="planner-task-actions">
         <button
+          type="button"
           className="planner-task-action"
           onClick={() => onToggleImportant(activity)}
           aria-label={
@@ -90,6 +92,7 @@ export default function PlannerTask({
         </button>
 
         <button
+          type="button"
           className="planner-task-action planner-task-details"
           onClick={() => activity.id && onOpenDetails(activity.id)}
           aria-label={`Open details for ${activity.title}`}
