@@ -640,7 +640,7 @@ Most values should be derived automatically where practical.
 
 # 22. Weekly Summary
 
-At the end of each Monday–Sunday week, Momentum creates a snapshot.
+At the end of each Sunday–Saturday week, Momentum creates a snapshot.
 
 Conceptual structure:
 
@@ -1830,7 +1830,7 @@ dataVersion
 
 Momentum's default week is:
 
-**Monday → Sunday**
+**Sunday → Saturday**
 
 ---
 
