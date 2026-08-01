@@ -169,6 +169,7 @@ export default function HomeDashboard() {
     () =>
       tasks.filter(
         (activity) =>
+          activity.status !== "dismissed" &&
           resolveActivityDate(activity) ===
           todayKey
       ),
@@ -183,6 +184,7 @@ export default function HomeDashboard() {
             resolveActivityDate(activity);
 
           return (
+            activity.status !== "dismissed" &&
             Boolean(scheduledDate) &&
             scheduledDate! < todayKey &&
             !activity.completed
@@ -216,6 +218,8 @@ export default function HomeDashboard() {
           const activities =
             tasks.filter(
               (activity) =>
+                activity.status !== "dismissed" &&
+                activity.status !== "cancelled" &&
                 resolveActivityDate(
                   activity
                 ) === dateKey
@@ -292,12 +296,15 @@ export default function HomeDashboard() {
     await db.plannedActivities.add({
       title,
       completed: false,
+      status: "planned",
       date: new Date().toISOString(),
       day,
       scheduledDate: todayKey,
       pillar: "core",
       difficulty: "medium",
       xpReward: 10,
+      important: false,
+      sortOrder: Date.now(),
     });
   }
 
@@ -315,6 +322,10 @@ export default function HomeDashboard() {
       activity.id,
       {
         completed: willComplete,
+        status: willComplete ? "completed" : "planned",
+        completedAt: willComplete
+          ? new Date().toISOString()
+          : undefined,
       }
     );
 
@@ -530,7 +541,7 @@ export default function HomeDashboard() {
 
         <section className="home-thoughts">
           <h2 className="font-pixel">
-            Thoughts - Test
+            Thoughts
           </h2>
 
           <div

@@ -11,19 +11,31 @@ export type Pillar =
 
 export type Difficulty = "easy" | "medium" | "hard";
 
+export type ActivityStatus =
+  | "planned"
+  | "completed"
+  | "missed"
+  | "dismissed"
+  | "cancelled";
+
 export interface PlannedActivity {
   id?: number;
   title: string;
   completed: boolean;
+  status?: ActivityStatus;
 
   date: string;
   day: string;
   scheduledDate?: string;
   scheduledTime?: string;
+  sortOrder?: number;
 
   pillar: Pillar;
   xpReward: number;
   difficulty: Difficulty;
+  important?: boolean;
+  notes?: string;
+  completedAt?: string;
 }
 
 export interface XPEvent {
@@ -133,6 +145,32 @@ class MomentumDatabase extends Dexie {
         "++id, createdAt, updatedAt",
       savedQuotes:
         "++id, &quoteKey, savedAt",
+    });
+
+    this.version(8).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, scheduledTime, pillar, sortOrder",
+      xpEvents:
+        "++id, amount, source, date",
+      streakRecords:
+        "++id, date, completed",
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate",
+      notes:
+        "++id, createdAt, updatedAt",
+      savedQuotes:
+        "++id, &quoteKey, savedAt",
+    }).upgrade(async (transaction) => {
+      await transaction
+        .table("plannedActivities")
+        .toCollection()
+        .modify((activity) => {
+          activity.status = activity.completed
+            ? "completed"
+            : "planned";
+          activity.important = activity.important ?? false;
+          activity.sortOrder = activity.sortOrder ?? activity.id ?? 0;
+        });
     });
   }
 }

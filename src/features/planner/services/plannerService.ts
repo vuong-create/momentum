@@ -119,11 +119,12 @@ export async function getActivitiesForWeek(
 
     if (!scheduledDate) return false;
 
-    return (
+    return activity.status !== "dismissed" &&
+      activity.status !== "cancelled" && (
       scheduledDate >= startKey &&
       scheduledDate <= endKey
     );
-  });
+  }).sort((a, b) => (a.sortOrder ?? a.id ?? 0) - (b.sortOrder ?? b.id ?? 0));
 }
 
 export async function createActivity(
@@ -140,12 +141,17 @@ export async function createActivity(
   await db.plannedActivities.add({
     title: input.title.trim(),
     completed: false,
+    status: "planned",
     date: new Date().toISOString(),
     day,
     scheduledDate: input.scheduledDate,
-    pillar: input.pillar,
-    difficulty: input.difficulty,
-    xpReward: getXPReward(input.difficulty),
+    scheduledTime: input.scheduledTime || undefined,
+    pillar: input.pillar ?? "core",
+    difficulty: input.difficulty ?? "medium",
+    xpReward: getXPReward(input.difficulty ?? "medium"),
+    important: input.important ?? false,
+    notes: input.notes?.trim() || undefined,
+    sortOrder: Date.now(),
   });
 }
 
@@ -156,16 +162,34 @@ export async function toggleActivity(
 
   await db.plannedActivities.update(activity.id, {
     completed: !activity.completed,
+    status: activity.completed ? "planned" : "completed",
+    completedAt: activity.completed
+      ? undefined
+      : new Date().toISOString(),
   });
 }
 
-export async function deleteActivity(id: number) {
-  await db.plannedActivities.delete(id);
+export async function dismissActivity(id: number) {
+  await db.plannedActivities.update(id, {
+    status: "dismissed",
+    completed: false,
+  });
+}
+
+export async function toggleImportant(
+  activity: PlannedActivity
+) {
+  if (!activity.id) return;
+
+  await db.plannedActivities.update(activity.id, {
+    important: !activity.important,
+  });
 }
 
 export async function moveActivity(
   activity: PlannedActivity,
-  scheduledDate: string
+  scheduledDate: string,
+  sortOrder = Date.now()
 ) {
   if (!activity.id) return;
 
@@ -178,6 +202,7 @@ export async function moveActivity(
   await db.plannedActivities.update(activity.id, {
     scheduledDate,
     day,
+    sortOrder,
   });
 }
 

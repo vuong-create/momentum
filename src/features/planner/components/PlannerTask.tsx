@@ -5,36 +5,43 @@ import {
 
 import type { PlannerActivity } from "../types";
 
-import {
-  deleteActivity,
-  toggleActivity,
-} from "../services/plannerService";
-
 type PlannerTaskProps = {
   activity: PlannerActivity;
+  onComplete: (activity: PlannerActivity) => Promise<void>;
+  onToggleImportant: (activity: PlannerActivity) => Promise<void>;
+  onDismiss: (activity: PlannerActivity) => Promise<void>;
 };
 
 export default function PlannerTask({
   activity,
+  onComplete,
+  onToggleImportant,
+  onDismiss,
 }: PlannerTaskProps) {
-  const theme =
-    pillarThemes[activity.pillar as PillarKey];
+  const theme = pillarThemes[activity.pillar as PillarKey];
 
   return (
     <article
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData(
+          "application/momentum-activity",
+          JSON.stringify(activity)
+        );
+      }}
       className={[
         "planner-task",
         theme.className,
-        activity.completed
-          ? "planner-task-complete"
-          : "",
+        activity.completed ? "planner-task-complete" : "",
+        activity.important ? "planner-task-important" : "",
       ]
         .filter(Boolean)
         .join(" ")}
     >
       <button
         className="planner-task-toggle"
-        onClick={() => toggleActivity(activity)}
+        onClick={() => onComplete(activity)}
         aria-label={
           activity.completed
             ? `Mark ${activity.title} incomplete`
@@ -53,21 +60,35 @@ export default function PlannerTask({
             {theme.shortLabel}
           </span>
 
-          <span>+{activity.xpReward} XP</span>
+          {activity.scheduledTime && (
+            <span>{activity.scheduledTime}</span>
+          )}
         </div>
       </div>
 
-      <button
-        className="planner-task-delete"
-        onClick={() => {
-          if (activity.id) {
-            deleteActivity(activity.id);
+      <div className="planner-task-actions">
+        <button
+          className="planner-task-action"
+          onClick={() => onToggleImportant(activity)}
+          aria-label={
+            activity.important
+              ? `Remove importance from ${activity.title}`
+              : `Mark ${activity.title} important`
           }
-        }}
-        aria-label={`Delete ${activity.title}`}
-      >
-        ×
-      </button>
+          title={activity.important ? "Not important" : "Important"}
+        >
+          {activity.important ? "★" : "☆"}
+        </button>
+
+        <button
+          className="planner-task-action planner-task-dismiss"
+          onClick={() => onDismiss(activity)}
+          aria-label={`Dismiss ${activity.title}`}
+          title="Dismiss"
+        >
+          ×
+        </button>
+      </div>
     </article>
   );
 }
