@@ -772,6 +772,24 @@ Responsibilities include:
 
 This service is one of the most important integration layers in Momentum.
 
+Current activity controls are implemented as a shared feature surface:
+
+```text
+src/features/activities/
+  components/
+    ActivityDetailsPanel
+    ActivityUndoToast
+  hooks/
+    useActivityUndo
+  services/
+    activityLifecycle
+    activityService
+```
+
+Home and Planner open the same details drawer and invoke the same lifecycle
+service. The UI requests semantic feedback cues, while mutation, XP, event,
+and restoration rules remain outside presentational components.
+
 ---
 
 # 29. XP Service

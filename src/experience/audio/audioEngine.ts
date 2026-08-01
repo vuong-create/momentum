@@ -1,7 +1,10 @@
 export type FeedbackCue =
   | "task-added"
   | "task-completed"
-  | "task-reopened";
+  | "task-reopened"
+  | "task-updated"
+  | "task-dismissed"
+  | "task-restored";
 
 type Tone = {
   frequency: number;
@@ -65,7 +68,7 @@ function playTone(context: AudioContext, tone: Tone) {
 }
 
 function getCueTones(cue: FeedbackCue): Tone[] {
-  if (cue === "task-added") {
+  if (cue === "task-added" || cue === "task-updated") {
     return [
       {
         frequency: 430,
@@ -85,6 +88,30 @@ function getCueTones(cue: FeedbackCue): Tone[] {
         duration: 0.14,
         volume: 0.012,
         type: "sine",
+      },
+    ];
+  }
+
+  if (cue === "task-dismissed") {
+    return [
+      {
+        frequency: 410,
+        endFrequency: 315,
+        duration: 0.16,
+        volume: 0.011,
+        type: "sine",
+      },
+    ];
+  }
+
+  if (cue === "task-restored") {
+    return [
+      {
+        frequency: 390,
+        endFrequency: 545,
+        duration: 0.16,
+        volume: 0.015,
+        type: "triangle",
       },
     ];
   }

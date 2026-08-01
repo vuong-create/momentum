@@ -1,0 +1,202 @@
+.home-unfinished {
+  margin-bottom: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(241, 183, 74, 0.16);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(241, 183, 74, 0.055),
+      rgba(255, 255, 255, 0.018) 42%
+    );
+}
+
+.home-unfinished-heading {
+  width: 100%;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.home-unfinished-heading:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.home-unfinished-mark {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-warning);
+  box-shadow: 0 0 10px rgba(241, 183, 74, 0.28);
+}
+
+.home-unfinished-heading strong,
+.home-unfinished-heading small {
+  display: block;
+}
+
+.home-unfinished-heading strong {
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  font-weight: 520;
+}
+
+.home-unfinished-heading small {
+  margin-top: 3px;
+  color: var(--color-text-disabled);
+  font-size: 8px;
+}
+
+.home-unfinished-heading > span:last-child {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.home-unfinished-list {
+  padding: 0 8px 8px;
+  animation: momentum-rise-in var(--duration-normal) var(--ease-out) both;
+}
+
+.home-unfinished-item {
+  padding: 11px;
+  border-top: 1px solid var(--color-border-subtle);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.home-unfinished-copy {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+}
+
+.home-unfinished-pillar {
+  width: 5px;
+  height: 5px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--pillar-color);
+}
+
+.home-unfinished-copy strong,
+.home-unfinished-copy span {
+  display: block;
+}
+
+.home-unfinished-copy strong {
+  color: var(--color-text-primary);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.home-unfinished-copy div > span {
+  margin-top: 3px;
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.home-unfinished-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 9px 0 0 14px;
+}
+
+.home-unfinished-actions button {
+  min-height: 24px;
+  padding: 0 7px;
+  border-color: transparent;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 7px;
+}
+
+.home-unfinished-actions button:first-child {
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.home-unfinished-actions button:last-child {
+  margin-left: auto;
+}
+
+.home-unfinished-reschedule {
+  margin: 10px 0 0 14px;
+  padding: 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.home-unfinished-reschedule > span,
+.home-unfinished-reschedule label > span {
+  color: var(--color-text-disabled);
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-unfinished-reschedule > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 7px;
+}
+
+.home-unfinished-reschedule > div button {
+  min-height: 25px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 0 7px;
+  border-color: transparent;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.home-unfinished-reschedule > div button span {
+  color: var(--color-text-disabled);
+}
+
+.home-unfinished-reschedule label {
+  display: grid;
+  grid-template-columns: auto minmax(130px, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.home-unfinished-reschedule input {
+  min-height: 29px;
+  font-size: 8px;
+}
+
+.home-unfinished-reschedule label button {
+  min-height: 27px;
+  padding: 0 8px;
+  font-size: 7px;
+}
+
+@media (max-width: 560px) {
+  .home-unfinished-actions button:last-child {
+    margin-left: 0;
+  }
+
+  .home-unfinished-reschedule label {
+    grid-template-columns: 1fr auto;
+  }
+
+  .home-unfinished-reschedule label > span {
+    grid-column: 1 / -1;
+  }
+}

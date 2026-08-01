@@ -280,7 +280,12 @@ async function setTerminalStatus(
   id: number,
   status: Extract<ActivityStatus, "dismissed" | "cancelled">
 ) {
-  await requireActivity(id);
+  const activity = await requireActivity(id);
+
+  if (getActivityStatus(activity) === "completed") {
+    await reopenPlannedActivity(id);
+  }
+
   const now = new Date().toISOString();
 
   await db.plannedActivities.update(id, {
@@ -300,6 +305,23 @@ export function cancelPlannedActivity(id: number) {
   return setTerminalStatus(id, "cancelled");
 }
 
+export async function restoreDismissedActivity(id: number) {
+  const activity = await db.plannedActivities.get(id);
+
+  if (!activity || activity.deletedAt) {
+    throw new Error(`Activity ${id} was not found.`);
+  }
+
+  await db.plannedActivities.update(id, {
+    status: "planned",
+    completed: false,
+    completedAt: undefined,
+    dismissedAt: undefined,
+    cancelledAt: undefined,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
 export async function softDeletePlannedActivity(id: number) {
   await requireActivity(id);
   const now = new Date().toISOString();
@@ -307,6 +329,19 @@ export async function softDeletePlannedActivity(id: number) {
   await db.plannedActivities.update(id, {
     deletedAt: now,
     updatedAt: now,
+  });
+}
+
+export async function restoreSoftDeletedActivity(id: number) {
+  const activity = await db.plannedActivities.get(id);
+
+  if (!activity) {
+    throw new Error(`Activity ${id} was not found.`);
+  }
+
+  await db.plannedActivities.update(id, {
+    deletedAt: undefined,
+    updatedAt: new Date().toISOString(),
   });
 }
 

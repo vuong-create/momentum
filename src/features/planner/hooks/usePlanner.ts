@@ -5,7 +5,6 @@ import {
   addWeeks,
   buildPlannerDays,
   createActivity,
-  dismissActivity,
   getActivitiesForWeek,
   getWeekStart,
   moveActivity,
@@ -94,10 +93,6 @@ export default function usePlanner() {
     await toggleImportant(activity);
   }
 
-  async function dismiss(activity: PlannerActivity) {
-    if (activity.id) await dismissActivity(activity.id);
-  }
-
   return {
     weekStartKey,
     days,
@@ -112,6 +107,5 @@ export default function usePlanner() {
     completeActivity,
     rescheduleActivity,
     markImportant,
-    dismiss,
   };
 }

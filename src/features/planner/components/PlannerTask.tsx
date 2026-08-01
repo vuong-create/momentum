@@ -9,17 +9,17 @@ import { calculatePlannedXP } from "../../activities/services/activityLifecycle"
 type PlannerTaskProps = {
   activity: PlannerActivity;
   celebrating?: boolean;
+  onOpenDetails: (activityId: number) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
-  onDismiss: (activity: PlannerActivity) => Promise<void>;
 };
 
 export default function PlannerTask({
   activity,
   celebrating = false,
+  onOpenDetails,
   onComplete,
   onToggleImportant,
-  onDismiss,
 }: PlannerTaskProps) {
   const theme = pillarThemes[activity.pillar as PillarKey];
 
@@ -55,7 +55,12 @@ export default function PlannerTask({
         {activity.completed ? "✓" : ""}
       </button>
 
-      <div className="planner-task-content">
+      <button
+        type="button"
+        className="planner-task-content"
+        onClick={() => activity.id && onOpenDetails(activity.id)}
+        aria-label={`Open details for ${activity.title}`}
+      >
         <strong>{activity.title}</strong>
 
         <div className="planner-task-meta">
@@ -68,7 +73,7 @@ export default function PlannerTask({
             <span>{activity.scheduledTime}</span>
           )}
         </div>
-      </div>
+      </button>
 
       <div className="planner-task-actions">
         <button
@@ -85,12 +90,12 @@ export default function PlannerTask({
         </button>
 
         <button
-          className="planner-task-action planner-task-dismiss"
-          onClick={() => onDismiss(activity)}
-          aria-label={`Dismiss ${activity.title}`}
-          title="Dismiss"
+          className="planner-task-action planner-task-details"
+          onClick={() => activity.id && onOpenDetails(activity.id)}
+          aria-label={`Open details for ${activity.title}`}
+          title="Details"
         >
-          ×
+          ···
         </button>
       </div>
 

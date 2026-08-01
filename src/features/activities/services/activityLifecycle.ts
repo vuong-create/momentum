@@ -4,6 +4,43 @@ import type {
   PlannedActivity,
 } from "../../../database/db";
 
+const weekDayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+function toDateKey(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+export function resolveActivityScheduledDate(
+  activity: PlannedActivity,
+  referenceDateKey: string
+) {
+  if (activity.scheduledDate) return activity.scheduledDate;
+
+  const dayIndex = weekDayNames.indexOf(activity.day);
+
+  if (dayIndex < 0) return null;
+
+  const referenceDate = new Date(`${referenceDateKey}T00:00:00`);
+  const weekStart = new Date(referenceDate);
+
+  weekStart.setDate(referenceDate.getDate() - referenceDate.getDay());
+  weekStart.setDate(weekStart.getDate() + dayIndex);
+
+  return toDateKey(weekStart);
+}
+
 export function getActivityStatus(
   activity: PlannedActivity
 ): ActivityStatus {
