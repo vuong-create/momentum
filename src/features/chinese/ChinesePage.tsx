@@ -6,6 +6,7 @@ import {
   type ChineseActivity,
   type ChineseActivityType,
   type ChineseEntry,
+  type ChineseMediaResource,
 } from "../../database/db";
 import useExperience from "../../experience/useExperience";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
@@ -32,6 +33,13 @@ import {
   type ChineseEntryInput,
 } from "./services/chineseEntryService";
 import { getChineseStreaks, toDateKey } from "./services/chineseQueries";
+import {
+  createChineseMediaResource,
+  restoreChineseMediaResource,
+  softDeleteChineseMediaResource,
+  visibleChineseMediaResources,
+  type ChineseMediaInput,
+} from "./services/chineseMediaService";
 
 import "./chinese.css";
 
@@ -59,6 +67,7 @@ export default function ChinesePage() {
   const todayKey = toDateKey(experience.now);
   const allEntries = useLiveQuery(() => db.chineseEntries.toArray(), []) ?? [];
   const allActivities = useLiveQuery(() => db.chineseActivities.toArray(), []) ?? [];
+  const allMediaResources = useLiveQuery(() => db.chineseMediaResources.toArray(), []) ?? [];
   const livePlannedActivities = useLiveQuery(() => db.plannedActivities.toArray(), []);
   const plannedActivities = useMemo(
     () => livePlannedActivities ?? [],
@@ -67,6 +76,7 @@ export default function ChinesePage() {
   const xpEvents = useLiveQuery(() => db.xpEvents.toArray(), []) ?? [];
   const entries = visibleChineseEntries(allEntries);
   const activities = visibleChineseActivities(allActivities);
+  const mediaResources = visibleChineseMediaResources(allMediaResources);
   const todayActivities = activities.filter((activity) => activity.date === todayKey);
   const streaks = getChineseStreaks(activities, experience.now);
   const xpSummary = getXPBreakdown(xpEvents);
@@ -124,6 +134,19 @@ export default function ChinesePage() {
     undo.show({ message: "Added to Chinese Database", undo: () => softDeleteChineseEntry(id) });
   }
 
+  async function handleAddMedia(input: ChineseMediaInput) {
+    const id = await createChineseMediaResource(input);
+    experience.playFeedback("task-added");
+    undo.show({ message: "Practice link saved", undo: () => softDeleteChineseMediaResource(id) });
+  }
+
+  async function handleRemoveMedia(resource: ChineseMediaResource) {
+    if (!resource.id) return;
+    await softDeleteChineseMediaResource(resource.id);
+    experience.playFeedback("task-dismissed");
+    undo.show({ message: "Practice link removed", undo: () => restoreChineseMediaResource(resource.id!) });
+  }
+
   async function handleSaveModalEntry(input: ChineseEntryInput) {
     if (!selectedEntry?.id) return handleCreateEntry(input);
     const previous: ChineseEntryInput = {
@@ -178,9 +201,9 @@ export default function ChinesePage() {
       </nav>
 
       <main className="chinese-content">
-        {view === "today" && <ChineseToday entries={entries} todayActivities={todayActivities} plannedTypes={plannedTypes} currentStreak={streaks.current} loggingType={loggingType} justLoggedType={justLoggedType} onLog={handleLog} onUndoActivity={handleUndoActivity} onQuickAdd={handleCreateEntry} onOpenEntry={openEntry} />}
+        {view === "today" && <ChineseToday entries={entries} mediaResources={mediaResources} todayActivities={todayActivities} plannedTypes={plannedTypes} currentStreak={streaks.current} loggingType={loggingType} justLoggedType={justLoggedType} onLog={handleLog} onQuickAdd={handleCreateEntry} onAddMedia={handleAddMedia} onRemoveMedia={handleRemoveMedia} onOpenEntry={openEntry} />}
         {view === "database" && <ChineseDatabase entries={entries} onAdd={openNewEntry} onOpen={openEntry} />}
-        {view === "progress" && <ChineseProgress activities={activities} entries={entries} now={experience.now} pillarXP={chineseXP.xp} progression={chineseXP.progression} />}
+        {view === "progress" && <ChineseProgress activities={activities} todayActivities={todayActivities} entries={entries} now={experience.now} pillarXP={chineseXP.xp} progression={chineseXP.progression} onUndoActivity={handleUndoActivity} />}
       </main>
 
       {entryModalOpen && <ChineseEntryModal entry={selectedEntry} onClose={closeEntryModal} onSave={handleSaveModalEntry} onDelete={selectedEntry ? handleDeleteEntry : undefined} />}

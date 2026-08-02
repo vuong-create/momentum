@@ -12,13 +12,15 @@ import type { ProgressionSummary } from "../../xp/progression";
 
 type ChineseProgressProps = {
   activities: ChineseActivity[];
+  todayActivities: ChineseActivity[];
   entries: ChineseEntry[];
   now: Date;
   pillarXP: number;
   progression: ProgressionSummary;
+  onUndoActivity: (activity: ChineseActivity) => Promise<void>;
 };
 
-export default function ChineseProgress({ activities, entries, now, pillarXP, progression }: ChineseProgressProps) {
+export default function ChineseProgress({ activities, todayActivities, entries, now, pillarXP, progression, onUndoActivity }: ChineseProgressProps) {
   const streaks = useMemo(() => getChineseStreaks(activities, now), [activities, now]);
   const currentMonth = useMemo(() => getChineseMonthSummary(activities, now), [activities, now]);
   const previousMonthDate = useMemo(() => getPreviousMonth(now), [now]);
@@ -47,6 +49,30 @@ export default function ChineseProgress({ activities, entries, now, pillarXP, pr
         <div><span style={{ width: `${progression.percentage}%` }} /></div>
         <p>{progression.xpToNextLevel} XP to Level {progression.level + 1}</p>
       </article>
+
+      <section className="chinese-progress-today">
+        <header>
+          <div><span className="text-label">Activity</span><h3>Today’s Chinese</h3></div>
+          <small>{todayActivities.length} logged</small>
+        </header>
+        {todayActivities.length === 0 ? (
+          <div className="chinese-empty-small"><strong>Nothing logged yet.</strong><span>One meaningful moment is enough to make today active.</span></div>
+        ) : (
+          <div className="chinese-today-activity-list">
+            {todayActivities.map((activity) => {
+              const definition = getChineseActivityDefinition(activity.type);
+              return (
+                <article key={activity.id}>
+                  <span>{definition.mark}</span>
+                  <div><strong>{definition.label}</strong><small>{activity.plannedActivityId ? "Completed from your plan" : "Spontaneous activity"}</small></div>
+                  <time>{new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(activity.createdAt))}</time>
+                  <button type="button" onClick={() => onUndoActivity(activity)} aria-label={`Undo ${definition.label}`}>×</button>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       <section className="chinese-heatmap-card">
         <header>

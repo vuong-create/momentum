@@ -130,11 +130,18 @@
   gap: 14px;
 }
 
+.chinese-today-hero.chinese-anki-row {
+  grid-template-columns: 1fr;
+}
+
 .chinese-anki-card,
 .chinese-pronunciation-card,
 .chinese-quick-log,
 .chinese-today-activity,
 .chinese-quick-entry,
+.chinese-media-shelf,
+.chinese-pronunciation-workspace,
+.chinese-progress-today,
 .chinese-heatmap-card,
 .chinese-month-card,
 .chinese-breakdown-card,
@@ -561,6 +568,186 @@
   font-size: 8px;
 }
 
+/* Practice media */
+
+.chinese-media-shelf {
+  min-height: 285px;
+  padding: 24px;
+}
+
+.chinese-media-shelf > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.chinese-media-shelf > header h2 {
+  margin: 7px 0 4px;
+}
+
+.chinese-media-shelf > header p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 8px;
+}
+
+.chinese-media-shelf > header small {
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.chinese-media-shelf > nav {
+  display: flex;
+  gap: 4px;
+  margin-top: 17px;
+}
+
+.chinese-media-shelf > nav button {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 7px;
+}
+
+.chinese-media-shelf > nav button > span {
+  color: var(--chinese-red);
+  font-family: var(--font-quote);
+}
+
+.chinese-media-shelf > nav button > b {
+  color: var(--color-text-disabled);
+  font-size: 6px;
+  font-weight: 500;
+}
+
+.chinese-media-shelf > nav button.is-selected {
+  border-color: rgba(184, 81, 76, 0.28);
+  color: var(--color-text-primary);
+  background: var(--chinese-red-soft);
+}
+
+.chinese-media-shelf > form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(130px, 0.8fr) auto;
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.chinese-media-shelf > form input {
+  min-width: 0;
+  min-height: 37px;
+  padding: 0 11px;
+  border-radius: 9px;
+  font-size: 9px;
+}
+
+.chinese-media-shelf > form button {
+  min-height: 37px;
+  padding: 0 12px;
+  border-color: rgba(184, 81, 76, 0.24);
+  color: var(--color-text-secondary);
+  background: var(--chinese-red-soft);
+  font-size: 7px;
+}
+
+.chinese-media-error {
+  margin: 7px 2px 0;
+  color: #d48279;
+  font-size: 7px;
+}
+
+.chinese-media-empty {
+  display: grid;
+  min-height: 92px;
+  margin-top: 11px;
+  place-content: center;
+  justify-items: center;
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.chinese-media-empty strong {
+  color: var(--color-text-muted);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.chinese-media-empty span {
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.chinese-media-list {
+  display: grid;
+  max-height: 151px;
+  margin-top: 8px;
+  overflow-y: auto;
+}
+
+.chinese-media-list article {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto 24px;
+  align-items: center;
+  gap: 9px;
+  min-height: 47px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.chinese-media-list article > span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--chinese-red);
+  background: var(--chinese-red-soft);
+  font-family: var(--font-quote);
+}
+
+.chinese-media-list article > div {
+  display: grid;
+  min-width: 0;
+}
+
+.chinese-media-list strong,
+.chinese-media-list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chinese-media-list strong {
+  color: var(--color-text-secondary);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.chinese-media-list small {
+  color: var(--color-text-disabled);
+  font-size: 6px;
+}
+
+.chinese-media-list a {
+  color: var(--color-text-muted);
+  font-size: 7px;
+}
+
+.chinese-media-list article > button {
+  width: 23px;
+  min-height: 23px;
+  padding: 0;
+  border: 0;
+  color: var(--color-text-disabled);
+  background: transparent;
+}
+
 .chinese-recent {
   padding-top: 27px;
   border-top: 1px solid var(--color-border-subtle);
@@ -668,6 +855,102 @@
   color: var(--color-text-secondary);
   background: var(--chinese-red-soft);
   font-size: 8px;
+}
+
+.chinese-pronunciation-workspace {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.42fr) minmax(280px, 1fr);
+  align-items: center;
+  gap: 24px;
+  min-height: 156px;
+  margin-top: 17px;
+  padding: 21px 24px;
+  border-color: rgba(184, 81, 76, 0.17);
+  transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-out);
+}
+
+.chinese-pronunciation-workspace.is-dragging-over {
+  border-color: rgba(184, 81, 76, 0.55);
+  background: rgba(184, 81, 76, 0.12);
+  transform: scale(1.004);
+}
+
+.chinese-pronunciation-workspace > div:first-child p {
+  max-width: 190px;
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.chinese-pronunciation-workspace > button {
+  display: flex;
+  min-height: 103px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px 18px;
+  border-color: rgba(184, 81, 76, 0.18);
+  color: inherit;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.chinese-pronunciation-workspace > button > span {
+  display: grid;
+}
+
+.chinese-pronunciation-workspace > button strong {
+  font-family: var(--font-quote);
+  font-size: clamp(31px, 3.5vw, 46px);
+  font-weight: 520;
+  line-height: 1;
+}
+
+.chinese-pronunciation-workspace > button i {
+  margin-top: 5px;
+  color: var(--chinese-red);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.chinese-pronunciation-workspace > button small {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 8px;
+}
+
+.chinese-pronunciation-workspace > button b {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(184, 81, 76, 0.25);
+  border-radius: 50%;
+  color: #d48279;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.chinese-pronunciation-workspace-empty {
+  display: grid;
+  min-height: 103px;
+  place-content: center;
+  justify-items: center;
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.chinese-pronunciation-workspace-empty strong {
+  color: rgba(184, 81, 76, 0.54);
+  font-family: var(--font-quote);
+  font-size: 23px;
+}
+
+.chinese-pronunciation-workspace-empty span {
+  color: var(--color-text-disabled);
+  font-size: 7px;
 }
 
 .chinese-database-toolbar {
@@ -778,6 +1061,15 @@
 .chinese-entry-table article {
   position: relative;
   border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.chinese-entry-table article[draggable="true"] {
+  cursor: grab;
+}
+
+.chinese-entry-table article.is-pronouncing {
+  background: rgba(184, 81, 76, 0.055);
+  box-shadow: inset 2px 0 var(--chinese-red);
 }
 
 .chinese-entry-table article:last-child {
@@ -937,6 +1229,37 @@
   min-width: 2px;
   border-radius: inherit;
   background: linear-gradient(90deg, #773d3a, #c06b64);
+}
+
+.chinese-progress-today {
+  padding: 19px 22px;
+}
+
+.chinese-progress-today > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.chinese-progress-today h3 {
+  margin: 6px 0 0;
+  font-size: 17px;
+  font-weight: 480;
+}
+
+.chinese-progress-today > header small {
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.chinese-progress-today .chinese-empty-small {
+  min-height: 84px;
+}
+
+.chinese-progress-today .chinese-today-activity-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 22px;
 }
 
 .chinese-heatmap-card {
@@ -1290,7 +1613,8 @@
 
   .chinese-today-hero,
   .chinese-today-lower,
-  .chinese-progress-lower {
+  .chinese-progress-lower,
+  .chinese-pronunciation-workspace {
     grid-template-columns: 1fr;
   }
 
@@ -1351,6 +1675,11 @@
   }
 
   .chinese-entry-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chinese-media-shelf > form,
+  .chinese-progress-today .chinese-today-activity-list {
     grid-template-columns: 1fr;
   }
 }

@@ -12,6 +12,12 @@ import {
   softDeleteChineseActivity,
 } from "./chineseActivityService";
 import { createChineseEntry } from "./chineseEntryService";
+import {
+  createChineseMediaResource,
+  restoreChineseMediaResource,
+  softDeleteChineseMediaResource,
+  visibleChineseMediaResources,
+} from "./chineseMediaService";
 import { getChineseHeatmapDays, getChineseStreaks } from "./chineseQueries";
 
 beforeEach(async () => {
@@ -112,5 +118,34 @@ describe("Chinese services", () => {
     expect(days).toHaveLength(364);
     expect(days[0].date.getDay()).toBe(0);
     expect(days.at(-1)?.date.getDay()).toBe(6);
+  });
+
+  it("stores categorized practice links without awarding XP", async () => {
+    const id = await createChineseMediaResource({
+      type: "video",
+      title: "Taiwanese interview",
+      url: "youtube.com/watch?v=example",
+    });
+    const resource = await db.chineseMediaResources.get(id);
+
+    expect(resource).toMatchObject({
+      type: "video",
+      title: "Taiwanese interview",
+      url: "https://youtube.com/watch?v=example",
+    });
+    expect(await getTotalXP()).toBe(0);
+  });
+
+  it("soft deletes and restores practice links", async () => {
+    const id = await createChineseMediaResource({
+      type: "podcast",
+      url: "https://example.com/chinese-show",
+    });
+
+    await softDeleteChineseMediaResource(id);
+    expect(visibleChineseMediaResources(await db.chineseMediaResources.toArray())).toHaveLength(0);
+
+    await restoreChineseMediaResource(id);
+    expect(visibleChineseMediaResources(await db.chineseMediaResources.toArray())).toHaveLength(1);
   });
 });

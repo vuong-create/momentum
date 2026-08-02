@@ -25,6 +25,8 @@ export type ChineseActivityIntensity = "light" | "normal" | "strong";
 
 export type ChineseEntryType = "word" | "phrase";
 
+export type ChineseMediaType = "video" | "podcast" | "music" | "reading";
+
 export type RecurrenceFrequency = "daily" | "weekly" | "monthly";
 
 export interface RecurrencePattern {
@@ -164,6 +166,16 @@ export interface ChineseActivity {
   deletedAt?: string;
 }
 
+export interface ChineseMediaResource {
+  id?: number;
+  title: string;
+  url: string;
+  type: ChineseMediaType;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
 export interface StreakRecord {
   id?: number;
   date: string;
@@ -248,6 +260,7 @@ class MomentumDatabase extends Dexie {
   libraryBooks!: Table<LibraryBook>;
   chineseEntries!: Table<ChineseEntry>;
   chineseActivities!: Table<ChineseActivity>;
+  chineseMediaResources!: Table<ChineseMediaResource>;
 
   constructor() {
     super("MomentumDatabase");
@@ -531,6 +544,11 @@ class MomentumDatabase extends Dexie {
         "++id, &quoteKey, savedAt, favorite, isBuiltIn, deletedAt",
       appSettings:
         "&id",
+    });
+
+    this.version(16).stores({
+      chineseMediaResources:
+        "++id, type, title, url, createdAt, updatedAt, deletedAt",
     });
   }
 }
