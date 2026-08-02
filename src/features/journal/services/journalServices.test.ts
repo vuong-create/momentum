@@ -1,0 +1,105 @@
+import "fake-indexeddb/auto";
+
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
+
+import { db } from "../../../database/db";
+import {
+  createJournalEntry,
+  getOnThisDayEntries,
+  restoreJournalEntry,
+  softDeleteJournalEntry,
+  updateJournalEntry,
+  visibleJournalEntries,
+} from "./journalService";
+import {
+  createPersonalQuote,
+  toggleBuiltInQuote,
+  toggleQuoteFavorite,
+  visibleQuotes,
+} from "./quoteService";
+import {
+  createLibraryBook,
+  restoreLibraryBook,
+  softDeleteLibraryBook,
+  updateLibraryBook,
+  visibleLibraryBooks,
+} from "./libraryService";
+
+beforeEach(async () => {
+  await db.transaction("rw", db.tables, async () => {
+    await Promise.all(db.tables.map((table) => table.clear()));
+  });
+});
+
+afterAll(async () => {
+  db.close();
+  await db.delete();
+});
+
+describe("journal services", () => {
+  it("creates, edits, deletes, and restores one journal entry", async () => {
+    const id = await createJournalEntry({
+      title: "  A good day  ",
+      text: "  Dinner with friends.  ",
+      entryDate: "2026-08-01",
+    });
+    await updateJournalEntry(id, { text: "Dinner and volleyball." });
+    expect(await db.journalEntries.get(id)).toMatchObject({
+      title: "A good day",
+      text: "Dinner and volleyball.",
+    });
+    await softDeleteJournalEntry(id);
+    expect(visibleJournalEntries(await db.journalEntries.toArray())).toHaveLength(0);
+    await restoreJournalEntry(id);
+    expect(visibleJournalEntries(await db.journalEntries.toArray())).toHaveLength(1);
+  });
+
+  it("derives On This Day without creating memory records", async () => {
+    await createJournalEntry({ text: "Last year", entryDate: "2025-08-01" });
+    await createJournalEntry({ text: "Today", entryDate: "2026-08-01" });
+    await createJournalEntry({ text: "Different day", entryDate: "2025-08-02" });
+    const memories = getOnThisDayEntries(
+      await db.journalEntries.toArray(),
+      new Date(2026, 7, 1)
+    );
+    expect(memories.map((entry) => entry.text)).toEqual(["Last year"]);
+  });
+
+  it("stores built-in and personal quotes in one collection", async () => {
+    await toggleBuiltInQuote({ id: "test", text: "Keep going.", author: "Someone" });
+    const personalId = await createPersonalQuote({
+      text: "A personal line",
+      author: "Evan",
+      source: "Notebook",
+    });
+    await toggleQuoteFavorite(personalId);
+    const quotes = visibleQuotes(await db.savedQuotes.toArray());
+    expect(quotes).toHaveLength(2);
+    expect(quotes[0]).toMatchObject({ favorite: true, isBuiltIn: false });
+  });
+
+  it("tracks a book through reading and finished shelves", async () => {
+    const id = await createLibraryBook({
+      title: "Norwegian Wood",
+      author: "Haruki Murakami",
+      status: "reading",
+      startedDate: "2026-07-20",
+    });
+    await updateLibraryBook(id, {
+      title: "Norwegian Wood",
+      author: "Haruki Murakami",
+      status: "finished",
+      startedDate: "2026-07-20",
+      finishedDate: "2026-08-01",
+      reflection: "Quiet and memorable.",
+    });
+    expect(await db.libraryBooks.get(id)).toMatchObject({
+      status: "finished",
+      finishedDate: "2026-08-01",
+    });
+    await softDeleteLibraryBook(id);
+    expect(visibleLibraryBooks(await db.libraryBooks.toArray())).toHaveLength(0);
+    await restoreLibraryBook(id);
+    expect(visibleLibraryBooks(await db.libraryBooks.toArray())).toHaveLength(1);
+  });
+});

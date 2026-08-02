@@ -7,6 +7,7 @@ import {
 import Layout from "../components/Layout";
 import HomeDashboard from "../features/home/HomeDashboard";
 import PlannerPage from "../features/planner/PlannerPage";
+import JournalPage from "../features/journal/JournalPage";
 import SettingsPage from "../features/settings/SettingsPage";
 import PlaceholderPage from "../pages/PlaceholderPage";
 
@@ -70,13 +71,7 @@ export default function AppShell() {
 
         <Route
           path="/journal"
-          element={
-            <PlaceholderPage
-              title="Journal"
-              eyebrow="Happiness"
-              description="A quiet place to capture, reflect, and remember."
-            />
-          }
+          element={<JournalPage />}
         />
 
         <Route

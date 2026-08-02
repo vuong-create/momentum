@@ -1342,14 +1342,18 @@ Conceptual folder:
 ```text
 features/journal/
 
-today/
-journal/
-calendar/
-lookBack/
-quotes/
-
-journalService
-journalQueries
+JournalPage
+components/
+  JournalToday
+  JournalHistory
+  JournalEntryModal
+  JournalLookBack
+  JournalQuotes
+  JournalLibrary
+services/
+  journalService
+  quoteService
+  libraryService
 ```
 
 The notebook appearance belongs primarily in presentation components.
@@ -1861,6 +1865,13 @@ Momentum should be built in layers.
 * Notebook view
 * Photos
 * Quotes
+
+Current milestone status:
+
+* Quick Journal, notebook view, history, calendar, editing, and undo implemented
+* Look Back and unified quote collection implemented
+* Personal Library and bookshelf implemented
+* Photo memories deferred to the next Journal milestone
 
 ## Phase 5 — Chinese
 

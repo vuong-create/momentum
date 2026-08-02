@@ -1749,6 +1749,39 @@ Built-in and user-created quotes use the same data structure.
 
 ---
 
+# 67A. Personal Library Book
+
+The Journal Library stores its own book records and may optionally link a reflection to a normal Journal Entry.
+
+```text
+LibraryBook
+
+id
+title
+author
+status
+
+startedDate
+finishedDate
+
+reflection
+favoriteQuote
+linkedJournalEntryId
+
+spineTone
+sortOrder
+
+createdAt
+updatedAt
+deletedAt
+```
+
+`status` is one of `want-to-read`, `reading`, or `finished`. The bookshelf is a view of finished book records, not a separate shelf database. The optional Journal link avoids duplicating reflection text into an unrelated memory model.
+
+The current local schema stores Journal entries, quotes, and Library books in Dexie with soft deletion for recoverable undo. Photos remain reserved for the shared Media implementation.
+
+---
+
 # 68. Shared Tag System
 
 Tags can be useful in multiple pillars.
