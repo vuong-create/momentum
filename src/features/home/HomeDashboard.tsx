@@ -30,11 +30,8 @@ import {
 import useExperience from "../../experience/useExperience";
 import SegmentedProgress from "../../components/SegmentedProgress";
 
-import {
-  getLevel,
-  getLevelProgress,
-  getLevelTitle,
-} from "../gamification/levelSystem";
+import { getXPBreakdown } from "../xp/XPService";
+import XPBreakdownModal from "../xp/components/XPBreakdownModal";
 
 import {
   getDailyQuote,
@@ -106,6 +103,9 @@ export default function HomeDashboard() {
   const [thought, setThought] =
     useState("");
 
+  const [xpBreakdownOpen, setXPBreakdownOpen] =
+    useState(false);
+
   const [
     thoughtStatus,
     setThoughtStatus,
@@ -126,11 +126,15 @@ export default function HomeDashboard() {
     [liveTasks]
   );
 
-  const xpEvents =
-    useLiveQuery(
-      () => db.xpEvents.toArray(),
-      []
-    ) ?? [];
+  const liveXPEvents = useLiveQuery(
+    () => db.xpEvents.toArray(),
+    []
+  );
+
+  const xpEvents = useMemo(
+    () => liveXPEvents ?? [],
+    [liveXPEvents]
+  );
 
   const savedQuotes =
     useLiveQuery(
@@ -146,19 +150,12 @@ export default function HomeDashboard() {
       !savedQuote.deletedAt
   );
 
-  const totalXP = xpEvents.reduce(
-    (sum, event) =>
-      event.voidedAt ? sum : sum + event.amount,
-    0
+  const xpSummary = useMemo(
+    () => getXPBreakdown(xpEvents),
+    [xpEvents]
   );
 
-  const level = getLevel(totalXP);
-
-  const levelProgress =
-    getLevelProgress(totalXP);
-
-  const levelTitle =
-    getLevelTitle(level);
+  const { globalProgression } = xpSummary;
 
   const todayActivities = useMemo(
     () =>
@@ -444,14 +441,16 @@ export default function HomeDashboard() {
           type="button"
           className="momentum-level-display"
           aria-label="Momentum level details"
+          aria-expanded={xpBreakdownOpen}
+          onClick={() => setXPBreakdownOpen(true)}
         >
           <div className="momentum-level-topline">
             <strong>
-              Level {level}
+              Level {globalProgression.level}
             </strong>
 
             <span>
-              {totalXP} XP
+              {xpSummary.totalXP} XP
             </span>
           </div>
 
@@ -460,14 +459,14 @@ export default function HomeDashboard() {
               className="momentum-level-fill"
               style={{
                 width:
-                  `${levelProgress}%`,
+                  `${globalProgression.percentage}%`,
               }}
             >
               <span />
             </div>
           </div>
 
-          <small>{levelTitle}</small>
+          <small>{xpSummary.globalTitle} · View progression</small>
         </button>
       </header>
 
@@ -660,6 +659,12 @@ export default function HomeDashboard() {
           ))}
         </div>
       </section>
+
+      <XPBreakdownModal
+        events={xpEvents}
+        open={xpBreakdownOpen}
+        onClose={() => setXPBreakdownOpen(false)}
+      />
     </div>
   );
 }
