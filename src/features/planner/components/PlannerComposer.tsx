@@ -11,8 +11,17 @@ import {
   type PillarKey,
 } from "../../../app/theme";
 
-import type { Pillar, RecurrencePattern } from "../../../database/db";
+import type {
+  ChineseActivityType,
+  Pillar,
+  RecurrencePattern,
+} from "../../../database/db";
 import RecurrenceControls from "../../activities/components/RecurrenceControls";
+import {
+  chineseActivityCatalog,
+  getChineseActivityDefinition,
+  getChineseActivityKind,
+} from "../../chinese/activityCatalog";
 import type {
   CreateActivityInput,
   PlannerDay,
@@ -44,6 +53,8 @@ export default function PlannerComposer({
     "core"
   );
   const [scheduledTime, setScheduledTime] = useState("");
+  const [chineseType, setChineseType] =
+    useState<ChineseActivityType>("anki");
   const [important, setImportant] = useState(false);
   const [recurrence, setRecurrence] = useState<RecurrencePattern>();
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
@@ -71,10 +82,18 @@ export default function PlannerComposer({
     setIsSubmitting(true);
 
     try {
+      const chineseDefinition = pillar === "chinese"
+        ? getChineseActivityDefinition(chineseType)
+        : null;
+
       await onAdd({
         title: title.trim(),
         scheduledDate: selectedDateKey,
         pillar,
+        activityKind: chineseDefinition
+          ? getChineseActivityKind(chineseType)
+          : undefined,
+        difficulty: chineseDefinition?.difficulty,
         scheduledTime,
         important,
         notes,
@@ -195,6 +214,27 @@ export default function PlannerComposer({
           </button>
         </div>
       </div>
+
+      {pillar === "chinese" && (
+        <fieldset className="planner-composer-chinese-types">
+          <legend>Chinese activity</legend>
+          <div>
+            {chineseActivityCatalog.map((definition) => (
+              <button
+                key={definition.type}
+                type="button"
+                className={chineseType === definition.type ? "is-selected" : ""}
+                aria-pressed={chineseType === definition.type}
+                onClick={() => setChineseType(definition.type)}
+              >
+                <span>{definition.mark}</span>
+                {definition.label}
+              </button>
+            ))}
+          </div>
+          <small>Logging this action from Chinese will complete the plan automatically.</small>
+        </fieldset>
+      )}
 
       {showOptions && (
         <div className="planner-composer-details">

@@ -4,7 +4,8 @@ export type FeedbackCue =
   | "task-reopened"
   | "task-updated"
   | "task-dismissed"
-  | "task-restored";
+  | "task-restored"
+  | "chinese-logged";
 
 type Tone = {
   frequency: number;
@@ -68,6 +69,26 @@ function playTone(context: AudioContext, tone: Tone) {
 }
 
 function getCueTones(cue: FeedbackCue): Tone[] {
+  if (cue === "chinese-logged") {
+    return [
+      {
+        frequency: 523.25,
+        endFrequency: 587.33,
+        duration: 0.12,
+        volume: 0.014,
+        type: "sine",
+      },
+      {
+        frequency: 783.99,
+        endFrequency: 880,
+        delay: 0.065,
+        duration: 0.17,
+        volume: 0.018,
+        type: "triangle",
+      },
+    ];
+  }
+
   if (cue === "task-added" || cue === "task-updated") {
     return [
       {

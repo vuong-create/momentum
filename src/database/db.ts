@@ -11,6 +11,20 @@ export type Pillar =
 
 export type Difficulty = "easy" | "medium" | "hard";
 
+export type ChineseActivityType =
+  | "anki"
+  | "tutor"
+  | "music"
+  | "podcast"
+  | "video"
+  | "conversation"
+  | "reading"
+  | "other";
+
+export type ChineseActivityIntensity = "light" | "normal" | "strong";
+
+export type ChineseEntryType = "word" | "phrase";
+
 export type RecurrenceFrequency = "daily" | "weekly" | "monthly";
 
 export interface RecurrencePattern {
@@ -45,6 +59,7 @@ export interface PlannedActivity {
   sortOrder?: number;
 
   pillar: Pillar;
+  activityKind?: string;
   xpReward: number;
   difficulty: Difficulty;
   important?: boolean;
@@ -66,6 +81,7 @@ export interface ActivityTemplate {
   id?: number;
   title: string;
   pillar: Pillar;
+  activityKind?: string;
   difficulty: Difficulty;
   scheduledTime?: string;
   important?: boolean;
@@ -117,6 +133,35 @@ export interface XPEvent {
   weekStart?: string;
   finalXP?: number;
   voidedAt?: string;
+}
+
+export interface ChineseEntry {
+  id?: number;
+  traditional: string;
+  pinyin: string;
+  meaning: string;
+  entryType: ChineseEntryType;
+  example?: string;
+  notes?: string;
+  tags: string[];
+  source?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface ChineseActivity {
+  id?: number;
+  type: ChineseActivityType;
+  date: string;
+  intensity: ChineseActivityIntensity;
+  source?: string;
+  notes?: string;
+  plannedActivityId?: number;
+  activityEventId?: number;
+  xpEventId?: number;
+  createdAt: string;
+  deletedAt?: string;
 }
 
 export interface StreakRecord {
@@ -201,6 +246,8 @@ class MomentumDatabase extends Dexie {
   activityTemplates!: Table<ActivityTemplate>;
   recurrenceRules!: Table<RecurrenceRule>;
   libraryBooks!: Table<LibraryBook>;
+  chineseEntries!: Table<ChineseEntry>;
+  chineseActivities!: Table<ChineseActivity>;
 
   constructor() {
     super("MomentumDatabase");
@@ -455,6 +502,35 @@ class MomentumDatabase extends Dexie {
             event.sourceId = event.sourceId ?? event.source.slice("activity:".length);
           }
         });
+    });
+
+    this.version(15).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, planningWeekStart, scheduledTime, pillar, activityKind, sortOrder, deletedAt, templateId, recurrenceRuleId, recurrenceDate, &recurrenceKey",
+      activityTemplates:
+        "++id, title, pillar, activityKind, saved, updatedAt, deletedAt",
+      recurrenceRules:
+        "++id, templateId, frequency, startDate, active, endDate",
+      activityEvents:
+        "++id, plannedActivityId, occurredAt, pillar, voidedAt",
+      xpEvents:
+        "++id, &dedupeKey, activityEventId, source, date, voidedAt, scope, pillar, actionType, sourceType, sourceId, weekStart",
+      chineseEntries:
+        "++id, traditional, pinyin, meaning, entryType, source, *tags, createdAt, updatedAt, deletedAt",
+      chineseActivities:
+        "++id, type, date, intensity, plannedActivityId, activityEventId, xpEventId, createdAt, deletedAt",
+      streakRecords:
+        "++id, date, completed",
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate, deletedAt",
+      libraryBooks:
+        "++id, title, author, status, finishedDate, updatedAt, sortOrder, deletedAt",
+      notes:
+        "++id, createdAt, updatedAt",
+      savedQuotes:
+        "++id, &quoteKey, savedAt, favorite, isBuiltIn, deletedAt",
+      appSettings:
+        "&id",
     });
   }
 }

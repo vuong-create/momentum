@@ -1295,15 +1295,23 @@ Conceptual folder:
 ```text
 features/chinese/
 
-today/
-database/
-progress/
-
-chineseService
-chineseQueries
+ChinesePage
+components/
+  ChineseToday
+  ChineseDatabase
+  ChineseProgress
+  ChineseEntryModal
+services/
+  chineseActivityService
+  chineseEntryService
+  chineseQueries
+  pinyinService
+  pronunciationService
 ```
 
 Chinese should remain intentionally small.
+
+The page owns section selection and orchestration. Services own mutations, typed Planner matching, XP eligibility, streak calculations, and pronunciation capability checks. Presentation components receive data and callbacks.
 
 ---
 
@@ -1417,9 +1425,11 @@ Suggested pinyin
 
 The user can edit the generated result if needed.
 
-The exact library/tool can be chosen during implementation.
+Version 1 uses a browser-compatible TypeScript pinyin service with generated tone marks. The dependency remains isolated behind `pinyinService` so it can be replaced without changing components or stored records.
 
 Core Chinese entry remains usable even if automatic generation temporarily fails.
+
+Pronunciation playback is isolated behind `pronunciationService`. It prefers a `zh-TW` system voice, falls back to another Mandarin voice, and returns a capability result rather than making components call browser speech APIs directly.
 
 ---
 
@@ -1904,6 +1914,14 @@ Current milestone status:
 * Database
 * Heatmap
 * Anki shortcut
+
+Current milestone status:
+
+* Traditional Chinese Today, Database, and Progress views implemented
+* One-tap activity logging with dedicated sound and motion feedback implemented
+* Typed Planner auto-completion and shared pillar/global XP integration implemented
+* Explicit streaks, Sunday-first 52-week heatmap, and month comparison implemented
+* Generated editable pinyin and Taiwanese Mandarin pronunciation playback implemented
 
 ## Phase 6 — Athletics
 

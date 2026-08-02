@@ -1,7 +1,7 @@
 # Momentum — Chinese Learning Pillar
 
-**Status:** 🟢 Design Complete
-**Next Step:** Implementation
+**Status:** 🟢 Foundation Implemented
+**Next Step:** Today, Database, Progress, and Planner Linkage
 
 ---
 
@@ -26,6 +26,8 @@ Instead, it should make it easy to:
 * Quickly access Anki for dedicated spaced repetition
 
 The pillar should encourage frequent exposure rather than obsess over study hours or proficiency scores.
+
+Momentum uses **Traditional Chinese** throughout this pillar. Pronunciation playback prefers a Taiwanese Mandarin voice (`zh-TW`) when the device provides one.
 
 ---
 
@@ -120,6 +122,8 @@ Quick actions:
 * Music
 * Podcast
 * TV / Video
+* Conversation
+* Reading
 * Other
 
 Clicking an activity immediately logs it for the current day.
@@ -141,18 +145,20 @@ These details are never required.
 
 ---
 
-# 6. Automatic Activity Logging
+# 6. Planner Linkage
 
-Whenever possible, actions performed inside Momentum should automatically count as Chinese activity.
+Chinese quick actions connect to the shared Weekly Planner through typed activity metadata.
 
-Examples:
+If today's Planner contains an unfinished Chinese activity with the same activity type, tapping the Chinese quick action:
 
-* Adding a new word
-* Adding a phrase
-* Editing or reviewing saved language
-* Other future Chinese activities inside Momentum
+* Creates one Chinese Activity
+* Completes the matching Planner activity
+* Uses the Planner's completion and planned XP bonus
+* Does not create a second XP award
 
-The user should not need to manually log something Momentum already knows happened.
+Momentum must not match Planner activities by title text. The shared record stores an explicit Chinese activity type such as `anki`, `tutor`, or `podcast`.
+
+If no matching plan exists, the action is logged as spontaneous Chinese activity.
 
 ---
 
@@ -240,6 +246,8 @@ Then:
 
 Pinyin should ideally be generated automatically from the Chinese characters.
 
+Generated pinyin is always editable because names, regional vocabulary, and polyphonic characters may need correction.
+
 ## Optional Fields
 
 * Type
@@ -247,6 +255,24 @@ Pinyin should ideally be generated automatically from the Chinese characters.
 * Notes
 * Tags
 * Source
+
+Database maintenance does not earn XP and does not activate the streak. Collecting language and practicing Chinese remain deliberately separate behaviors.
+
+---
+
+# 10A. Pronunciation
+
+Pronunciation is a first-class action throughout the Chinese pillar.
+
+Every saved entry can provide:
+
+* Traditional Chinese text
+* Tone-mark pinyin
+* One-tap Taiwanese Mandarin playback
+
+Today also surfaces a recent entry as a small pronunciation focus card. Playback uses the device's speech system and fails gracefully when a compatible voice is unavailable.
+
+Microphone recording, pronunciation scoring, and tutor-style feedback remain future enhancements rather than requirements for the first reliable version.
 
 ---
 
@@ -523,7 +549,6 @@ Examples:
 * YouTube/video
 * Conversation
 * Reading
-* Adding useful vocabulary
 * Other intentional Chinese exposure
 
 Momentum should encourage exposure rather than enforce a rigid definition of studying.
@@ -678,21 +703,40 @@ Different Momentum pillars are allowed to behave completely differently.
 
 # 33. XP
 
-Chinese does not define its own XP rules.
+Eligible Chinese activities use the shared XP ledger implemented in `02 XP System.md`.
 
-Chinese activities generate events that can later feed into Momentum's global XP system.
+One Chinese XP event contributes to both:
 
-Examples could eventually include:
+* The global Momentum level
+* The Chinese pillar level
 
-* Chinese active day
-* Tutor session
-* Adding useful vocabulary
-* Anki review
-* Maintaining consistency
+It is never awarded twice.
 
-Actual XP values and rules belong in:
+Initial spontaneous activity values:
 
-`02 XP System.md`
+* Music / Other: 5 XP
+* Anki / Podcast / TV & Video / Reading: 10 XP
+* Conversation: 15 XP
+* Tutor: 25 XP
+
+The first spontaneous log of an activity type per day is XP-eligible. Repeated logs remain valid activity history but do not farm XP. Typed Planner completions use the Planner's configured reward and +25% planned bonus instead.
+
+Adding or editing vocabulary, browsing entries, replaying pronunciation, and changing notes do not earn XP.
+
+---
+
+# 33A. Feedback
+
+Logging an activity should feel satisfying without turning the pillar into an arcade.
+
+Each successful quick action uses:
+
+* A short restrained confirmation motion
+* A subtle Chinese-specific two-tone sound when sounds are enabled
+* Immediate count and streak updates
+* An undo path from today's activity history
+
+Feedback respects Momentum's global sound, animation, and reduced-motion settings.
 
 ---
 
@@ -702,12 +746,13 @@ Possible future additions include:
 
 * Export database entries to Anki
 * Better automatic pinyin generation
-* Audio pronunciation
 * Database import/export
 * Favorites
 * Taiwan-specific collections
 * Tutor-session notes
 * Simple learning goals
+* Pronunciation recording and playback comparison
+* Optional speech-recognition feedback
 
 These are intentionally **not required for Version 1**.
 
@@ -719,13 +764,16 @@ These are intentionally **not required for Version 1**.
 * [x] Low-friction philosophy
 * [x] Dashboard / Today
 * [x] Quick activity logging
-* [x] Automatic activity logging
+* [x] Typed Planner auto-completion
 * [x] Activity weighting
 * [x] Personal word/phrase database
 * [x] Quick language entry
 * [x] Optional sources
 * [x] Tags
 * [x] Recently added
+* [x] Traditional Chinese default
+* [x] Taiwanese pronunciation playback
+* [x] Dedicated feedback sound and motion
 * [x] Anki role
 * [x] Progress metrics
 * [x] Activity heatmap
@@ -733,7 +781,8 @@ These are intentionally **not required for Version 1**.
 * [x] Month-to-month comparison
 * [x] No required time tracking
 * [x] No mastery metric
-* [x] XP separated from pillar
-* [x] Ready for implementation
+* [x] Shared global + Chinese pillar XP ledger
+* [x] Daily XP anti-farming rule
+* [x] Foundation implemented
 
-**Chinese Learning Pillar Design: COMPLETE**
+**Chinese Learning Pillar Foundation: COMPLETE**

@@ -10,6 +10,7 @@ export interface CreateActivityInput {
   scheduledDate?: string;
   planningWeekStart?: string;
   pillar?: Pillar;
+  activityKind?: string;
   difficulty?: Difficulty;
   scheduledTime?: string;
   important?: boolean;
@@ -23,6 +24,9 @@ export type ActivityDetailsPatch = Partial<
     PlannedActivity,
     | "title"
     | "pillar"
+    | "activityKind"
+    | "difficulty"
+    | "xpReward"
     | "scheduledDate"
     | "planningWeekStart"
     | "scheduledTime"
