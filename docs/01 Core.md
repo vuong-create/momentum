@@ -121,6 +121,13 @@ unfinished-only filter, manual ordering, quick move/copy actions, and a
 past-day action for moving remaining work forward. The weekly surface remains
 calm while the detailed view carries the operational depth.
 
+Below the weekly cards, Planner provides a full **Month Overview**. It uses a
+Sunday-first calendar grid, shows compact activity previews and completion
+state, and includes adjacent-month days when needed to preserve whole weeks.
+Selecting any date moves the weekly planner to that week and opens the existing
+Day Focus inspector. Month navigation does not create a separate task system;
+it reads the same Planner activities and materializes the same recurrence data.
+
 ---
 
 # 6. One Task, Multiple Views

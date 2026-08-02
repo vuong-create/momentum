@@ -101,6 +101,10 @@ export default function usePlanner() {
     setWeekStartKey(toDateKey(getWeekStart()));
   }
 
+  function goToDate(dateKey: string) {
+    setWeekStartKey(toDateKey(getWeekStart(new Date(`${dateKey}T00:00:00`))));
+  }
+
   async function addActivity(input: CreateActivityInput) {
     return createActivity(input);
   }
@@ -165,6 +169,7 @@ export default function usePlanner() {
     goToPreviousWeek,
     goToNextWeek,
     goToCurrentWeek,
+    goToDate,
     addActivity,
     addFromTemplate,
     completeActivity,

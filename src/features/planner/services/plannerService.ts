@@ -20,6 +20,7 @@ import { isActivityVisible } from "../../activities/services/activityLifecycle";
 import type {
   CreateActivityInput,
   PlannerDay,
+  PlannerMonthDay,
 } from "../types";
 
 const dayNames = [
@@ -71,6 +72,25 @@ export function addDays(date: Date, amount: number) {
 
 export function addWeeks(date: Date, amount: number) {
   return addDays(date, amount * 7);
+}
+
+export function toMonthKey(date: Date) {
+  return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}`;
+}
+
+export function addMonths(monthKey: string, amount: number) {
+  const [year, month] = monthKey.split("-").map(Number);
+  return toMonthKey(new Date(year, month - 1 + amount, 1));
+}
+
+export function getMonthGridBounds(monthKey: string) {
+  const [year, month] = monthKey.split("-").map(Number);
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = new Date(year, month, 0);
+  const gridStart = getWeekStart(monthStart);
+  const gridEnd = addDays(getWeekStart(monthEnd), 6);
+
+  return { monthStart, monthEnd, gridStart, gridEnd };
 }
 
 export function formatActivityTime(time?: string) {
@@ -213,6 +233,38 @@ export async function getActivitiesForWeek(
   }).sort((a, b) => (a.sortOrder ?? a.id ?? 0) - (b.sortOrder ?? b.id ?? 0));
 }
 
+export async function getActivitiesForMonth(monthKey: string) {
+  const { gridStart, gridEnd } = getMonthGridBounds(monthKey);
+
+  for (
+    let weekStart = gridStart;
+    weekStart <= gridEnd;
+    weekStart = addWeeks(weekStart, 1)
+  ) {
+    await materializeOccurrencesForWeek(toDateKey(weekStart));
+  }
+
+  const startKey = toDateKey(gridStart);
+  const endKey = toDateKey(gridEnd);
+  const currentWeekStart = getWeekStart();
+  const activities = await db.plannedActivities.toArray();
+
+  return activities
+    .filter((activity) => {
+      const scheduledDate = resolveScheduledDate(activity, currentWeekStart);
+      return Boolean(
+        scheduledDate &&
+        scheduledDate >= startKey &&
+        scheduledDate <= endKey &&
+        isActivityVisible(activity)
+      );
+    })
+    .sort((first, second) =>
+      (first.scheduledDate ?? "").localeCompare(second.scheduledDate ?? "") ||
+      (first.sortOrder ?? first.id ?? 0) - (second.sortOrder ?? second.id ?? 0)
+    );
+}
+
 export async function createActivity(
   input: CreateActivityInput
 ) {
@@ -317,6 +369,39 @@ export function buildPlannerDays(
       dayNumber: String(date.getDate()),
       isToday: dateKey === todayKey,
       activities: dayActivities,
+    };
+  });
+}
+
+export function buildPlannerMonthDays(
+  monthKey: string,
+  activities: PlannedActivity[],
+  referenceDate = new Date()
+): PlannerMonthDay[] {
+  const { gridStart, gridEnd } = getMonthGridBounds(monthKey);
+  const todayKey = toDateKey(referenceDate);
+  const dayCount = Math.round(
+    (Date.UTC(gridEnd.getFullYear(), gridEnd.getMonth(), gridEnd.getDate()) -
+      Date.UTC(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate())) /
+      86_400_000
+  ) + 1;
+
+  return Array.from({ length: dayCount }, (_, index) => {
+    const date = addDays(gridStart, index);
+    const dateKey = toDateKey(date);
+    const dayName = dayNames[date.getDay()];
+
+    return {
+      date,
+      dateKey,
+      dayName,
+      shortDayName: dayName.slice(0, 3),
+      dayNumber: String(date.getDate()),
+      isToday: dateKey === todayKey,
+      isInMonth: toMonthKey(date) === monthKey,
+      activities: activities.filter((activity) =>
+        resolveScheduledDate(activity, getWeekStart(date)) === dateKey
+      ),
     };
   });
 }

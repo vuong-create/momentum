@@ -15,3 +15,7 @@ export interface PlannerDay {
   isToday: boolean;
   activities: PlannerActivity[];
 }
+
+export interface PlannerMonthDay extends PlannerDay {
+  isInMonth: boolean;
+}
