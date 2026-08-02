@@ -97,6 +97,8 @@ Example structure:
 
 ### Today
 
+The one-tap **Keep Chinese in the day** activity panel appears first. The page prioritizes recording real exposure before presenting supporting tools.
+
 **Anki Review**
 
 `[ Open Anki ]`
@@ -108,6 +110,8 @@ After completing Anki:
 `[ ✓ Anki Done ]`
 
 This logs Chinese activity for the day.
+
+Below Anki, Today provides a small **Practice Shelf** for useful external media. Links are organized as Video, Podcast, Music, or Reading resources. Saving or opening a resource does not award XP; only an intentional activity log counts as practice.
 
 ---
 
@@ -270,7 +274,9 @@ Every saved entry can provide:
 * Tone-mark pinyin
 * One-tap Taiwanese Mandarin playback
 
-Today also surfaces a recent entry as a small pronunciation focus card. Playback uses the device's speech system and fails gracefully when a compatible voice is unavailable.
+The Database includes a dedicated pronunciation workspace. A saved word or phrase can be dragged from the database into the workspace and played with a Taiwanese Mandarin voice. Each entry also retains a direct sound button as a keyboard- and touch-friendly alternative to dragging.
+
+Playback uses the device's speech system and fails gracefully when a compatible voice is unavailable.
 
 Microphone recording, pronunciation scoring, and tutor-style feedback remain future enhancements rather than requirements for the first reliable version.
 
@@ -489,6 +495,8 @@ The Progress page contains four primary statistics:
 * Words & Phrases Saved
 
 These should be clearly visible at the top.
+
+Progress also owns the detailed **Today’s Chinese** activity history. Entries can be reviewed or undone there, keeping Today focused on starting practice rather than reviewing analytics.
 
 ---
 
@@ -734,7 +742,7 @@ Each successful quick action uses:
 * A short restrained confirmation motion
 * A subtle Chinese-specific two-tone sound when sounds are enabled
 * Immediate count and streak updates
-* An undo path from today's activity history
+* An undo path from the Progress activity history
 
 Feedback respects Momentum's global sound, animation, and reduced-motion settings.
 
@@ -773,6 +781,8 @@ These are intentionally **not required for Version 1**.
 * [x] Recently added
 * [x] Traditional Chinese default
 * [x] Taiwanese pronunciation playback
+* [x] Database pronunciation workspace with drag-and-drop
+* [x] Categorized practice media shelf
 * [x] Dedicated feedback sound and motion
 * [x] Anki role
 * [x] Progress metrics

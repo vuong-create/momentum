@@ -1082,6 +1082,7 @@ Primary records:
 
 * Chinese entries
 * Chinese activities
+* Chinese media resources
 * Chinese daily summaries
 
 ---
@@ -1162,6 +1163,33 @@ Chinese Activities are the source of truth for streaks, heatmap intensity, activ
 Planner linkage uses an explicit `activityKind` on `PlannedActivity`. It never infers a relationship from the task title.
 
 If a quick action completes a linked plan, `plannedActivityId` and `activityEventId` reference that completion and the Chinese Activity does not generate a second XP event.
+
+---
+
+# 37A. Chinese Media Resources
+
+Conceptual structure:
+
+```text
+ChineseMediaResource
+
+id
+title
+url
+type
+createdAt
+updatedAt
+deletedAt
+```
+
+Types are intentionally small:
+
+* Video
+* Podcast
+* Music
+* Reading
+
+These records form the reusable Practice Shelf on Chinese Today. They are reference material rather than completed activity, so creating, opening, deleting, or restoring a media resource never generates XP and never activates a streak.
 
 ---
 
