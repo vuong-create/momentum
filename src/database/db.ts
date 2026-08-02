@@ -118,10 +118,12 @@ export interface StreakRecord {
 
 export interface JournalEntry {
   id?: number;
+  title?: string;
   text: string;
   createdAt: string;
   updatedAt: string;
   entryDate: string;
+  deletedAt?: string;
 }
 
 export interface Note {
@@ -137,6 +139,38 @@ export interface SavedQuote {
   text: string;
   author: string;
   savedAt: string;
+  source?: string;
+  favorite?: boolean;
+  isBuiltIn?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string;
+}
+
+export type LibraryBookStatus = "want-to-read" | "reading" | "finished";
+
+export type BookSpineTone =
+  | "stone"
+  | "umber"
+  | "sage"
+  | "navy"
+  | "wine";
+
+export interface LibraryBook {
+  id?: number;
+  title: string;
+  author?: string;
+  status: LibraryBookStatus;
+  startedDate?: string;
+  finishedDate?: string;
+  reflection?: string;
+  favoriteQuote?: string;
+  linkedJournalEntryId?: number;
+  spineTone: BookSpineTone;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
 }
 
 export interface AppSettings {
@@ -157,6 +191,7 @@ class MomentumDatabase extends Dexie {
   appSettings!: Table<AppSettings, "preferences">;
   activityTemplates!: Table<ActivityTemplate>;
   recurrenceRules!: Table<RecurrenceRule>;
+  libraryBooks!: Table<LibraryBook>;
 
   constructor() {
     super("MomentumDatabase");
@@ -338,6 +373,41 @@ class MomentumDatabase extends Dexie {
         "++id, &quoteKey, savedAt",
       appSettings:
         "&id",
+    });
+
+    this.version(13).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, planningWeekStart, scheduledTime, pillar, sortOrder, deletedAt, templateId, recurrenceRuleId, recurrenceDate, &recurrenceKey",
+      activityTemplates:
+        "++id, title, pillar, saved, updatedAt, deletedAt",
+      recurrenceRules:
+        "++id, templateId, frequency, startDate, active, endDate",
+      activityEvents:
+        "++id, plannedActivityId, occurredAt, pillar, voidedAt",
+      xpEvents:
+        "++id, &dedupeKey, activityEventId, source, date, voidedAt",
+      streakRecords:
+        "++id, date, completed",
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate, deletedAt",
+      libraryBooks:
+        "++id, title, author, status, finishedDate, updatedAt, sortOrder, deletedAt",
+      notes:
+        "++id, createdAt, updatedAt",
+      savedQuotes:
+        "++id, &quoteKey, savedAt, favorite, isBuiltIn, deletedAt",
+      appSettings:
+        "&id",
+    }).upgrade(async (transaction) => {
+      await transaction
+        .table("savedQuotes")
+        .toCollection()
+        .modify((quote) => {
+          quote.favorite = quote.favorite ?? false;
+          quote.isBuiltIn = quote.isBuiltIn ?? true;
+          quote.createdAt = quote.createdAt ?? quote.savedAt;
+          quote.updatedAt = quote.updatedAt ?? quote.savedAt;
+        });
     });
   }
 }

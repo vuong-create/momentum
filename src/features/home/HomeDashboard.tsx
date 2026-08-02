@@ -40,6 +40,8 @@ import {
   getDailyQuote,
   type MomentumQuote,
 } from "./quotes";
+import { createJournalEntry } from "../journal/services/journalService";
+import { toggleBuiltInQuote } from "../journal/services/quoteService";
 
 import HomeTodo from "./components/HomeTodo";
 
@@ -140,7 +142,8 @@ export default function HomeDashboard() {
 
   const quoteSaved = savedQuotes.some(
     (savedQuote) =>
-      savedQuote.quoteKey === quote.id
+      savedQuote.quoteKey === quote.id &&
+      !savedQuote.deletedAt
   );
 
   const totalXP = xpEvents.reduce(
@@ -303,28 +306,8 @@ export default function HomeDashboard() {
   async function toggleQuote(
     quoteToToggle: MomentumQuote
   ) {
-    const existing =
-      savedQuotes.find(
-        (savedQuote) =>
-          savedQuote.quoteKey ===
-          quoteToToggle.id
-      );
-
-    if (existing?.id) {
-      await db.savedQuotes.delete(
-        existing.id
-      );
-
-      return;
-    }
-
-    await db.savedQuotes.add({
-      quoteKey: quoteToToggle.id,
-      text: quoteToToggle.text,
-      author: quoteToToggle.author,
-      savedAt:
-        new Date().toISOString(),
-    });
+    await toggleBuiltInQuote(quoteToToggle);
+    experience.playFeedback("task-updated");
   }
 
   function clearThoughtWithStatus(
@@ -341,24 +324,22 @@ export default function HomeDashboard() {
     }, 1400);
   }
 
-  async function saveAsNote() {
+  async function saveToJournal() {
     const text = thought.trim();
 
     if (!text) {
       return;
     }
 
-    const now =
-      new Date().toISOString();
-
-    await db.notes.add({
+    await createJournalEntry({
       text,
-      createdAt: now,
-      updatedAt: now,
+      entryDate: todayKey,
     });
 
+    experience.playFeedback("task-added");
+
     clearThoughtWithStatus(
-      "Added to Notes"
+      "Saved to Journal"
     );
   }
 
@@ -372,6 +353,11 @@ export default function HomeDashboard() {
     localStorage.setItem(
       "momentum-journal-draft",
       text
+    );
+
+    sessionStorage.setItem(
+      "momentum.journal.tab",
+      "today"
     );
 
     setThoughtStatus(
@@ -544,9 +530,9 @@ export default function HomeDashboard() {
           >
             <button
               type="button"
-              onClick={saveAsNote}
+              onClick={saveToJournal}
             >
-              Note
+              Save to Journal
             </button>
 
             <button
@@ -555,7 +541,7 @@ export default function HomeDashboard() {
                 continueInJournal
               }
             >
-              Journal
+              Continue writing
             </button>
           </div>
         </section>

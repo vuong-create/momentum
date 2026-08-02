@@ -1,7 +1,7 @@
 # Momentum — Happiness & Journal Pillar
 
-**Status:** 🟢 Design Complete
-**Next Step:** Implementation
+**Status:** 🟢 Foundation Implemented
+**Next Step:** Photo Memories
 
 ---
 
@@ -62,12 +62,13 @@ The system prioritizes meaningful memories over graphs and statistics.
 
 # 3. Navigation
 
-Happiness & Journal contains four lightweight sections:
+Happiness & Journal contains five lightweight sections:
 
 1. Today
 2. Journal
-3. Look Back
-4. Quotes
+3. Library
+4. Look Back
+5. Quotes
 
 ---
 
@@ -851,7 +852,41 @@ These are not required for Version 1.
 
 ---
 
-# 43. Design Status
+# 43. Personal Library
+
+Library is a small reading space inside Journal rather than a separate productivity system.
+
+Books can be placed in:
+
+* Want to Read
+* Reading
+* Finished
+
+A book can keep an optional reflection, favorite line, dates, and a link to a normal Journal entry. Finished books appear as a restrained physical bookshelf so the collection becomes more personal over time without requiring cover uploads.
+
+The Library does not use reading streaks, ratings, quotas, or completion pressure.
+
+---
+
+# 44. Foundation Implementation
+
+Implemented in the first Journal milestone:
+
+* Home thoughts save into the same Journal entry source of truth
+* Draft continuation from Home to Today
+* Warm notebook writing surface
+* Entry history, text search, and Sunday-first calendar
+* Centered editing, soft deletion, and undo
+* On This Day, Random Memory, and recent entries
+* Saved Momentum quotes, personal quotes, and favorites
+* Personal Library with reading states and a physical bookshelf view
+* Optional book reflection link into Journal
+
+Photo attachments, memory galleries, and media compression are intentionally reserved for the next Journal milestone.
+
+---
+
+# 45. Design Status
 
 * [x] Pillar purpose
 * [x] What's on Your Mind?
