@@ -304,6 +304,29 @@ Automatically:
 
 ---
 
+# 11A. Chinese Activity Catalog
+
+Chinese uses a centralized activity catalog rather than asking the user to select effort on every log.
+
+| Activity | Spontaneous XP | Intensity |
+| --- | ---: | --- |
+| Music | 5 | Light |
+| Other | 5 | Light |
+| Anki | 10 | Normal |
+| Podcast | 10 | Normal |
+| TV / Video | 10 | Normal |
+| Reading | 10 | Normal |
+| Conversation | 15 | Normal |
+| Tutor | 25 | Strong |
+
+Only the first spontaneous log of a given Chinese activity type per date awards XP. Additional logs remain valid Chinese activity history and heatmap intensity without creating repeat XP.
+
+When a typed matching Planner activity exists for today, Chinese completes that planned record and adopts its existing XP event instead of creating another award.
+
+Vocabulary creation, editing, search, pronunciation playback, and other database maintenance never award XP.
+
+---
+
 # 12. Manual Override
 
 XP effort can optionally be changed under:

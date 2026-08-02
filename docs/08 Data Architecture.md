@@ -1109,6 +1109,7 @@ source
 
 createdAt
 updatedAt
+deletedAt
 ```
 
 Required:
@@ -1136,7 +1137,11 @@ intensity
 source
 notes
 
+plannedActivityId
 activityEventId
+xpEventId
+createdAt
+deletedAt
 ```
 
 Types may include:
@@ -1151,6 +1156,12 @@ Types may include:
 * Other
 
 No study-time field is required.
+
+Chinese Activities are the source of truth for streaks, heatmap intensity, active days, monthly comparison, and activity breakdowns.
+
+Planner linkage uses an explicit `activityKind` on `PlannedActivity`. It never infers a relationship from the task title.
+
+If a quick action completes a linked plan, `plannedActivityId` and `activityEventId` reference that completion and the Chinese Activity does not generate a second XP event.
 
 ---
 

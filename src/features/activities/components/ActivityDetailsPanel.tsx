@@ -13,12 +13,19 @@ import {
   type PillarKey,
 } from "../../../app/theme";
 import type {
+  ChineseActivityType,
   Pillar,
   PlannedActivity,
   RecurrencePattern,
   RecurrenceRule,
 } from "../../../database/db";
 import useExperience from "../../../experience/useExperience";
+import {
+  chineseActivityCatalog,
+  getChineseActivityDefinition,
+  getChineseActivityKind,
+  parseChineseActivityKind,
+} from "../../chinese/activityCatalog";
 import {
   getActivityDisplayStatus,
   resolveActivityScheduledDate,
@@ -122,6 +129,9 @@ function ActivityDetailsForm({
     activity.scheduledTime ?? ""
   );
   const [pillar, setPillar] = useState<Pillar>(activity.pillar);
+  const [chineseType, setChineseType] = useState<ChineseActivityType>(
+    parseChineseActivityKind(activity.activityKind) ?? "anki"
+  );
   const [important, setImportant] = useState(
     activity.important ?? false
   );
@@ -167,6 +177,9 @@ function ActivityDetailsForm({
       planningWeekStart: activity.planningWeekStart,
       scheduledTime: activity.scheduledTime,
       pillar: activity.pillar,
+      activityKind: activity.activityKind,
+      difficulty: activity.difficulty,
+      xpReward: activity.xpReward,
       important: activity.important,
       notes: activity.notes,
       sortOrder: activity.sortOrder,
@@ -182,6 +195,9 @@ function ActivityDetailsForm({
 
     try {
       const previous = getPreviousDetails();
+      const chineseDefinition = pillar === "chinese"
+        ? getChineseActivityDefinition(chineseType)
+        : null;
       const patch: ActivityDetailsPatch = {
         title,
         scheduledDate: scheduledDate || undefined,
@@ -190,6 +206,11 @@ function ActivityDetailsForm({
           : activity.planningWeekStart,
         scheduledTime: scheduledTime || undefined,
         pillar,
+        activityKind: chineseDefinition
+          ? getChineseActivityKind(chineseType)
+          : undefined,
+        difficulty: chineseDefinition?.difficulty ?? activity.difficulty,
+        xpReward: chineseDefinition?.xp ?? activity.xpReward,
         important,
         notes: notes || undefined,
       };
@@ -409,6 +430,27 @@ function ActivityDetailsForm({
             })}
           </div>
         </fieldset>
+
+        {pillar === "chinese" && (
+          <fieldset className="activity-fieldset activity-chinese-kind-fieldset">
+            <legend>Chinese activity</legend>
+            <div className="activity-chinese-kind-chips">
+              {chineseActivityCatalog.map((definition) => (
+                <button
+                  key={definition.type}
+                  type="button"
+                  className={chineseType === definition.type ? "is-selected" : ""}
+                  aria-pressed={chineseType === definition.type}
+                  onClick={() => setChineseType(definition.type)}
+                >
+                  <span>{definition.mark}</span>
+                  {definition.label}
+                </button>
+              ))}
+            </div>
+            <small>Completes automatically when logged from Chinese.</small>
+          </fieldset>
+        )}
 
         <div className="activity-field-grid">
           <label className="activity-field">

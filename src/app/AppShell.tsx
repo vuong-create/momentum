@@ -8,6 +8,7 @@ import Layout from "../components/Layout";
 import HomeDashboard from "../features/home/HomeDashboard";
 import PlannerPage from "../features/planner/PlannerPage";
 import JournalPage from "../features/journal/JournalPage";
+import ChinesePage from "../features/chinese/ChinesePage";
 import SettingsPage from "../features/settings/SettingsPage";
 import PlaceholderPage from "../pages/PlaceholderPage";
 
@@ -27,13 +28,7 @@ export default function AppShell() {
 
         <Route
           path="/chinese"
-          element={
-            <PlaceholderPage
-              title="Chinese"
-              eyebrow="学习"
-              description="Practice, collect, and keep Chinese part of everyday life."
-            />
-          }
+          element={<ChinesePage />}
         />
 
         <Route

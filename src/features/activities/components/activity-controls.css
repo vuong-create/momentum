@@ -168,6 +168,48 @@
   background: rgba(255, 255, 255, 0.075);
 }
 
+.activity-chinese-kind-fieldset {
+  padding: 12px;
+  border: 1px solid rgba(214, 59, 59, 0.13);
+  border-radius: var(--radius-sm);
+  background: rgba(214, 59, 59, 0.035);
+}
+
+.activity-chinese-kind-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.activity-chinese-kind-chips button {
+  min-height: 27px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border-color: transparent;
+  border-radius: 7px;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 7px;
+}
+
+.activity-chinese-kind-chips button > span {
+  color: var(--pillar-chinese);
+  font-size: 9px;
+}
+
+.activity-chinese-kind-chips button.is-selected {
+  border-color: rgba(214, 59, 59, 0.24);
+  color: var(--color-text-primary);
+  background: var(--pillar-chinese-soft);
+}
+
+.activity-chinese-kind-fieldset > small {
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
 .activity-pillar-chips button {
   display: inline-flex;
   align-items: center;

@@ -318,6 +318,59 @@
   margin-left: auto;
 }
 
+.planner-composer-chinese-types {
+  display: grid;
+  gap: 7px;
+  margin: 11px 0 0;
+  padding: 11px 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  animation: momentum-rise-in var(--duration-fast) var(--ease-out) both;
+}
+
+.planner-composer-chinese-types legend {
+  color: var(--color-text-muted);
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.planner-composer-chinese-types > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.planner-composer-chinese-types button {
+  min-height: 27px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border-color: transparent;
+  border-radius: 7px;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 7px;
+}
+
+.planner-composer-chinese-types button span {
+  color: var(--pillar-chinese);
+  font-size: 9px;
+}
+
+.planner-composer-chinese-types button:hover,
+.planner-composer-chinese-types button.is-selected {
+  border-color: rgba(214, 59, 59, 0.22);
+  color: var(--color-text-primary);
+  background: var(--pillar-chinese-soft);
+}
+
+.planner-composer-chinese-types small {
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
 .planner-composer-details {
   display: grid;
   grid-template-columns: 120px 160px minmax(220px, 1fr);
