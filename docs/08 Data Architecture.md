@@ -594,8 +594,11 @@ XPEvent
 id
 activityEventId
 
+scope
 sourceType
 sourceId
+actionType
+description
 
 pillar
 
@@ -605,9 +608,13 @@ weeklyBonusXP
 finalXP
 
 createdAt
+voidedAt
+dedupeKey
 ```
 
 An activity should normally generate at most one primary XP event.
+
+`scope = pillar` means the event contributes to its pillar and to global Momentum progression. `scope = momentum` is reserved for global-only awards such as weekly completion bonuses. Global and pillar totals are derived views of this single ledger; the database does not create a second award for the same action.
 
 ---
 
@@ -661,7 +668,7 @@ The event history remains the source of truth.
 
 ---
 
-# 21. Level Data
+# 21. Global and Pillar Level Data
 
 Momentum can derive:
 
@@ -669,7 +676,7 @@ Momentum can derive:
 * XP in current level
 * XP needed for next level
 
-from Lifetime XP.
+from Lifetime XP or from the active XP events belonging to a specific pillar.
 
 Conceptual progression record:
 
@@ -682,7 +689,7 @@ currentTitle
 perfectWeeks
 ```
 
-Most values should be derived automatically where practical.
+Pillar progression uses the same event ledger filtered by pillar. It should not store independent mutable XP totals. Most values should be derived automatically where practical.
 
 ---
 
@@ -2114,7 +2121,10 @@ Owns:
 Owns:
 
 * XP events
-* Progression
+* Global progression
+* Pillar progression queries
+* Pillar contribution breakdowns
+* XP eligibility and deduplication rules
 * Milestone snapshots
 
 ## Finance

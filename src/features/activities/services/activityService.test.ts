@@ -138,6 +138,14 @@ describe("activity service", () => {
     expect(await db.activityEvents.count()).toBe(1);
     expect(await db.xpEvents.count()).toBe(1);
     expect(await getTotalXP()).toBe(13);
+    expect(await db.xpEvents.toCollection().first()).toMatchObject({
+      scope: "pillar",
+      pillar: "core",
+      actionType: "planned-activity-completed",
+      sourceType: "planned-activity",
+      sourceId: String(activityId),
+      description: "Read",
+    });
   });
 
   it("updates optional details on the original activity", async () => {

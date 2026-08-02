@@ -845,8 +845,10 @@ The XP Service handles:
 * Planned bonus
 * Duplicate protection
 * Weekly bonuses
-* Lifetime XP
-* Levels
+* Global Lifetime XP
+* Pillar XP totals
+* Global and pillar level curves
+* Contribution summaries
 * Milestones
 * XP history
 
@@ -855,6 +857,20 @@ Pillars should not manually add numbers to a global XP total.
 They report an eligible event.
 
 The XP system decides the award.
+
+One eligible pillar action produces one XP event. The XP service exposes that event through both the global and pillar progression views. Momentum-only bonuses use a separate scope and do not advance any pillar.
+
+Conceptual feature structure:
+
+```text
+features/xp/
+  components/
+  services/
+  progression.ts
+  types.ts
+```
+
+Home consumes a read-only progression summary and opens a centered breakdown surface. Pillars request awards through the shared service and never maintain their own XP counters.
 
 ---
 
@@ -1855,9 +1871,18 @@ Momentum should be built in layers.
 
 * Activity Events
 * XP Events
-* Leveling
+* Global and pillar leveling
+* Home progression breakdown
 * Weekly bonuses
 * Milestones
+
+Current milestone status:
+
+* Database-backed XP ledger with migration and dedupe metadata implemented
+* Global and pillar progression curves implemented as derived data
+* Planner completion, correction, and restore behavior integrated
+* Centered Home progression breakdown and recent history implemented
+* Weekly bonus automation, milestone snapshots, and celebrations remain future XP milestones
 
 ## Phase 4 — Happiness / Journal
 

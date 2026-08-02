@@ -96,16 +96,25 @@ export interface ActivityEvent {
   voidedAt?: string;
 }
 
+export type XPScope = "pillar" | "momentum";
+
 export interface XPEvent {
   id?: number;
   amount: number;
   source: string;
   date: string;
+  scope?: XPScope;
+  actionType?: string;
+  sourceType?: string;
+  sourceId?: string;
+  description?: string;
   dedupeKey?: string;
   activityEventId?: number;
   pillar?: Pillar;
   baseXP?: number;
   plannedBonusXP?: number;
+  weeklyBonusXP?: number;
+  weekStart?: string;
   finalXP?: number;
   voidedAt?: string;
 }
@@ -407,6 +416,44 @@ class MomentumDatabase extends Dexie {
           quote.isBuiltIn = quote.isBuiltIn ?? true;
           quote.createdAt = quote.createdAt ?? quote.savedAt;
           quote.updatedAt = quote.updatedAt ?? quote.savedAt;
+        });
+    });
+
+    this.version(14).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, planningWeekStart, scheduledTime, pillar, sortOrder, deletedAt, templateId, recurrenceRuleId, recurrenceDate, &recurrenceKey",
+      activityTemplates:
+        "++id, title, pillar, saved, updatedAt, deletedAt",
+      recurrenceRules:
+        "++id, templateId, frequency, startDate, active, endDate",
+      activityEvents:
+        "++id, plannedActivityId, occurredAt, pillar, voidedAt",
+      xpEvents:
+        "++id, &dedupeKey, activityEventId, source, date, voidedAt, scope, pillar, actionType, sourceType, sourceId, weekStart",
+      streakRecords:
+        "++id, date, completed",
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate, deletedAt",
+      libraryBooks:
+        "++id, title, author, status, finishedDate, updatedAt, sortOrder, deletedAt",
+      notes:
+        "++id, createdAt, updatedAt",
+      savedQuotes:
+        "++id, &quoteKey, savedAt, favorite, isBuiltIn, deletedAt",
+      appSettings:
+        "&id",
+    }).upgrade(async (transaction) => {
+      await transaction
+        .table("xpEvents")
+        .toCollection()
+        .modify((event) => {
+          event.scope = event.scope ?? (event.pillar ? "pillar" : "momentum");
+
+          if (event.source?.startsWith("activity:")) {
+            event.actionType = event.actionType ?? "planned-activity-completed";
+            event.sourceType = event.sourceType ?? "planned-activity";
+            event.sourceId = event.sourceId ?? event.source.slice("activity:".length);
+          }
         });
     });
   }

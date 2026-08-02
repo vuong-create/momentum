@@ -1,7 +1,7 @@
 # Momentum — XP & Progression System
 
-**Status:** 🟢 Design Complete
-**Next Step:** Implementation
+**Status:** 🟢 Global + Pillar Foundation Implemented
+**Next Step:** Chinese Activity Catalog Integration
 
 ---
 
@@ -9,9 +9,11 @@
 
 The Momentum XP system provides a lightweight sense of progression across the entire application.
 
-There is **one global Momentum level**.
+There is **one global Momentum level** plus focused progression for each core pillar.
 
-Finance, Chinese, Athletics, Cooking, Happiness, Reading, and general life tasks can all contribute toward the same progression.
+Finance, Chinese, Athletics, Cooking, Journal / Happiness, and general life tasks all contribute toward the global Momentum level. Eligible pillar activity also advances that pillar's own level.
+
+One completed action creates one XP event. Global and pillar progression are two views of that same event, never two separate awards.
 
 The system should reward:
 
@@ -65,19 +67,30 @@ Core loop:
 
 ---
 
-# 4. One Global Level
+# 4. Global and Pillar Levels
 
-Momentum does not maintain separate levels for:
+Momentum maintains:
 
-* Finance
-* Chinese
-* Athletics
-* Cooking
-* Happiness
+* One global Momentum level
+* One level for Chinese
+* One level for Athletics
+* One level for Cooking
+* One level for Finance
+* One level for Journal / Happiness
 
-Instead:
+General life activities contribute through a Core / General category without requiring a separate destination page.
 
-> **Everything contributes toward one Momentum Level.**
+The global Momentum level answers:
+
+> **How consistently am I investing in the life I want?**
+
+A pillar level answers:
+
+> **How much meaningful engagement have I built in this area?**
+
+Pillar levels represent engagement, not external mastery. A high Finance level does not claim wealth, and a high Chinese level does not claim fluency.
+
+Example: completing a Chinese tutor session worth 25 XP adds one 25 XP event. That event appears in Chinese progression and also contributes 25 XP toward Momentum. It is never counted as 50 XP.
 
 Example:
 
@@ -89,17 +102,19 @@ Example:
 
 `1,420 / 1,600 XP`
 
+Weekly completion and Perfect Week bonuses are Momentum-only awards. They strengthen the global level but do not inflate a pillar level.
+
 ---
 
 # 5. Lifetime XP
 
-Momentum permanently tracks total XP earned.
+Momentum derives total XP from the authoritative XP event ledger.
 
 Example:
 
 > **Lifetime XP: 12,850**
 
-Lifetime XP never decreases.
+Ordinary missed activities never decrease Lifetime XP. An explicit undo or data correction may void the event that should no longer exist; Momentum keeps that audit history instead of silently editing a total.
 
 It can be used for:
 
@@ -110,9 +125,9 @@ It can be used for:
 
 ---
 
-# 6. XP Never Decreases
+# 6. XP Is Never Penalized
 
-Momentum does not use negative XP.
+Momentum does not use negative XP or remove XP as punishment.
 
 Missing:
 
@@ -125,13 +140,11 @@ Missing:
 
 does not remove XP.
 
-Momentum rewards progress rather than punishing inconsistency.
+Momentum rewards progress rather than punishing inconsistency. If a completion is explicitly undone or corrected, its linked XP event is voided because the underlying action is no longer recorded as completed.
 
 ---
 
-# 7. Levels Never Decrease
-
-Once a Momentum level is earned, it is permanent.
+# 7. Progress Does Not Decay
 
 There is no:
 
@@ -140,7 +153,7 @@ There is no:
 * Demotion
 * Seasonal reset
 
-Momentum Level represents cumulative progress.
+Momentum Level represents cumulative valid progress. Undoing an incorrect award can recalculate the current level; this is a data correction, not a penalty or decay mechanic. Permanent milestone history remains separate from the current calculation.
 
 ---
 
@@ -630,6 +643,16 @@ Early progression can begin approximately:
 
 Required XP continues increasing gradually.
 
+Focused pillar progression begins slightly sooner:
+
+`Pillar Level 1 → 2: 75 XP`
+
+`Pillar Level 2 → 3: 90 XP`
+
+`Pillar Level 3 → 4: 105 XP`
+
+The pillar curve increases by 15 XP per level. It changes only how filtered pillar XP is presented; it does not change or multiply the XP awarded to Momentum.
+
 ---
 
 # 33. Progression Curve Philosophy
@@ -957,6 +980,8 @@ Adding 10 Chinese vocabulary entries should **not** outperform completing an ent
 
 This principle should be considered whenever new pillar features are added.
 
+Each pillar must define a small, centralized catalog of eligible actions. Creating, editing, organizing, or browsing records does not award XP. Examples that do not earn XP include adding vocabulary, editing a recipe, categorizing a transaction, or changing a journal title.
+
 ---
 
 # 50. XP Event System
@@ -971,12 +996,17 @@ could contain:
 
 * Event ID
 * Date/time
+* Scope: pillar or Momentum-only
 * Pillar
-* Activity ID
+* Action type
+* Source type and source ID
+* Human-readable description
 * Base XP
 * Planned status
 * Bonus XP
 * Final XP
+* Unique dedupe key
+* Voided date for undo or correction
 
 This helps prevent duplicate XP and allows progression history to remain reliable.
 
@@ -988,7 +1018,7 @@ Momentum should retain enough XP history to understand where Lifetime XP came fr
 
 A full complicated ledger does not need to dominate the interface.
 
-However, users should eventually be able to inspect recent XP activity.
+The Home XP card opens a centered progression breakdown where users can inspect global progress, pillar contributions, pillar levels, and recent XP activity. History can be filtered by pillar without duplicating the underlying events.
 
 Example:
 
@@ -1227,9 +1257,15 @@ The goal is to use Momentum to become more consistent with the things that matte
 # 64. Design Status
 
 * [x] One global Momentum level
+* [x] Five focused pillar levels
+* [x] Core / General contribution category
+* [x] One shared event ledger for global and pillar views
+* [x] Pillar levels represent engagement, not proficiency
+* [x] Weekly bonuses remain Momentum-only
+* [x] Clickable Home progression breakdown
 * [x] Lifetime XP
-* [x] XP never decreases
-* [x] Levels never decrease
+* [x] No negative XP penalties
+* [x] No level decay or punitive demotion
 * [x] Weekly Planner as progression engine
 * [x] Meaningful activity rewards
 * [x] Quick / Standard / Major XP tiers
@@ -1261,6 +1297,6 @@ The goal is to use Momentum to become more consistent with the things that matte
 * [x] Local-first progression
 * [x] No leaderboards
 * [x] No seasonal resets
-* [x] Ready for implementation
+* [x] XP foundation ready for pillar integration
 
 **Momentum XP System Design: COMPLETE**
