@@ -20,12 +20,49 @@ export function MomentumMark() {
       fill="none"
       aria-hidden="true"
     >
-      <path className="momentum-mark-trail" d="M3.7 11.2h5.1M2.7 16h5.2M4.2 20.8h4" />
       <path
-        className="momentum-mark-ribbon"
-        d="m8.9 24 2.7-15.8 5 7.5 4.7-7L24.6 24H21l-1.5-7.4-2.9 4.3-3-4.4-1.2 7.5H8.9Z"
+        className="momentum-polyhedron-shell"
+        d="m16 3 11 6.5v13L16 29 5 22.5v-13L16 3Z"
       />
-      <path className="momentum-mark-highlight" d="m12.4 10.6 4.2 6.2 3.8-5.7" />
+      <path
+        className="momentum-polyhedron-facet momentum-polyhedron-facet-strong"
+        d="m16 3 1 5.5-12 1L16 3Z"
+      />
+      <path
+        className="momentum-polyhedron-facet momentum-polyhedron-facet-soft"
+        d="m16 3 11 6.5-10-1L16 3Z"
+      />
+      <path
+        className="momentum-polyhedron-facet momentum-polyhedron-facet-soft"
+        d="m5 9.5 12-1L10 21 5 9.5Z"
+      />
+      <path
+        className="momentum-polyhedron-facet momentum-polyhedron-facet-medium"
+        d="m17 8.5 10 1-5 11.5-5-12.5Z"
+      />
+      <path
+        className="momentum-polyhedron-facet momentum-polyhedron-facet-strong"
+        d="m10 21 12-.1L16 29l-6-8Z"
+      />
+      <path
+        className="momentum-polyhedron-facet momentum-polyhedron-facet-faint"
+        d="M5 22.5 10 21l6 8-11-6.5ZM22 21l5 1.5L16 29l6-8Z"
+      />
+      <path
+        className="momentum-polyhedron-line"
+        d="M16 3 5 9.5v13L16 29l11-6.5v-13L16 3Zm0 0 1 5.5M5 9.5l12-1 10 1M5 22.5l5-1.5h12l5 1.5M17 8.5 10 21l6 8M17 8.5 22 21l-6 8"
+      />
+      <g className="momentum-polyhedron-nodes">
+        <circle cx="16" cy="3" r="1.5" />
+        <circle cx="5" cy="9.5" r="1.5" />
+        <circle cx="27" cy="9.5" r="1.5" />
+        <circle cx="5" cy="22.5" r="1.5" />
+        <circle cx="27" cy="22.5" r="1.5" />
+        <circle cx="16" cy="29" r="1.5" />
+        <circle cx="17" cy="8.5" r="1.2" />
+        <circle cx="10" cy="21" r="1.2" />
+        <circle cx="22" cy="21" r="1.2" />
+      </g>
     </svg>
   );
 }
@@ -40,87 +77,60 @@ export default function NavigationIcon({ name }: NavigationIconProps) {
       aria-hidden="true"
     >
       {name === "home" && (
-        <>
-          <path className="nav-icon-paper" d="M6.2 13.6h19.6v12.8H6.2z" />
-          <path className="nav-icon-warm" d="M4.1 11.2c6.2-2.6 17.6-2.6 23.8 0l-1.2 3.4H5.3l-1.2-3.4Z" />
-          <path className="nav-icon-accent" d="M10.8 14.4h10.4v6.8H10.8z" />
-          <path className="nav-icon-ink-line" d="M4.1 11.2c6.2-2.6 17.6-2.6 23.8 0l-1.2 3.4H5.3l-1.2-3.4ZM6.2 14.6v11.8h19.6V14.6" />
-          <path className="nav-icon-detail" d="m7.5 10.3.8 4.3m4.3-5.3.3 5.3m6.5-5.3-.3 5.3m5.4-4.3-.8 4.3M10.8 14.4v6.8h10.4v-6.8M16 14.4v6.8M8.1 17h2.7M8.1 20h2.7M21.2 17h2.7M21.2 20h2.7M9.4 15.6v9.3M22.6 15.6v9.3" />
-          <circle className="nav-icon-highlight" cx="16" cy="17.5" r="1.15" />
-        </>
+        <g className="nav-icon-line">
+          <path d="m4.8 14.3 11.1-8.5 11.3 8.5" />
+          <path d="M7.2 12.6v13.1h17.6V12.6M13 25.7v-8.4h6v8.4" />
+          <path d="M21.6 9.9v-3h2.8V12" />
+        </g>
       )}
 
       {name === "planner" && (
-        <>
-          <path className="nav-icon-paper" d="M4.8 8.8c4.1-.7 7.8.1 11.2 2.3v15c-3.5-2.2-7.2-3-11.2-2.2V8.8Z" />
-          <path className="nav-icon-paper" d="M27.2 8.8c-4.1-.7-7.8.1-11.2 2.3v15c3.5-2.2 7.2-3 11.2-2.2V8.8Z" />
-          <path className="nav-icon-accent" d="M7.1 6.2h3.4v3.6H7.1zM14.3 7.4h3.4v3.1h-3.4zM21.5 6.2h3.4v3.6h-3.4z" />
-          <path className="nav-icon-ink-line" d="M4.8 8.8c4.1-.7 7.8.1 11.2 2.3v15c-3.5-2.2-7.2-3-11.2-2.2V8.8ZM27.2 8.8c-4.1-.7-7.8.1-11.2 2.3v15c3.5-2.2 7.2-3 11.2-2.2V8.8ZM16 11.1v15" />
-          <path className="nav-icon-detail" d="M7.5 14.2c1.9-.1 3.6.3 5.3 1M7.5 18.1c1.7-.1 3.3.2 4.8.9M19.2 15.2c1.7-.7 3.4-1.1 5.3-1M19.7 18.9c1.5-.6 3-.9 4.8-.8" />
-        </>
+        <g className="nav-icon-line">
+          <rect x="4.8" y="7.1" width="22.4" height="19.2" rx="3.2" />
+          <path d="M10 4.8v4.5M22 4.8v4.5M4.8 12h22.4M10 16.4h3M18.8 16.4h3M10 21h3M18.8 21h3" />
+        </g>
       )}
 
       {name === "chinese" && (
-        <>
-          <path className="nav-icon-warm" d="M12.2 4.7h7.6l1.3 6.8H10.9l1.3-6.8Z" />
-          <path className="nav-icon-paper" d="M7.4 11.5h17.2v15H7.4z" />
-          <path className="nav-icon-accent" d="M9.8 13.9h12.4v10.2H9.8z" />
-          <path className="nav-icon-ink-line" d="M12.2 4.7h7.6l1.3 6.8M7.4 11.5h17.2v15H7.4zM16 14.8v8.5M12.3 16.3h7.4v5.4h-7.4z" />
-          <path className="nav-icon-highlight" d="M13.4 6.2h4.9" />
-        </>
+        <text className="nav-icon-glyph" x="2.6" y="20.6">
+          中文
+        </text>
       )}
 
       {name === "athletics" && (
-        <g transform="rotate(-6 16 16)">
-          <path className="nav-icon-paper" d="M9.2 14.6h13.6v2.8H9.2z" />
-          <path className="nav-icon-warm" d="M3.2 11h3.7v10H3.2c-.8 0-1.4-.6-1.4-1.4v-7.2c0-.8.6-1.4 1.4-1.4ZM28.8 11h-3.7v10h3.7c.8 0 1.4-.6 1.4-1.4v-7.2c0-.8-.6-1.4-1.4-1.4Z" />
-          <path className="nav-icon-accent" d="M6.9 8.8h3.3v14.4H6.9zM25.1 8.8h-3.3v14.4h3.3z" />
-          <path className="nav-icon-ink-line" d="M3.2 11h3.7V8.8h3.3v5.8h11.6V8.8h3.3V11h3.7c.8 0 1.4.6 1.4 1.4v7.2c0 .8-.6 1.4-1.4 1.4h-3.7v2.2h-3.3v-5.8H10.2v5.8H6.9V21H3.2c-.8 0-1.4-.6-1.4-1.4v-7.2c0-.8.6-1.4 1.4-1.4Z" />
-          <path className="nav-icon-highlight" d="M3.5 12.8v5.5M8.5 10.6v7.3" />
+        <g className="nav-icon-line nav-icon-line-athletics">
+          <path d="M9.3 16h13.4M4.8 11.5v9M8 9.2v13.6M27.2 11.5v9M24 9.2v13.6" />
+          <path d="M2.7 13.2v5.6M29.3 13.2v5.6" />
         </g>
       )}
 
       {name === "cooking" && (
-        <>
-          <path className="nav-icon-warm" d="M5.2 17.4C5.5 11.1 11 6.8 17.6 7.3c5.8.4 9.7 3.8 9.1 8.7-.5 4.8-5 8.5-10.8 8.8-6 .3-10.9-2.9-10.7-7.4Z" />
-          <path className="nav-icon-accent" d="M8.1 17c.3-4.6 4.4-7.7 9.2-7.4 4.3.4 7 2.7 6.6 6.2-.4 3.5-3.7 6.2-8 6.4-4.5.2-8-2.1-7.8-5.2Z" />
-          <path className="nav-icon-paper" d="M12.1 14.5c.2-1.6 1.8-2.7 3.7-2.6 1.5.1 2.7 1 2.5 2.1-.1 1.4-1.6 2.4-3.3 2.5-1.8 0-3.1-.8-2.9-2Z" />
-          <path className="nav-icon-ink-line" d="M5.2 17.4C5.5 11.1 11 6.8 17.6 7.3c5.8.4 9.7 3.8 9.1 8.7-.5 4.8-5 8.5-10.8 8.8-6 .3-10.9-2.9-10.7-7.4ZM12.1 14.5c.2-1.6 1.8-2.7 3.7-2.6 1.5.1 2.7 1 2.5 2.1-.1 1.4-1.6 2.4-3.3 2.5-1.8 0-3.1-.8-2.9-2Z" />
-          <path className="nav-icon-detail" d="m10.2 18.1 3.1 1.9m2.6-1.8 3 1.8m1.5-4.3 2.8 1.5" />
-          <path className="nav-icon-highlight" d="M8.5 14.2c1.3-2.4 3.7-4 6.6-4.6" />
-        </>
+        <g className="nav-icon-line nav-icon-line-cooking">
+          <ellipse cx="13.4" cy="18.4" rx="8.7" ry="6.3" />
+          <path d="m21.7 16.5 7.4-3.8 1.2 2.5-8.2 3.4M8.4 18c.3-3 2.9-5 5.8-4.7 2.5.2 4.2 1.7 3.8 3.8-.3 2.2-2.3 3.8-5 4-2.7.1-4.8-1.2-4.6-3.1ZM11 17l2.3 1.5m1.5-2.3 2 1.2M10.2 8.8c-1.1-1.6-.8-3 .7-4.2M15.6 9.2c-1.1-1.7-.7-3.2.8-4.4" />
+        </g>
       )}
 
       {name === "finance" && (
-        <>
-          <path className="nav-icon-warm" d="m7.2 22.8 5-5.1 4.3 2.5 8.3-10.3v12.9H7.2Z" />
-          <path className="nav-icon-ink-line" d="M5.1 5.6v20.8h21.8M7.2 22.8l5-5.1 4.3 2.5 8.3-10.3" />
-          <path className="nav-icon-accent" d="M9.1 22.8a1.9 1.9 0 1 1-3.8 0 1.9 1.9 0 0 1 3.8 0ZM14.1 17.7a1.9 1.9 0 1 1-3.8 0 1.9 1.9 0 0 1 3.8 0ZM18.4 20.2a1.9 1.9 0 1 1-3.8 0 1.9 1.9 0 0 1 3.8 0Z" />
-          <path className="nav-icon-ink-line" d="M20.8 9.9h4v4" />
-          <path className="nav-icon-highlight" d="m8.1 20.7 3.1-3.1" />
-        </>
+        <g className="nav-icon-line nav-icon-line-finance">
+          <path d="M5.5 6v20.5H27" />
+          <path d="m8.5 22.5 5-5.5 4 2.4L26 9" />
+          <path d="M21.8 9H26v4.2" />
+        </g>
       )}
 
       {name === "journal" && (
-        <>
-          <path className="nav-icon-warm" d="M8.1 5.3h15.4l1.8 20.9H9.9L8.1 5.3Z" />
-          <path className="nav-icon-paper" d="M5.6 6.6H21l1.7 20H7.3l-1.7-20Z" />
-          <path className="nav-icon-accent" d="M16.5 6.6h3.1l.9 12-1.8-1.8-1.5 1.8-.7-12Z" />
-          <path className="nav-icon-ink-line" d="M5.6 6.6H21l1.7 20H7.3l-1.7-20ZM8.1 5.3h15.4l1.8 20.9h-2.6M9.1 6.6l1.7 20" />
-          <path className="nav-icon-detail" d="M12.2 11.4h3.5M12.5 14.9h3.5" />
-          <path className="nav-icon-highlight" d="M7.4 8.5h1.2" />
-        </>
+        <g className="nav-icon-line">
+          <path d="M4.5 7.2c4.4-.8 8.2.1 11.5 2.7v16.4c-3.7-2.3-7.5-3.2-11.5-2.3V7.2ZM27.5 7.2c-4.4-.8-8.2.1-11.5 2.7v16.4c3.7-2.3 7.5-3.2 11.5-2.3V7.2ZM16 9.9v16.4" />
+          <path d="M8 13c1.7 0 3.2.4 4.6 1.2M19.4 14.2A11 11 0 0 1 24 13M8 17.4c1.7 0 3.2.4 4.6 1.2M19.4 18.6a11 11 0 0 1 4.6-1.2" />
+        </g>
       )}
 
       {name === "settings" && (
-        <>
-          <circle className="nav-icon-paper" cx="16" cy="16" r="10.8" />
-          <circle className="nav-icon-warm" cx="16" cy="16" r="6.5" />
-          <circle className="nav-icon-accent" cx="16" cy="16" r="3.2" />
-          <path className="nav-icon-ink-line" d="M16 5.2a10.8 10.8 0 1 1 0 21.6 10.8 10.8 0 0 1 0-21.6Zm0 7.6a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4Z" />
-          <path className="nav-icon-detail" d="M16 5.2v2.7M16 24.1v2.7M5.2 16h2.7M24.1 16h2.7M8.4 8.4l1.9 1.9M21.7 21.7l1.9 1.9M23.6 8.4l-1.9 1.9M10.3 21.7l-1.9 1.9" />
-          <path className="nav-icon-highlight" d="M10.2 9.6a8.4 8.4 0 0 1 7.8-1.5" />
-        </>
+        <g className="nav-icon-line nav-icon-line-settings">
+          <path d="m13.3 3.8-.8 3.4a9.4 9.4 0 0 0-2.5 1.5L6.6 7.6 4 12l2.7 2.3a9.6 9.6 0 0 0 0 3.3L4 20l2.6 4.4 3.4-1.1a9.4 9.4 0 0 0 2.5 1.5l.8 3.4h5.4l.8-3.4a9.4 9.4 0 0 0 2.5-1.5l3.4 1.1L28 20l-2.7-2.4a9.6 9.6 0 0 0 0-3.3L28 12l-2.6-4.4L22 8.7a9.4 9.4 0 0 0-2.5-1.5l-.8-3.4h-5.4Z" />
+          <circle cx="16" cy="16" r="3.5" />
+        </g>
       )}
     </svg>
   );
