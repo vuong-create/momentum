@@ -1336,15 +1336,17 @@ Conceptual folder:
 ```text
 features/athletics/
 
-dashboard/
-workout/
-templates/
-history/
-progress/
-
-workoutService
-prService
-athleticsQueries
+AthleticsPage
+components/
+  AthleticsDashboard
+  WorkoutLogger
+  AthleticsTemplates
+  AthleticsHistory
+  AthleticsProgress
+services/
+  athleticsService
+  athleticsQueries
+athleticsCatalog
 ```
 
 Workout logging must prioritize speed and minimal rerendering.
@@ -1944,6 +1946,16 @@ Current milestone status:
 * History
 * PRs
 * Volleyball
+
+Current milestone status:
+
+* Premium dashboard and low-friction quick-start flow implemented
+* Editable templates and Planner scheduling implemented
+* Previous-value set logger, Repeat Last, quick adjustments, and custom workouts implemented
+* Automatic weight/rep PR detection and dedicated feedback implemented
+* One-tap volleyball logging implemented
+* Unified history, monthly summary, 52-week heatmap, exercise bests, and PR history implemented
+* Shared Planner completion, Athletics XP, undo, reduced motion, and sound settings integrated
 
 ## Phase 7 — Cooking
 

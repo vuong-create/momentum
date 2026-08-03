@@ -1,7 +1,7 @@
 # Momentum — XP & Progression System
 
 **Status:** 🟢 Global + Pillar Foundation Implemented
-**Next Step:** Chinese Activity Catalog Integration
+**Next Step:** Cooking Activity Integration
 
 ---
 
