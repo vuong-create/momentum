@@ -310,11 +310,23 @@ Primary navigation:
 
 Navigation should remain available throughout Momentum.
 
-The exact visual design may later use:
+## Current Navigation Direction
 
-* Sidebar
-* Top navigation
-* Café-style environmental navigation
+Momentum uses a permanent icon-only **Momentum Rail** on desktop and a compact
+bottom dock on mobile. It never expands into a conventional text sidebar.
+
+The rail uses:
+
+* One cohesive repository-native SVG icon system
+* A restrained sliding active lens with pillar-color accents
+* Cursor-proximity motion on the hovered icon and its neighbors
+* Delayed glass tooltips for labels
+* A time-aware presence orb driven by the shared Presence system
+* Optional quiet navigation feedback through the shared audio engine
+* Keyboard focus states and reduced-motion support
+
+Navigation remains an application shell concern. Feature pages do not own or
+duplicate its state, icons, motion logic, or responsive behavior.
 
 Functionally, routing should remain simple.
 

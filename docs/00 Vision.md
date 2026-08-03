@@ -624,6 +624,12 @@ Not flashy.
 
 Not a generic productivity dashboard.
 
+The application shell reinforces this identity through a narrow icon-only
+Momentum Rail. Navigation should feel like a quiet physical instrument: custom
+monoline icons, subtle magnetic response, restrained pillar light, and ambient
+presence that changes with the time of day. It should never become a wide
+template-style sidebar filled with permanent labels.
+
 Visual inspiration includes:
 
 * Warm café lighting
