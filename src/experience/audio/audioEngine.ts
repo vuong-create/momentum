@@ -6,6 +6,11 @@ export type FeedbackCue =
   | "task-dismissed"
   | "task-restored"
   | "chinese-logged"
+  | "workout-started"
+  | "set-completed"
+  | "workout-completed"
+  | "personal-record"
+  | "volleyball-logged"
   | "navigation";
 
 type Tone = {
@@ -99,6 +104,41 @@ function getCueTones(cue: FeedbackCue): Tone[] {
         volume: 0.018,
         type: "triangle",
       },
+    ];
+  }
+
+  if (cue === "workout-started") {
+    return [
+      { frequency: 196, endFrequency: 246.94, duration: 0.13, volume: 0.014, type: "triangle" },
+      { frequency: 293.66, delay: 0.055, duration: 0.12, volume: 0.01, type: "sine" },
+    ];
+  }
+
+  if (cue === "set-completed") {
+    return [
+      { frequency: 220, endFrequency: 329.63, duration: 0.09, volume: 0.013, type: "triangle" },
+    ];
+  }
+
+  if (cue === "volleyball-logged") {
+    return [
+      { frequency: 246.94, endFrequency: 392, duration: 0.14, volume: 0.014, type: "sine" },
+      { frequency: 523.25, delay: 0.07, duration: 0.12, volume: 0.012, type: "triangle" },
+    ];
+  }
+
+  if (cue === "personal-record") {
+    return [
+      { frequency: 261.63, endFrequency: 392, duration: 0.15, volume: 0.016, type: "triangle" },
+      { frequency: 523.25, delay: 0.07, duration: 0.18, volume: 0.018, type: "sine" },
+      { frequency: 783.99, delay: 0.14, duration: 0.22, volume: 0.019, type: "sine" },
+    ];
+  }
+
+  if (cue === "workout-completed") {
+    return [
+      { frequency: 246.94, endFrequency: 369.99, duration: 0.15, volume: 0.016, type: "triangle" },
+      { frequency: 493.88, delay: 0.075, duration: 0.2, volume: 0.017, type: "sine" },
     ];
   }
 

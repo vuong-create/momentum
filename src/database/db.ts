@@ -176,6 +176,73 @@ export interface ChineseMediaResource {
   deletedAt?: string;
 }
 
+export type AthleticsWorkoutKind = "gym" | "volleyball";
+export type AthleticsWorkoutStatus = "active" | "completed";
+export type VolleyballSessionType =
+  | "practice"
+  | "open-gym"
+  | "tournament"
+  | "coaching";
+export type AthleticsPRType = "weight" | "reps";
+
+export interface AthleticsTemplateExercise {
+  id: string;
+  name: string;
+  defaultSets: number;
+}
+
+export interface AthleticsTemplate {
+  id?: number;
+  name: string;
+  exercises: AthleticsTemplateExercise[];
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface AthleticsSet {
+  id: string;
+  weight: number;
+  reps: number;
+  completed: boolean;
+  completedAt?: string;
+}
+
+export interface AthleticsWorkoutExercise {
+  id: string;
+  name: string;
+  sets: AthleticsSet[];
+}
+
+export interface AthleticsPersonalRecord {
+  exerciseName: string;
+  type: AthleticsPRType;
+  weight: number;
+  reps: number;
+  previousBest?: number;
+}
+
+export interface AthleticsWorkout {
+  id?: number;
+  kind: AthleticsWorkoutKind;
+  name: string;
+  date: string;
+  status: AthleticsWorkoutStatus;
+  templateId?: number;
+  volleyballType?: VolleyballSessionType;
+  exercises: AthleticsWorkoutExercise[];
+  notes?: string;
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  plannedActivityId?: number;
+  activityEventId?: number;
+  xpEventId?: number;
+  personalRecords: AthleticsPersonalRecord[];
+  deletedAt?: string;
+}
+
 export interface StreakRecord {
   id?: number;
   date: string;
@@ -261,6 +328,8 @@ class MomentumDatabase extends Dexie {
   chineseEntries!: Table<ChineseEntry>;
   chineseActivities!: Table<ChineseActivity>;
   chineseMediaResources!: Table<ChineseMediaResource>;
+  athleticsTemplates!: Table<AthleticsTemplate>;
+  athleticsWorkouts!: Table<AthleticsWorkout>;
 
   constructor() {
     super("MomentumDatabase");
@@ -549,6 +618,13 @@ class MomentumDatabase extends Dexie {
     this.version(16).stores({
       chineseMediaResources:
         "++id, type, title, url, createdAt, updatedAt, deletedAt",
+    });
+
+    this.version(17).stores({
+      athleticsTemplates:
+        "++id, name, sortOrder, updatedAt, deletedAt",
+      athleticsWorkouts:
+        "++id, kind, status, date, completedAt, templateId, volleyballType, plannedActivityId, deletedAt",
     });
   }
 }

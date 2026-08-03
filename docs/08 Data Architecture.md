@@ -1236,6 +1236,17 @@ Primary records:
 * Volleyball activities
 * PR records
 
+## Implemented local-first representation
+
+The Dexie implementation stores two authoritative document-style records:
+
+* `AthleticsTemplate` embeds its ordered template exercises and default set counts.
+* `AthleticsWorkout` embeds the exercises and sets actually performed, plus linked Planner, activity event, XP event, and detected PR references.
+
+This is the IndexedDB representation of the conceptual records below. The embedded session snapshot preserves workout history when a template is edited, avoids partial workout writes, and keeps one completed training action connected to Planner and XP without duplicating the real-world activity.
+
+Gym and volleyball sessions share the `AthleticsWorkout` collection and are distinguished by `kind`. Progress, monthly totals, previous values, PR history, and heatmap intensity are derived from completed non-deleted workouts.
+
 ---
 
 # 41. Exercise

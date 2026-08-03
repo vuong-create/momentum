@@ -1,7 +1,7 @@
 # Momentum — Athletics Pillar
 
-**Status:** 🟢 Design Complete
-**Next Step:** Implementation
+**Status:** 🟢 Foundation Implemented
+**Next Step:** Real-World Training QA and Refinement
 
 ---
 
@@ -750,3 +750,31 @@ Everything else should happen automatically.
 * [x] Ready for implementation
 
 **Athletics Pillar Design: COMPLETE**
+
+---
+
+# 36. Implementation Status
+
+The first Athletics product milestone is implemented as a feature-based module backed by Dexie.
+
+Implemented:
+
+* Premium Athletics dashboard focused on starting training
+* Editable Push, Pull, and Legs starter templates
+* Custom template creation, editing, duplication, deletion, and Planner scheduling
+* Active workout sessions with remembered values from the previous matching exercise
+* Repeat Last, quick weight/repetition adjustment, set creation, and one-tap set completion
+* Custom workouts and in-session exercise changes
+* Automatic weight and same-weight repetition PR detection
+* One-tap Practice, Open Gym, Tournament, and Coaching / Other volleyball logging
+* Unified chronological gym and volleyball history
+* Monthly summaries, 52-week heatmap, exercise bests, and PR history
+* Shared Planner identity and automatic completion of the matching planned workout
+* Shared global + Athletics pillar XP ledger
+* Reversible workout deletion with linked Planner and XP correction
+* Dedicated set, workout, volleyball, and PR feedback sounds
+* Reduced-motion and global sound preference support
+
+The implementation intentionally keeps template and session exercises as embedded snapshots. Editing a template therefore never rewrites historical workouts, while previous values and progress remain derived from completed session data.
+
+**Athletics Pillar Foundation: COMPLETE**

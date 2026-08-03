@@ -9,6 +9,7 @@ import HomeDashboard from "../features/home/HomeDashboard";
 import PlannerPage from "../features/planner/PlannerPage";
 import JournalPage from "../features/journal/JournalPage";
 import ChinesePage from "../features/chinese/ChinesePage";
+import AthleticsPage from "../features/athletics/AthleticsPage";
 import SettingsPage from "../features/settings/SettingsPage";
 import PlaceholderPage from "../pages/PlaceholderPage";
 
@@ -33,13 +34,7 @@ export default function AppShell() {
 
         <Route
           path="/athletics"
-          element={
-            <PlaceholderPage
-              title="Athletics"
-              eyebrow="Training"
-              description="Train, log quickly, and let Momentum remember the progress."
-            />
-          }
+          element={<AthleticsPage />}
         />
 
         <Route
