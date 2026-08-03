@@ -5,7 +5,8 @@ export type FeedbackCue =
   | "task-updated"
   | "task-dismissed"
   | "task-restored"
-  | "chinese-logged";
+  | "chinese-logged"
+  | "navigation";
 
 type Tone = {
   frequency: number;
@@ -69,6 +70,18 @@ function playTone(context: AudioContext, tone: Tone) {
 }
 
 function getCueTones(cue: FeedbackCue): Tone[] {
+  if (cue === "navigation") {
+    return [
+      {
+        frequency: 305,
+        endFrequency: 352,
+        duration: 0.075,
+        volume: 0.008,
+        type: "sine",
+      },
+    ];
+  }
+
   if (cue === "chinese-logged") {
     return [
       {
