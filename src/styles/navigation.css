@@ -29,13 +29,31 @@
 .dock-wordmark svg {
   position: relative;
   z-index: 2;
-  width: 21px;
-  height: 21px;
+  width: 23px;
+  height: 23px;
+  overflow: visible;
+}
+
+.momentum-mark-enamel {
+  fill: rgba(255, 250, 237, 0.1);
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+}
+
+.momentum-mark-letter {
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.45;
+  stroke-width: 1.3;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.momentum-mark-shine {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.46);
+  stroke-width: 0.8;
+  stroke-linecap: round;
 }
 
 .dock-wordmark-aura {
@@ -154,8 +172,8 @@
 }
 
 .dock-item-icon-shell {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   transform: translateX(var(--magnetic-x)) scale(var(--magnetic-scale));
@@ -170,13 +188,130 @@
 }
 
 .dock-item svg {
-  width: 21px;
-  height: 21px;
-  stroke: currentColor;
-  stroke-width: 1.45;
+  width: 26px;
+  height: 26px;
+  overflow: visible;
+}
+
+.navigation-illustration {
+  --icon-native: #b9ad99;
+  --icon-ink: rgba(255, 255, 255, 0.42);
+  --icon-paper: color-mix(in srgb, var(--icon-native) 10%, rgba(255, 250, 238, 0.08));
+  --icon-warm: color-mix(in srgb, var(--icon-native) 17%, rgba(190, 152, 112, 0.06));
+  --icon-accent: color-mix(in srgb, var(--icon-native) 24%, rgba(255, 255, 255, 0.035));
+  --icon-detail: rgba(255, 255, 255, 0.29);
+  filter: saturate(0.48);
+  transition:
+    filter var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-spring);
+}
+
+.navigation-illustration[data-icon="home"] {
+  --icon-native: #c0a377;
+}
+
+.navigation-illustration[data-icon="planner"] {
+  --icon-native: #8fa6b0;
+}
+
+.navigation-illustration[data-icon="chinese"] {
+  --icon-native: #b96a61;
+}
+
+.navigation-illustration[data-icon="athletics"] {
+  --icon-native: #7894ba;
+}
+
+.navigation-illustration[data-icon="cooking"] {
+  --icon-native: #b7795e;
+}
+
+.navigation-illustration[data-icon="finance"] {
+  --icon-native: #8fa17b;
+}
+
+.navigation-illustration[data-icon="journal"] {
+  --icon-native: #aa8fab;
+}
+
+.navigation-illustration[data-icon="settings"] {
+  --icon-native: #a09c94;
+}
+
+.nav-icon-paper,
+.nav-icon-warm,
+.nav-icon-accent {
+  transition:
+    fill var(--duration-normal) var(--ease-standard),
+    stroke var(--duration-normal) var(--ease-standard);
+}
+
+.nav-icon-paper {
+  fill: var(--icon-paper);
+  stroke: var(--icon-ink);
+  stroke-width: 0.78;
+}
+
+.nav-icon-warm {
+  fill: var(--icon-warm);
+}
+
+.nav-icon-accent {
+  fill: var(--icon-accent);
+}
+
+.nav-icon-ink-line,
+.nav-icon-detail,
+.nav-icon-highlight {
+  fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
+}
+
+.nav-icon-ink-line {
+  stroke: var(--icon-ink);
+  stroke-width: 1.05;
+}
+
+.nav-icon-detail {
+  stroke: var(--icon-detail);
+  stroke-width: 0.78;
+}
+
+.nav-icon-highlight {
+  opacity: 0.3;
+  stroke: rgba(255, 255, 255, 0.78);
+  stroke-width: 0.72;
+  transition: opacity var(--duration-normal) var(--ease-standard);
+}
+
+.dock-item:hover .navigation-illustration,
+.dock-item:focus-visible .navigation-illustration,
+.dock-item-active .navigation-illustration {
+  --icon-ink: rgba(255, 255, 255, 0.82);
+  --icon-paper: color-mix(in srgb, var(--icon-native) 19%, rgba(255, 250, 238, 0.17));
+  --icon-warm: color-mix(in srgb, var(--icon-native) 38%, rgba(191, 151, 109, 0.13));
+  --icon-accent: color-mix(in srgb, var(--icon-native) 62%, rgba(255, 255, 255, 0.08));
+  --icon-detail: rgba(255, 255, 255, 0.56);
+  filter: saturate(0.76);
+}
+
+.dock-item:hover .navigation-illustration,
+.dock-item:focus-visible .navigation-illustration {
+  transform: translateY(-0.6px) rotate(-0.8deg);
+}
+
+.dock-item-active .navigation-illustration {
+  filter:
+    saturate(0.82)
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+.dock-item:hover .nav-icon-highlight,
+.dock-item:focus-visible .nav-icon-highlight,
+.dock-item-active .nav-icon-highlight {
+  opacity: 0.72;
 }
 
 .dock-item-active::after {
