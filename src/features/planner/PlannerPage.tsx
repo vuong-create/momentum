@@ -34,6 +34,7 @@ import PlannerDayCarousel from "./components/PlannerDayCarousel";
 import PlannerDayPanel from "./components/PlannerDayPanel";
 import PlannerUnscheduled from "./components/PlannerUnscheduled";
 import PlannerTemplates from "./components/PlannerTemplates";
+import PlannerMonthOverview from "./components/PlannerMonthOverview";
 
 import "./planner.css";
 
@@ -82,6 +83,13 @@ export default function PlannerPage() {
     setRequestedDateKey(dateKey);
     setSelectedDayKey(null);
     setComposerFocusRequest((request) => request + 1);
+  }
+
+  function openMonthDay(dateKey: string) {
+    setRequestedDateKey(dateKey);
+    setSelectedActivityId(null);
+    setSelectedDayKey(dateKey);
+    planner.goToDate(dateKey);
   }
 
   function navigateWeek(navigate: () => void) {
@@ -306,6 +314,12 @@ export default function PlannerPage() {
         onOpenDetails={openActivityDetails}
         onComplete={completeActivity}
         onMove={moveActivity}
+      />
+
+      <PlannerMonthOverview
+        key={planner.weekStartKey}
+        activeWeekStartKey={planner.weekStartKey}
+        onOpenDay={openMonthDay}
       />
 
       {!selectedActivityId && (

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  addMonths,
   buildPlannerDays,
+  buildPlannerMonthDays,
+  getMonthGridBounds,
   getRelativeWeekLabel,
   getWeekStart,
   sortActivitiesForFocus,
@@ -84,5 +87,41 @@ describe("planner week boundaries", () => {
     ]);
 
     expect(ordered.map((item) => item.id)).toEqual([3, 4, 2, 1, 5]);
+  });
+
+  it("builds a Sunday-first full month grid", () => {
+    const { gridStart, gridEnd } = getMonthGridBounds("2026-08");
+    const days = buildPlannerMonthDays("2026-08", [], new Date(2026, 7, 1));
+
+    expect(toDateKey(gridStart)).toBe("2026-07-26");
+    expect(toDateKey(gridEnd)).toBe("2026-09-05");
+    expect(days).toHaveLength(42);
+    expect(days[0]).toMatchObject({ dateKey: "2026-07-26", isInMonth: false });
+    expect(days[6]).toMatchObject({ dateKey: "2026-08-01", isInMonth: true, isToday: true });
+    expect(days.at(-1)).toMatchObject({ dateKey: "2026-09-05", isInMonth: false });
+  });
+
+  it("places scheduled activities on their month dates", () => {
+    const activity: PlannerActivity = {
+      id: 1,
+      title: "Chinese tutor",
+      completed: false,
+      status: "planned",
+      date: "2026-08-12T12:00:00.000Z",
+      day: "Wednesday",
+      scheduledDate: "2026-08-12",
+      pillar: "chinese",
+      xpReward: 25,
+      difficulty: "hard",
+    };
+    const days = buildPlannerMonthDays("2026-08", [activity]);
+
+    expect(days.find(({ dateKey }) => dateKey === "2026-08-12")?.activities)
+      .toEqual([activity]);
+  });
+
+  it("navigates month keys across year boundaries", () => {
+    expect(addMonths("2026-12", 1)).toBe("2027-01");
+    expect(addMonths("2026-01", -1)).toBe("2025-12");
   });
 });
