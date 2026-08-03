@@ -8,7 +8,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 15px;
-  color: rgba(247, 247, 245, 0.92);
+  color: #a9a0df;
   background: rgba(255, 255, 255, 0.045);
   box-shadow:
     inset 0 1px rgba(255, 255, 255, 0.08),
@@ -21,7 +21,7 @@
 }
 
 .dock-wordmark:hover {
-  color: #fff;
+  color: #d0c9ff;
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px) scale(1.025);
 }
@@ -29,50 +29,74 @@
 .dock-wordmark svg {
   position: relative;
   z-index: 2;
-  width: 23px;
-  height: 23px;
+  width: 25px;
+  height: 25px;
   overflow: visible;
 }
 
-.momentum-mark-ribbon {
-  fill: rgba(255, 250, 237, 0.13);
-  stroke: currentColor;
-  stroke-width: 1.1;
-  stroke-linejoin: round;
-  transform-origin: center;
-  transition:
-    fill var(--duration-normal) var(--ease-standard),
-    transform var(--duration-normal) var(--ease-spring);
+.momentum-mark {
+  filter: drop-shadow(0 0 5px rgba(139, 128, 209, 0.18));
+  transition: filter var(--duration-normal) var(--ease-standard);
 }
 
-.momentum-mark-trail {
+.momentum-polyhedron-shell {
+  fill: currentColor;
+  fill-opacity: 0.08;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.momentum-polyhedron-facet {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 0.65;
+  stroke-linejoin: round;
+  transition: fill-opacity var(--duration-normal) var(--ease-standard);
+}
+
+.momentum-polyhedron-facet-strong {
+  fill-opacity: 0.34;
+}
+
+.momentum-polyhedron-facet-medium {
+  fill-opacity: 0.26;
+}
+
+.momentum-polyhedron-facet-soft {
+  fill-opacity: 0.16;
+}
+
+.momentum-polyhedron-facet-faint {
+  fill-opacity: 0.09;
+}
+
+.momentum-polyhedron-line {
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.05;
-  stroke-linecap: round;
-  opacity: 0.48;
-  transition:
-    opacity var(--duration-normal) var(--ease-standard),
-    transform var(--duration-normal) var(--ease-spring);
-}
-
-.momentum-mark-highlight {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.46);
-  stroke-width: 0.72;
+  stroke-width: 1.2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: transform var(--duration-normal) var(--ease-spring);
 }
 
-.dock-wordmark:hover .momentum-mark-ribbon,
-.dock-wordmark:hover .momentum-mark-highlight {
-  transform: translateX(1px);
+.momentum-polyhedron-nodes {
+  fill: currentColor;
 }
 
-.dock-wordmark:hover .momentum-mark-trail {
-  opacity: 0.76;
-  transform: translateX(-1.4px);
+.dock-wordmark:hover .momentum-mark {
+  filter: drop-shadow(0 0 7px rgba(176, 164, 255, 0.38));
+}
+
+.dock-wordmark:hover .momentum-polyhedron-facet-strong {
+  fill-opacity: 0.48;
+}
+
+.dock-wordmark:hover .momentum-polyhedron-facet-medium {
+  fill-opacity: 0.38;
+}
+
+.dock-wordmark:hover .momentum-polyhedron-facet-soft {
+  fill-opacity: 0.24;
 }
 
 .dock-wordmark-aura {
@@ -82,7 +106,7 @@
   border-radius: 50%;
   opacity: 0.18;
   filter: blur(11px);
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(141, 130, 213, 0.82);
   animation: dock-aura-breathe 5.2s var(--ease-standard) infinite;
 }
 
@@ -213,107 +237,87 @@
 }
 
 .navigation-illustration {
-  --icon-native: #b9ad99;
-  --icon-ink: rgba(255, 255, 255, 0.42);
-  --icon-paper: color-mix(in srgb, var(--icon-native) 10%, rgba(255, 250, 238, 0.08));
-  --icon-warm: color-mix(in srgb, var(--icon-native) 17%, rgba(190, 152, 112, 0.06));
-  --icon-accent: color-mix(in srgb, var(--icon-native) 24%, rgba(255, 255, 255, 0.035));
-  --icon-detail: rgba(255, 255, 255, 0.29);
-  filter: saturate(0.48);
+  --icon-native: #aaa69e;
+  color: var(--icon-native);
+  opacity: 0.74;
+  filter: saturate(0.78) brightness(0.94);
   transition:
+    color var(--duration-normal) var(--ease-standard),
+    opacity var(--duration-normal) var(--ease-standard),
     filter var(--duration-normal) var(--ease-standard),
     transform var(--duration-normal) var(--ease-spring);
 }
 
 .navigation-illustration[data-icon="home"] {
-  --icon-native: #c0a377;
+  --icon-native: #c4a775;
 }
 
 .navigation-illustration[data-icon="planner"] {
-  --icon-native: #8fa6b0;
+  --icon-native: #8ba9b8;
 }
 
 .navigation-illustration[data-icon="chinese"] {
-  --icon-native: #b96a61;
+  --icon-native: #d0645e;
 }
 
 .navigation-illustration[data-icon="athletics"] {
-  --icon-native: #7894ba;
+  --icon-native: #6e9bd2;
 }
 
 .navigation-illustration[data-icon="cooking"] {
-  --icon-native: #b7795e;
+  --icon-native: #d0865f;
 }
 
 .navigation-illustration[data-icon="finance"] {
-  --icon-native: #8fa17b;
+  --icon-native: #4db87b;
 }
 
 .navigation-illustration[data-icon="journal"] {
-  --icon-native: #aa8fab;
+  --icon-native: #b28db7;
 }
 
 .navigation-illustration[data-icon="settings"] {
-  --icon-native: #a09c94;
+  --icon-native: #aaa69e;
 }
 
-.nav-icon-paper,
-.nav-icon-warm,
-.nav-icon-accent {
-  transition:
-    fill var(--duration-normal) var(--ease-standard),
-    stroke var(--duration-normal) var(--ease-standard);
-}
-
-.nav-icon-paper {
-  fill: var(--icon-paper);
-  stroke: var(--icon-ink);
-  stroke-width: 0.78;
-}
-
-.nav-icon-warm {
-  fill: var(--icon-warm);
-}
-
-.nav-icon-accent {
-  fill: var(--icon-accent);
-}
-
-.nav-icon-ink-line,
-.nav-icon-detail,
-.nav-icon-highlight {
+.nav-icon-line {
   fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
-.nav-icon-ink-line {
-  stroke: var(--icon-ink);
-  stroke-width: 1.05;
+.nav-icon-line-athletics {
+  stroke-width: 1.7;
 }
 
-.nav-icon-detail {
-  stroke: var(--icon-detail);
-  stroke-width: 0.78;
+.nav-icon-line-cooking {
+  stroke-width: 1.55;
 }
 
-.nav-icon-highlight {
-  opacity: 0.3;
-  stroke: rgba(255, 255, 255, 0.78);
-  stroke-width: 0.72;
-  transition: opacity var(--duration-normal) var(--ease-standard);
+.nav-icon-line-finance,
+.nav-icon-line-settings {
+  stroke-width: 1.6;
+}
+
+.nav-icon-glyph {
+  fill: currentColor;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 
 .dock-item:hover .navigation-illustration,
 .dock-item:focus-visible .navigation-illustration,
 .dock-item-active .navigation-illustration {
-  --icon-ink: rgba(255, 255, 255, 0.82);
-  --icon-paper: color-mix(in srgb, var(--icon-native) 19%, rgba(255, 250, 238, 0.17));
-  --icon-warm: color-mix(in srgb, var(--icon-native) 38%, rgba(191, 151, 109, 0.13));
-  --icon-accent: color-mix(in srgb, var(--icon-native) 62%, rgba(255, 255, 255, 0.08));
-  --icon-detail: rgba(255, 255, 255, 0.56);
-  filter: saturate(0.76);
+  opacity: 1;
+  filter:
+    saturate(1.08)
+    brightness(1.2)
+    drop-shadow(0 0 4px color-mix(in srgb, var(--icon-native) 32%, transparent));
 }
 
 .dock-item:hover .navigation-illustration,
@@ -323,14 +327,9 @@
 
 .dock-item-active .navigation-illustration {
   filter:
-    saturate(0.82)
-    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
-}
-
-.dock-item:hover .nav-icon-highlight,
-.dock-item:focus-visible .nav-icon-highlight,
-.dock-item-active .nav-icon-highlight {
-  opacity: 0.72;
+    saturate(1.12)
+    brightness(1.22)
+    drop-shadow(0 0 5px color-mix(in srgb, var(--icon-native) 38%, transparent));
 }
 
 .dock-item-active::after {
@@ -448,9 +447,9 @@
 .experience-motion-disabled .dock-item-icon-shell,
 .experience-motion-disabled .dock-wordmark,
 .experience-motion-disabled .dock-item-label,
-.experience-motion-disabled .momentum-mark-ribbon,
-.experience-motion-disabled .momentum-mark-highlight,
-.experience-motion-disabled .momentum-mark-trail {
+.experience-motion-disabled .navigation-illustration,
+.experience-motion-disabled .momentum-mark,
+.experience-motion-disabled .momentum-polyhedron-facet {
   transition: none;
 }
 

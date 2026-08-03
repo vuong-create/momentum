@@ -317,7 +317,9 @@ bottom dock on mobile. It never expands into a conventional text sidebar.
 
 The rail uses:
 
-* One cohesive repository-native SVG icon system
+* One cohesive repository-native SVG icon system with precision-line navigation
+  symbols and a faceted geodesic Momentum mark
+* Muted icon-specific color at rest, with brighter color on hover and selection
 * A restrained sliding active lens with pillar-color accents
 * Cursor-proximity motion on the hovered icon and its neighbors
 * Delayed glass tooltips for labels
