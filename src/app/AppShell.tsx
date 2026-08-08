@@ -10,6 +10,7 @@ import PlannerPage from "../features/planner/PlannerPage";
 import JournalPage from "../features/journal/JournalPage";
 import ChinesePage from "../features/chinese/ChinesePage";
 import AthleticsPage from "../features/athletics/AthleticsPage";
+import CookingPage from "../features/cooking/CookingPage";
 import SettingsPage from "../features/settings/SettingsPage";
 import PlaceholderPage from "../pages/PlaceholderPage";
 
@@ -39,13 +40,7 @@ export default function AppShell() {
 
         <Route
           path="/cooking"
-          element={
-            <PlaceholderPage
-              title="Cooking"
-              eyebrow="Kitchen"
-              description="Plan meals, keep your personal cookbook, and know what to buy."
-            />
-          }
+          element={<CookingPage />}
         />
 
         <Route

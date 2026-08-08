@@ -1478,6 +1478,13 @@ Primary records:
 * Meal plan links
 * Cooking history
 
+Current implementation:
+
+* `cookingRecipes` stores recipes with embedded ordered ingredients for atomic local edits.
+* `groceryItems` stores persistent, categorized shopping rows and their recipe sources.
+* `cookingMealLogs` records spontaneous cooked meals and links completion history to planned activities.
+* `plannedActivities` remains the only meal calendar and completion authority.
+
 ---
 
 # 51. Recipe
@@ -1609,7 +1616,7 @@ linkedRecordId = null
 
 # 57. Cooking History
 
-"Recently Cooked" should derive from completed planned meal activities.
+"Recently Cooked" derives from completed planned meal activities and explicit spontaneous **Cooked today** logs.
 
 Example:
 
@@ -1623,7 +1630,7 @@ When `task_456` becomes completed:
 
 Momentum knows the recipe was cooked on that date.
 
-No separate "mark cooked" database is required.
+The Cooking log does not duplicate the calendar. It records spontaneous cooking that has no plan and links planned completions for reliable history and undo.
 
 ---
 
@@ -2807,6 +2814,7 @@ The initial implementation should prioritize these objects:
 * Recipe
 * RecipeIngredient
 * GroceryItem
+* CookingMealLog
 
 ## Happiness
 
