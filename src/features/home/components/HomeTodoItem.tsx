@@ -11,6 +11,7 @@ type HomeTodoItemProps = {
   overdue?: boolean;
   celebrating?: boolean;
   onToggle: (activity: PlannedActivity) => void;
+  onOpen: (activityId: number) => void;
 };
 
 function formatTime(time?: string) {
@@ -32,6 +33,7 @@ export default function HomeTodoItem({
   overdue = false,
   celebrating = false,
   onToggle,
+  onOpen,
 }: HomeTodoItemProps) {
   const theme =
     pillarThemes[activity.pillar as PillarKey];
@@ -41,8 +43,7 @@ export default function HomeTodoItem({
   );
 
   return (
-    <button
-      type="button"
+    <article
       className={[
         "home-todo-strip",
         theme.className,
@@ -58,27 +59,47 @@ export default function HomeTodoItem({
       ]
         .filter(Boolean)
         .join(" ")}
-      onClick={() => onToggle(activity)}
     >
-      <span className="home-todo-check">
+      <button
+        type="button"
+        className="home-todo-check"
+        onClick={() => onToggle(activity)}
+        aria-label={activity.completed ? `Mark ${activity.title} incomplete` : `Complete ${activity.title}`}
+      >
         {activity.completed ? "✓" : ""}
-      </span>
+      </button>
 
-      <span className="home-todo-title">
-        {activity.title}
-      </span>
+      <button
+        type="button"
+        className="home-todo-open"
+        onClick={() => activity.id && onOpen(activity.id)}
+        aria-label={`Open and edit ${activity.title}`}
+      >
+        <span className="home-todo-title">
+          {activity.title}
+        </span>
 
-      {timeLabel && (
-        <time className="home-todo-time">
-          {timeLabel}
-        </time>
-      )}
+        {timeLabel && (
+          <time className="home-todo-time">
+            {timeLabel}
+          </time>
+        )}
+      </button>
+
+      <button
+        type="button"
+        className="home-todo-edit"
+        onClick={() => activity.id && onOpen(activity.id)}
+        aria-label={`Edit ${activity.title}`}
+      >
+        Edit
+      </button>
 
       {celebrating && (
         <span className="home-todo-xp">
           +{calculatePlannedXP(activity.xpReward).finalXP} XP
         </span>
       )}
-    </button>
+    </article>
   );
 }

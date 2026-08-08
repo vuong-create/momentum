@@ -16,14 +16,37 @@ export default function JournalEntryModal({
   onSave,
   onDelete,
 }: JournalEntryModalProps) {
-  const [title, setTitle] = useState(entry?.title ?? "");
-  const [text, setText] = useState(entry?.text ?? "");
-  const [entryDate, setEntryDate] = useState(entry?.entryDate ?? "");
+  if (!entry) return null;
+
+  return (
+    <JournalEntryEditor
+      key={entry.id ?? `${entry.entryDate}-${entry.createdAt}`}
+      entry={entry}
+      onClose={onClose}
+      onSave={onSave}
+      onDelete={onDelete}
+    />
+  );
+}
+
+type JournalEntryEditorProps = Omit<JournalEntryModalProps, "entry"> & {
+  entry: JournalEntry;
+};
+
+function JournalEntryEditor({
+  entry,
+  onClose,
+  onSave,
+  onDelete,
+}: JournalEntryEditorProps) {
+  const [title, setTitle] = useState(entry.title ?? "");
+  const [text, setText] = useState(entry.text);
+  const [entryDate, setEntryDate] = useState(entry.entryDate);
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!entry) return;
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
@@ -31,11 +54,9 @@ export default function JournalEntryModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [entry, onClose]);
 
-  if (!entry) return null;
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!entry || !text.trim() || saving) return;
+    if (!text.trim() || saving) return;
     setSaving(true);
     try {
       await onSave(entry, {
@@ -47,6 +68,12 @@ export default function JournalEntryModal({
     } finally {
       setSaving(false);
     }
+  }
+
+  async function copyEntryText() {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
   }
 
   const target = document.querySelector(".experience-root") ?? document.body;
@@ -70,6 +97,7 @@ export default function JournalEntryModal({
             await onDelete(entry);
             onClose();
           }}>{confirmingDelete ? "Confirm delete" : "Delete entry"}</button>
+          <button type="button" onClick={copyEntryText}>{copied ? "✓ Copied" : "Copy text"}</button>
           <span />
           <button type="button" onClick={onClose}>Cancel</button>
           <button type="submit" disabled={!text.trim() || saving}>{saving ? "Saving…" : "Save changes"}</button>

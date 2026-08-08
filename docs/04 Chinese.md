@@ -761,6 +761,8 @@ Possible future additions include:
 * Simple learning goals
 * Pronunciation recording and playback comparison
 * Optional speech-recognition feedback
+* On-demand translation inside the Database entry workflow, with the returned
+  meaning reviewed by the user before it is saved
 
 These are intentionally **not required for Version 1**.
 
