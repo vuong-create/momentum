@@ -378,6 +378,50 @@ export interface CookingMealLog {
   deletedAt?: string;
 }
 
+export type FinanceAccountType =
+  | "checking"
+  | "savings"
+  | "credit"
+  | "investment"
+  | "retirement"
+  | "cash";
+
+export type FinanceTransactionType =
+  | "expense"
+  | "income"
+  | "transfer"
+  | "investment"
+  | "adjustment";
+
+export interface FinanceAccount {
+  id?: number;
+  name: string;
+  type: FinanceAccountType;
+  openingBalance: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface FinanceTransaction {
+  id?: number;
+  date: string;
+  amount: number;
+  type: FinanceTransactionType;
+  merchant: string;
+  accountId?: number;
+  fromAccountId?: number;
+  toAccountId?: number;
+  category?: string;
+  subcategory?: string;
+  notes?: string;
+  tags: string[];
+  investmentHolding?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
 export interface AppSettings {
   id: "preferences";
   soundsEnabled: boolean;
@@ -405,6 +449,8 @@ class MomentumDatabase extends Dexie {
   cookingRecipes!: Table<CookingRecipe>;
   groceryItems!: Table<GroceryItem>;
   cookingMealLogs!: Table<CookingMealLog>;
+  financeAccounts!: Table<FinanceAccount>;
+  financeTransactions!: Table<FinanceTransaction>;
 
   constructor() {
     super("MomentumDatabase");
@@ -728,6 +774,13 @@ class MomentumDatabase extends Dexie {
         "++id, name, category, checked, recipeId, updatedAt, deletedAt",
       cookingMealLogs:
         "++id, recipeId, date, plannedActivityId, completedAt, deletedAt",
+    });
+
+    this.version(21).stores({
+      financeAccounts:
+        "++id, name, type, updatedAt, deletedAt",
+      financeTransactions:
+        "++id, date, type, accountId, fromAccountId, toAccountId, merchant, category, subcategory, updatedAt, *tags, deletedAt",
     });
   }
 }

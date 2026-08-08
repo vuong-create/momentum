@@ -1264,17 +1264,17 @@ Conceptual folder:
 ```text
 features/finance/
 
-dashboard/
-transactions/
-budget/
-accounts/
-goals/
-reports/
-monthlyReview/
-
-financeQueries
-financeService
-financeTypes
+FinancePage
+financeCatalog
+components/
+  FinanceOverview
+  TransactionComposer
+  FinanceTransactions
+  FinanceAccounts
+  FinanceAccountModal
+services/
+  financeService
+  financeCalculations
 ```
 
 Finance remains the largest independent module.
@@ -1998,6 +1998,15 @@ Current milestone status:
 * Dashboard
 * Reports
 * Monthly Close
+
+Current milestone status:
+
+* Finance 1 account onboarding and opening balances implemented
+* Transaction-driven balances, net worth, monthly summaries, and category totals implemented
+* Low-friction expense, income, transfer, and investment entry implemented
+* Transaction editing, deletion, undo, search, filters, and merchant memory implemented
+* Five-second Overview, account table, recent activity, and six-month flow implemented
+* Finance 2 will add customizable categories, monthly budgets, progress, and copy-last-month behavior
 
 ## Phase 9 — Polish
 

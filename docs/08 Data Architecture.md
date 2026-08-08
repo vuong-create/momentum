@@ -793,6 +793,15 @@ Primary records:
 * Net worth snapshots
 * Monthly reviews
 
+Current Finance 1 implementation:
+
+* `financeAccounts` stores the account identity, type, and opening balance.
+* `financeTransactions` stores expenses, income, transfers, and investments.
+* Current balances, net worth, monthly cash flow, savings rate, and category spending are derived in the Finance calculation layer.
+* Transfers are one logical record with `fromAccountId` and `toAccountId`; they never count as income or spending.
+* Account and transaction deletion is soft and recoverable. Accounts with active transaction history cannot be removed.
+* The initial category catalog is static product configuration until Finance 2 adds customizable categories and budget relationships.
+
 ---
 
 # 25. Finance Transaction
@@ -918,6 +927,8 @@ Ideally, current balance is derived from:
 > Starting balance + transaction history
 
 rather than becoming disconnected from transaction data.
+
+Finance 1 follows this rule exactly. `currentBalance` is not stored.
 
 ---
 
