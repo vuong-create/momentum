@@ -214,12 +214,13 @@ updatedAt
 completedAt
 ```
 
-`scheduledDate` and `planningWeekStart` are mutually exclusive planning
-locations. A dated activity uses `scheduledDate`; an item in **Unscheduled This
-Week** uses the Sunday date key in `planningWeekStart`. Scheduling an
-unscheduled activity clears `planningWeekStart`, and unscheduling a dated
-activity clears `scheduledDate`. The activity keeps the same identity,
-completion history, and pillar linkage throughout.
+`scheduledDate` is the active Planner location. New capture defaults to Today
+when no day has been selected, so every activity immediately belongs to a
+visible day. `planningWeekStart` remains in the schema for backwards
+compatibility with older **Unscheduled This Week** records; on first Planner
+load, visible legacy records are migrated to Today and `planningWeekStart` is
+cleared. The activity keeps the same identity, completion history, and pillar
+linkage throughout that migration.
 
 ---
 

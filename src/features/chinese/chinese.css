@@ -1,6 +1,6 @@
 .chinese-page {
-  --chinese-red: #b8514c;
-  --chinese-red-soft: rgba(184, 81, 76, 0.11);
+  --chinese-red: #e32636;
+  --chinese-red-soft: rgba(227, 38, 54, 0.12);
   --chinese-warm: #d6c9b4;
   width: 100%;
   animation: momentum-rise-in var(--duration-slow) var(--ease-out) both;
@@ -59,8 +59,8 @@
 
 .chinese-header-stats .chinese-header-level {
   min-width: 126px;
-  border-color: rgba(184, 81, 76, 0.19);
-  background: linear-gradient(145deg, rgba(184, 81, 76, 0.07), rgba(255, 255, 255, 0.015));
+  border-color: rgba(227, 38, 54, 0.19);
+  background: linear-gradient(145deg, rgba(227, 38, 54, 0.07), rgba(255, 255, 255, 0.015));
 }
 
 .chinese-header-level i {
@@ -101,7 +101,7 @@
 }
 
 .chinese-tabs button span {
-  color: rgba(184, 81, 76, 0.65);
+  color: rgba(227, 38, 54, 0.65);
   font-size: 10px;
 }
 
@@ -162,9 +162,9 @@
   min-height: 220px;
   padding: 27px 28px;
   overflow: hidden;
-  border-color: rgba(184, 81, 76, 0.17);
+  border-color: rgba(227, 38, 54, 0.17);
   background:
-    radial-gradient(circle at 0 100%, rgba(184, 81, 76, 0.09), transparent 38%),
+    radial-gradient(circle at 0 100%, rgba(227, 38, 54, 0.09), transparent 38%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.016));
 }
 
@@ -172,7 +172,7 @@
   position: absolute;
   right: -18px;
   bottom: -72px;
-  color: rgba(184, 81, 76, 0.035);
+  color: rgba(227, 38, 54, 0.035);
   content: "學";
   font-family: var(--font-quote);
   font-size: 210px;
@@ -191,10 +191,10 @@
   width: 70px;
   height: 70px;
   place-items: center;
-  border: 1px solid rgba(184, 81, 76, 0.2);
+  border: 1px solid rgba(227, 38, 54, 0.2);
   border-radius: 23px;
-  color: #d48279;
-  background: rgba(184, 81, 76, 0.085);
+  color: #ff6370;
+  background: rgba(227, 38, 54, 0.085);
   font-family: var(--font-quote);
   font-size: 31px;
 }
@@ -243,8 +243,8 @@
 .chinese-anki-done {
   grid-area: done;
   color: #e3dbcf;
-  background: rgba(184, 81, 76, 0.13);
-  border-color: rgba(184, 81, 76, 0.24);
+  background: rgba(227, 38, 54, 0.13);
+  border-color: rgba(227, 38, 54, 0.24);
 }
 
 .chinese-pronunciation-card {
@@ -312,7 +312,7 @@
 }
 
 .chinese-pronunciation-empty strong {
-  color: rgba(184, 81, 76, 0.45);
+  color: rgba(227, 38, 54, 0.45);
   font-family: var(--font-quote);
   font-size: 40px;
 }
@@ -374,7 +374,7 @@
 
 .chinese-quick-grid > button:hover {
   transform: translateY(-2px);
-  border-color: rgba(184, 81, 76, 0.24);
+  border-color: rgba(227, 38, 54, 0.24);
   background: var(--chinese-red-soft);
 }
 
@@ -386,13 +386,13 @@
   height: 4px;
   border-radius: 50%;
   background: var(--chinese-red);
-  box-shadow: 0 0 8px rgba(184, 81, 76, 0.7);
+  box-shadow: 0 0 8px rgba(227, 38, 54, 0.7);
   content: "";
 }
 
 .chinese-quick-grid > button.is-confirmed {
-  border-color: rgba(184, 81, 76, 0.34);
-  background: rgba(184, 81, 76, 0.13);
+  border-color: rgba(227, 38, 54, 0.34);
+  background: rgba(227, 38, 54, 0.13);
   animation: chinese-log-confirm 520ms var(--ease-out) both;
 }
 
@@ -403,7 +403,7 @@
   place-items: center;
   border-radius: 10px;
   color: #cf756d;
-  background: rgba(184, 81, 76, 0.09);
+  background: rgba(227, 38, 54, 0.09);
   font-family: var(--font-quote);
   font-size: 13px;
 }
@@ -562,9 +562,9 @@
   width: 100%;
   min-height: 35px;
   margin-top: 14px;
-  border-color: rgba(184, 81, 76, 0.24);
+  border-color: rgba(227, 38, 54, 0.24);
   color: #e5ddd1;
-  background: rgba(184, 81, 76, 0.12);
+  background: rgba(227, 38, 54, 0.12);
   font-size: 8px;
 }
 
@@ -627,7 +627,7 @@
 }
 
 .chinese-media-shelf > nav button.is-selected {
-  border-color: rgba(184, 81, 76, 0.28);
+  border-color: rgba(227, 38, 54, 0.28);
   color: var(--color-text-primary);
   background: var(--chinese-red-soft);
 }
@@ -650,7 +650,7 @@
 .chinese-media-shelf > form button {
   min-height: 37px;
   padding: 0 12px;
-  border-color: rgba(184, 81, 76, 0.24);
+  border-color: rgba(227, 38, 54, 0.24);
   color: var(--color-text-secondary);
   background: var(--chinese-red-soft);
   font-size: 7px;
@@ -658,7 +658,7 @@
 
 .chinese-media-error {
   margin: 7px 2px 0;
-  color: #d48279;
+  color: #ff6370;
   font-size: 7px;
 }
 
@@ -851,7 +851,7 @@
 .chinese-database-empty button {
   min-height: 33px;
   padding: 0 13px;
-  border-color: rgba(184, 81, 76, 0.24);
+  border-color: rgba(227, 38, 54, 0.24);
   color: var(--color-text-secondary);
   background: var(--chinese-red-soft);
   font-size: 8px;
@@ -865,13 +865,13 @@
   min-height: 156px;
   margin-top: 17px;
   padding: 21px 24px;
-  border-color: rgba(184, 81, 76, 0.17);
+  border-color: rgba(227, 38, 54, 0.17);
   transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-out);
 }
 
 .chinese-pronunciation-workspace.is-dragging-over {
-  border-color: rgba(184, 81, 76, 0.55);
-  background: rgba(184, 81, 76, 0.12);
+  border-color: rgba(227, 38, 54, 0.55);
+  background: rgba(227, 38, 54, 0.12);
   transform: scale(1.004);
 }
 
@@ -890,7 +890,7 @@
   justify-content: space-between;
   gap: 20px;
   padding: 15px 18px;
-  border-color: rgba(184, 81, 76, 0.18);
+  border-color: rgba(227, 38, 54, 0.18);
   color: inherit;
   text-align: left;
   background: rgba(0, 0, 0, 0.15);
@@ -926,9 +926,9 @@
   height: 39px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(184, 81, 76, 0.25);
+  border: 1px solid rgba(227, 38, 54, 0.25);
   border-radius: 50%;
-  color: #d48279;
+  color: #ff6370;
   font-size: 15px;
   font-weight: 400;
 }
@@ -943,7 +943,7 @@
 }
 
 .chinese-pronunciation-workspace-empty strong {
-  color: rgba(184, 81, 76, 0.54);
+  color: rgba(227, 38, 54, 0.54);
   font-family: var(--font-quote);
   font-size: 23px;
 }
@@ -1068,7 +1068,7 @@
 }
 
 .chinese-entry-table article.is-pronouncing {
-  background: rgba(184, 81, 76, 0.055);
+  background: rgba(227, 38, 54, 0.055);
   box-shadow: inset 2px 0 var(--chinese-red);
 }
 
@@ -1196,7 +1196,7 @@
   align-items: center;
   gap: 24px;
   padding: 18px 21px;
-  border-color: rgba(184, 81, 76, 0.17);
+  border-color: rgba(227, 38, 54, 0.17);
 }
 
 .chinese-level-card > div:first-child {
@@ -1294,18 +1294,18 @@
 
 .chinese-heatmap-legend .level-1,
 .chinese-heatmap .level-1 {
-  background: rgba(184, 81, 76, 0.28);
+  background: rgba(227, 38, 54, 0.28);
 }
 
 .chinese-heatmap-legend .level-2,
 .chinese-heatmap .level-2 {
-  background: rgba(184, 81, 76, 0.56);
+  background: rgba(227, 38, 54, 0.56);
 }
 
 .chinese-heatmap-legend .level-3,
 .chinese-heatmap .level-3 {
-  background: #b8514c;
-  box-shadow: 0 0 7px rgba(184, 81, 76, 0.14);
+  background: #e32636;
+  box-shadow: 0 0 7px rgba(227, 38, 54, 0.14);
 }
 
 .chinese-heatmap-scroll {
@@ -1431,7 +1431,7 @@
   height: 100%;
   min-width: 2px;
   border-radius: inherit;
-  background: rgba(184, 81, 76, 0.64);
+  background: rgba(227, 38, 54, 0.64);
 }
 
 /* Entry modal */
@@ -1466,7 +1466,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-xl);
   background:
-    radial-gradient(circle at 0 0, rgba(184, 81, 76, 0.075), transparent 31%),
+    radial-gradient(circle at 0 0, rgba(227, 38, 54, 0.075), transparent 31%),
     #141414;
   box-shadow: var(--shadow-floating);
   animation: momentum-rise-in 220ms var(--ease-out) both;
@@ -1529,7 +1529,7 @@
 
 .chinese-entry-traditional-field button {
   padding: 0;
-  border-color: rgba(184, 81, 76, 0.2);
+  border-color: rgba(227, 38, 54, 0.2);
   color: var(--chinese-red);
   background: var(--chinese-red-soft);
 }
@@ -1557,7 +1557,7 @@
 
 .chinese-entry-type-field button.is-selected {
   color: var(--color-text-primary);
-  border-color: rgba(184, 81, 76, 0.25);
+  border-color: rgba(227, 38, 54, 0.25);
   background: var(--chinese-red-soft);
 }
 
@@ -1596,7 +1596,7 @@
 
 .chinese-entry-modal > footer button.is-confirming {
   color: #e2b9b2;
-  border-color: rgba(184, 81, 76, 0.4);
+  border-color: rgba(227, 38, 54, 0.4);
 }
 
 @keyframes chinese-log-confirm {

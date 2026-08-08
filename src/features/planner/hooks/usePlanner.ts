@@ -15,12 +15,12 @@ import {
   getWeekStart,
   moveActivity,
   moveActivities,
+  moveUnscheduledActivitiesToDate,
   renameActivity,
   reorderActivities,
   toggleActivity,
   toggleImportant,
   toDateKey,
-  unscheduleActivity,
 } from "../services/plannerService";
 
 import type { CreateActivityInput, PlannerActivity } from "../types";
@@ -38,6 +38,10 @@ export default function usePlanner() {
     sessionStorage.setItem("momentum.planner.week", weekStartKey);
   }, [weekStartKey]);
 
+  useEffect(() => {
+    void moveUnscheduledActivitiesToDate(toDateKey(new Date()));
+  }, []);
+
   const liveActivities = useLiveQuery(
     () => getActivitiesForWeek(weekStartKey),
     [weekStartKey]
@@ -53,12 +57,6 @@ export default function usePlanner() {
   const days = useMemo(
     () => buildPlannerDays(weekStartKey, activities),
     [weekStartKey, activities]
-  );
-
-  const unscheduledActivities = activities.filter(
-    (activity) =>
-      !activity.scheduledDate &&
-      activity.planningWeekStart === weekStartKey
   );
 
   const eligibleActivities = activities.filter(
@@ -153,16 +151,11 @@ export default function usePlanner() {
     await moveActivities(selectedActivities, scheduledDate);
   }
 
-  async function moveToUnscheduled(activity: PlannerActivity) {
-    await unscheduleActivity(activity, weekStartKey);
-  }
-
   return {
     weekStartKey,
     days,
     activities,
     templates,
-    unscheduledActivities,
     totalActivities,
     completedActivities,
     completionPercentage,
@@ -179,6 +172,5 @@ export default function usePlanner() {
     changeTitle,
     reorderActivityList,
     rescheduleActivities,
-    moveToUnscheduled,
   };
 }
