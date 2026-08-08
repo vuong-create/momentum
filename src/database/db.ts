@@ -319,6 +319,65 @@ export interface LibraryBook {
   deletedAt?: string;
 }
 
+export type GroceryCategory =
+  | "produce"
+  | "meat-seafood"
+  | "dairy"
+  | "pantry"
+  | "frozen"
+  | "other";
+
+export interface RecipeIngredient {
+  id: string;
+  name: string;
+  quantity?: number;
+  unit?: string;
+  category: GroceryCategory;
+}
+
+export interface CookingRecipe {
+  id?: number;
+  name: string;
+  defaultServings: number;
+  prepMinutes?: number;
+  ingredients: RecipeIngredient[];
+  instructions: string[];
+  notes?: string;
+  tags: string[];
+  favorite: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface GroceryItem {
+  id?: number;
+  name: string;
+  quantity?: number;
+  unit?: string;
+  category: GroceryCategory;
+  checked: boolean;
+  recipeId?: number;
+  sourceRecipeName?: string;
+  createdAt: string;
+  updatedAt: string;
+  checkedAt?: string;
+  deletedAt?: string;
+}
+
+export interface CookingMealLog {
+  id?: number;
+  recipeId?: number;
+  title: string;
+  date: string;
+  servings?: number;
+  plannedActivityId?: number;
+  activityEventId?: number;
+  xpEventId?: number;
+  completedAt: string;
+  deletedAt?: string;
+}
+
 export interface AppSettings {
   id: "preferences";
   soundsEnabled: boolean;
@@ -343,6 +402,9 @@ class MomentumDatabase extends Dexie {
   chineseMediaResources!: Table<ChineseMediaResource>;
   athleticsTemplates!: Table<AthleticsTemplate>;
   athleticsWorkouts!: Table<AthleticsWorkout>;
+  cookingRecipes!: Table<CookingRecipe>;
+  groceryItems!: Table<GroceryItem>;
+  cookingMealLogs!: Table<CookingMealLog>;
 
   constructor() {
     super("MomentumDatabase");
@@ -657,6 +719,15 @@ class MomentumDatabase extends Dexie {
     this.version(19).stores({
       journalEntries:
         "++id, createdAt, updatedAt, entryDate, category, promptId, deletedAt",
+    });
+
+    this.version(20).stores({
+      cookingRecipes:
+        "++id, name, favorite, updatedAt, *tags, deletedAt",
+      groceryItems:
+        "++id, name, category, checked, recipeId, updatedAt, deletedAt",
+      cookingMealLogs:
+        "++id, recipeId, date, plannedActivityId, completedAt, deletedAt",
     });
   }
 }

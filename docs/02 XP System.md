@@ -1,7 +1,7 @@
 # Momentum — XP & Progression System
 
 **Status:** 🟢 Global + Pillar Foundation Implemented
-**Next Step:** Cooking Activity Integration
+**Next Step:** Weekly Bonuses and Milestones
 
 ---
 
@@ -182,6 +182,8 @@ Examples:
 
 * Cook planned meal
 * Meal prep
+
+Completing a meal from the shared Planner uses the normal planned-activity award and bonus. Logging **Cooked today** without a prior plan awards the base Cooking activity XP. Recipe maintenance and grocery-list actions do not award XP.
 
 ### Finance
 

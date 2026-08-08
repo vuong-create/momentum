@@ -1,7 +1,7 @@
 # Momentum — Cooking Pillar
 
-**Status:** 🟢 Design Complete
-**Next Step:** Implementation
+**Status:** 🟢 Foundation Implemented
+**Next Step:** Real-World QA and Refinement
 
 ---
 
@@ -966,3 +966,24 @@ The user should spend more time cooking and less time maintaining the system.
 * [x] Ready for implementation
 
 **Cooking Pillar Design: COMPLETE**
+
+---
+
+# 48. Current Foundation Implementation
+
+The first production foundation is implemented with four focused views:
+
+* **This Week** — a Sunday-first meal view backed by the shared Planner
+* **Meals** — searchable recipes, favorites, serving sizes, ingredients, instructions, and notes
+* **Groceries** — recipe transfer, serving scaling, category inference, quick add, checking, clearing, and undo
+* **What Should I Make?** — lightweight suggestions from the personal cookbook
+
+Meal plans are normal `PlannedActivity` records with the Cooking pillar and a typed recipe or quick-meal activity kind. Momentum therefore has one calendar and one completion state across Cooking, Planner, Home, and XP.
+
+The implementation stores recipes, grocery items, and cooking logs in dedicated local-first tables. A cooking log records spontaneous **Cooked today** actions; completed planned meals remain authoritative Planner activities and are linked to their log for history and undo.
+
+Completing a planned meal awards shared planned-activity XP. A spontaneous cooked meal awards base Cooking XP. Recipe editing and grocery maintenance never award XP. Both paths provide restrained Cooking-specific sound and motion feedback and respect global experience settings.
+
+Recipe photos and galleries are intentionally deferred from this foundation. Abstract warm covers provide a consistent visual cookbook without introducing media storage, compression, and backup requirements prematurely.
+
+**Cooking Foundation: IMPLEMENTED**

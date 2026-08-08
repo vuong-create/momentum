@@ -1365,15 +1365,18 @@ Conceptual folder:
 ```text
 features/cooking/
 
-week/
-meals/
-recipe/
-groceries/
-suggestions/
-
-recipeService
-groceryService
-cookingQueries
+CookingPage
+cookingCatalog
+components/
+  CookingWeek
+  CookingRecipes
+  RecipeModal
+  CookingGroceries
+  CookingDecide
+services/
+  recipeService
+  groceryService
+  cookingPlannerService
 ```
 
 Meal scheduling reads from the shared Weekly Planner rather than creating a separate scheduling database.
@@ -1977,6 +1980,15 @@ Current milestone status:
 * Weekly meals
 * Grocery list
 * Suggestions
+
+Current milestone status:
+
+* Sunday-first weekly meal view implemented on the shared Planner
+* Recipe CRUD, search, favorites, serving sizes, tags, ingredients, instructions, and notes implemented
+* Recipe-to-grocery transfer, scaling, merging, category inference, quick add, completion, clearing, and undo implemented
+* Lightweight cookbook-based meal suggestions implemented
+* Planned and spontaneous meal completion integrated with Cooking XP, history, sound, motion, and undo
+* Recipe photo storage intentionally deferred until the media and backup contract is ready
 
 ## Phase 8 — Finance
 

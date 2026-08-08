@@ -11,6 +11,9 @@ export type FeedbackCue =
   | "workout-completed"
   | "personal-record"
   | "volleyball-logged"
+  | "meal-planned"
+  | "meal-cooked"
+  | "grocery-checked"
   | "navigation";
 
 type Tone = {
@@ -139,6 +142,26 @@ function getCueTones(cue: FeedbackCue): Tone[] {
     return [
       { frequency: 246.94, endFrequency: 369.99, duration: 0.15, volume: 0.016, type: "triangle" },
       { frequency: 493.88, delay: 0.075, duration: 0.2, volume: 0.017, type: "sine" },
+    ];
+  }
+
+  if (cue === "meal-planned") {
+    return [
+      { frequency: 293.66, endFrequency: 392, duration: 0.12, volume: 0.012, type: "sine" },
+      { frequency: 493.88, delay: 0.055, duration: 0.13, volume: 0.011, type: "triangle" },
+    ];
+  }
+
+  if (cue === "meal-cooked") {
+    return [
+      { frequency: 329.63, endFrequency: 440, duration: 0.15, volume: 0.015, type: "triangle" },
+      { frequency: 659.25, delay: 0.07, duration: 0.18, volume: 0.016, type: "sine" },
+    ];
+  }
+
+  if (cue === "grocery-checked") {
+    return [
+      { frequency: 410, endFrequency: 520, duration: 0.085, volume: 0.01, type: "sine" },
     ];
   }
 
