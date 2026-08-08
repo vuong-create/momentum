@@ -9,9 +9,9 @@ import useExperience from "../../experience/useExperience";
 import ActivityDetailsPanel from "../activities/components/ActivityDetailsPanel";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
 import useActivityUndo from "../activities/hooks/useActivityUndo";
-import type { ActivityTemplate } from "../../database/db";
+import type { ActivityTemplate, Pillar } from "../../database/db";
 import {
-  movePlannedActivity,
+  restorePlannedActivitySchedule,
   softDeletePlannedActivity,
   updateActivityDetails,
 } from "../activities/services/activityService";
@@ -153,15 +153,8 @@ export default function PlannerPage() {
   }
 
   async function restoreActivityLocation(activity: PlannerActivity) {
-    if (!activity.id || !activity.scheduledDate) return Promise.resolve();
-    await movePlannedActivity(
-      activity.id,
-      activity.scheduledDate,
-      activity.sortOrder
-    );
-    await updateActivityDetails(activity.id, {
-      recurrenceOverride: activity.recurrenceOverride,
-    });
+    if (!activity.id) return Promise.resolve();
+    await restorePlannedActivitySchedule(activity);
   }
 
   async function moveActivity(activity: PlannerActivity, dateKey: string) {
@@ -190,6 +183,17 @@ export default function PlannerPage() {
     activityUndo.show({
       message: "Activity renamed",
       undo: () => updateActivityDetails(activity.id!, { title: activity.title }),
+    });
+  }
+
+  async function changePillar(activity: PlannerActivity, pillar: Pillar) {
+    if (!activity.id || pillar === activity.pillar) return;
+    const previousPillar = activity.pillar;
+    await updateActivityDetails(activity.id, { pillar });
+    experience.playFeedback("task-updated");
+    activityUndo.show({
+      message: "Pillar updated",
+      undo: () => updateActivityDetails(activity.id!, { pillar: previousPillar }),
     });
   }
 
@@ -301,6 +305,7 @@ export default function PlannerPage() {
           onOpenDetails={(activityId) => openActivityDetails(activityId)}
           onComplete={completeActivity}
           onToggleImportant={planner.markImportant}
+          onChangePillar={changePillar}
           onRename={renameActivity}
           onMove={moveActivity}
           onDuplicate={duplicateActivity}

@@ -793,6 +793,8 @@ src/features/activities/
   components/
     ActivityDetailsPanel
     ActivityUndoToast
+    PillarIcon
+    PillarQuickSelect
   hooks/
     useActivityUndo
   services/
@@ -803,6 +805,10 @@ src/features/activities/
 Home and Planner open the same details drawer and invoke the same lifecycle
 service. The UI requests semantic feedback cues, while mutation, XP, event,
 and restoration rules remain outside presentational components.
+
+`PillarIcon` and `PillarQuickSelect` are shared by Home and Planner so pillar
+identity, accessibility behavior, and quick recategorization remain consistent
+across both task surfaces.
 
 The dense-week Planner composes those same records through view-specific UI:
 

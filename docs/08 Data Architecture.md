@@ -195,6 +195,9 @@ activityType
 scheduledDate
 scheduledTime
 planningWeekStart
+originalScheduledDate
+rescheduleCount
+lastRescheduledAt
 
 status
 important
@@ -221,6 +224,13 @@ compatibility with older **Unscheduled This Week** records; on first Planner
 load, visible legacy records are migrated to Today and `planningWeekStart` is
 cleared. The activity keeps the same identity, completion history, and pillar
 linkage throughout that migration.
+
+`originalScheduledDate` records the first day assigned to the activity.
+`rescheduleCount` increments only when its active date genuinely changes, and
+`lastRescheduledAt` records the most recent such change. Home derives carried
+days from the original date rather than storing a second display value. Undo
+restores the complete pre-move snapshot so reversing a move does not create a
+false reschedule in the history.
 
 ---
 
@@ -268,11 +278,13 @@ No punishment.
 dismissal, deletion, and restoration. The current service layer provides:
 
 * Detail updates without creating a replacement record
-* Date moves that preserve identity and update the derived weekday
+* Date moves that preserve identity, update the derived weekday, and retain
+  scheduling history
 * Week-scoped unscheduling that never leaves a stale scheduled date
 * Duplication, manual ordering, and bulk moves through the same service layer
 * Soft deletion through `deletedAt`
 * Restoration for dismissed and soft-deleted activities
+* Snapshot restoration for schedule Undo without incrementing move history
 * Completion reversal that voids linked Activity and XP events
 
 Dismissal of a previously completed activity first reopens it, ensuring its

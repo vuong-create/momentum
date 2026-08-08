@@ -1113,7 +1113,7 @@
 .planner-task {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 32px minmax(0, 1fr) auto auto;
   gap: 8px;
   align-items: flex-start;
   padding: 13px 11px;
@@ -1152,18 +1152,63 @@
 }
 
 .planner-task-toggle {
-  width: 22px;
-  min-height: 22px;
+  position: relative;
+  width: 30px;
+  min-height: 30px;
+  display: grid;
+  place-items: center;
   padding: 0;
-  border-radius: 50%;
-  color: var(--color-text-inverse);
-  background: transparent;
+  border-color: color-mix(in srgb, var(--pillar-color) 34%, transparent);
+  border-radius: 10px;
+  color: var(--pillar-color);
+  background: color-mix(in srgb, var(--pillar-color) 8%, transparent);
   font-size: 10px;
 }
 
+.planner-task-pillar-icon,
+.planner-task-check-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity 160ms ease, transform 180ms var(--ease-spring);
+}
+
+.planner-task-pillar-icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--pillar-color);
+  opacity: 0.95;
+}
+
+.planner-task-check-mark {
+  color: var(--color-text-inverse);
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0;
+  transform: scale(0.72);
+}
+
+.planner-task-toggle:hover {
+  border-color: var(--pillar-color);
+  background: var(--pillar-color);
+}
+
+.planner-task-toggle:hover .planner-task-pillar-icon,
+.planner-task-complete .planner-task-pillar-icon {
+  opacity: 0;
+  transform: scale(0.75);
+}
+
+.planner-task-toggle:hover .planner-task-check-mark,
+.planner-task-complete .planner-task-check-mark {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .planner-task-complete .planner-task-toggle {
-  border-color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--pillar-color);
+  background: var(--pillar-color);
 }
 
 .planner-task-content {
@@ -1491,6 +1536,10 @@
   gap: 9px;
 }
 
+.planner-day-panel-add-row > .pillar-quick-select {
+  align-self: center;
+}
+
 .planner-day-panel-add-row > span {
   color: var(--color-text-muted);
   font-size: 18px;
@@ -1545,6 +1594,11 @@
   background: rgba(0, 0, 0, 0.28);
   font-size: 10px;
   color-scheme: dark;
+}
+
+.planner-day-panel .pillar-quick-select-menu {
+  right: 0;
+  left: auto;
 }
 
 .planner-day-panel-add-options button.is-selected {

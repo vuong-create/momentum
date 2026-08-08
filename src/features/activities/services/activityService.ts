@@ -61,6 +61,8 @@ export async function createPlannedActivity(
       ? getDayName(input.scheduledDate)
       : "Unscheduled",
     scheduledDate: input.scheduledDate,
+    originalScheduledDate: input.scheduledDate,
+    rescheduleCount: 0,
     planningWeekStart: input.scheduledDate
       ? undefined
       : input.planningWeekStart,
@@ -81,6 +83,9 @@ export async function updateActivityDetails(
 ) {
   const activity = await requireActivity(id);
   const normalizedPatch: ActivityDetailsPatch = { ...patch };
+  const scheduledDateChanged = Boolean(
+    patch.scheduledDate && patch.scheduledDate !== activity.scheduledDate
+  );
 
   if (patch.title !== undefined) {
     normalizedPatch.title = patch.title.trim();
@@ -113,6 +118,15 @@ export async function updateActivityDetails(
   if (patch.scheduledDate) {
     normalizedPatch.scheduledDate = patch.scheduledDate;
     normalizedPatch.planningWeekStart = undefined;
+    if (scheduledDateChanged) {
+      normalizedPatch.originalScheduledDate =
+        activity.originalScheduledDate ?? activity.scheduledDate ?? patch.scheduledDate;
+      normalizedPatch.rescheduleCount =
+        (activity.rescheduleCount ?? 0) + (activity.scheduledDate ? 1 : 0);
+      normalizedPatch.lastRescheduledAt = activity.scheduledDate
+        ? new Date().toISOString()
+        : activity.lastRescheduledAt;
+    }
   } else if (patch.planningWeekStart) {
     normalizedPatch.scheduledDate = undefined;
   }
@@ -134,13 +148,43 @@ export async function movePlannedActivity(
   sortOrder = Date.now()
 ) {
   const activity = await requireActivity(id);
+  const isNewDate = activity.scheduledDate !== scheduledDate;
+  const now = new Date().toISOString();
 
   await db.plannedActivities.update(id, {
     scheduledDate,
+    originalScheduledDate:
+      activity.originalScheduledDate ?? activity.scheduledDate ?? scheduledDate,
+    rescheduleCount:
+      (activity.rescheduleCount ?? 0) +
+      (activity.scheduledDate && isNewDate ? 1 : 0),
+    lastRescheduledAt:
+      activity.scheduledDate && isNewDate ? now : activity.lastRescheduledAt,
     planningWeekStart: undefined,
     day: getDayName(scheduledDate),
     sortOrder,
     recurrenceOverride: Boolean(activity.recurrenceRuleId),
+    updatedAt: now,
+  });
+}
+
+export async function restorePlannedActivitySchedule(
+  snapshot: PlannedActivity
+) {
+  if (!snapshot.id) return;
+  await requireActivity(snapshot.id);
+
+  await db.plannedActivities.update(snapshot.id, {
+    scheduledDate: snapshot.scheduledDate,
+    originalScheduledDate: snapshot.originalScheduledDate,
+    rescheduleCount: snapshot.rescheduleCount,
+    lastRescheduledAt: snapshot.lastRescheduledAt,
+    planningWeekStart: snapshot.planningWeekStart,
+    day: snapshot.scheduledDate
+      ? getDayName(snapshot.scheduledDate)
+      : "Unscheduled",
+    sortOrder: snapshot.sortOrder,
+    recurrenceOverride: snapshot.recurrenceOverride,
     updatedAt: new Date().toISOString(),
   });
 }
@@ -218,6 +262,19 @@ export async function movePlannedActivities(
         db.plannedActivities.get(id).then((activity) =>
           db.plannedActivities.update(id, {
             scheduledDate,
+            originalScheduledDate:
+              activity?.originalScheduledDate ??
+              activity?.scheduledDate ??
+              scheduledDate,
+            rescheduleCount:
+              (activity?.rescheduleCount ?? 0) +
+              (activity?.scheduledDate && activity.scheduledDate !== scheduledDate
+                ? 1
+                : 0),
+            lastRescheduledAt:
+              activity?.scheduledDate && activity.scheduledDate !== scheduledDate
+                ? now.toISOString()
+                : activity?.lastRescheduledAt,
             planningWeekStart: undefined,
             day: getDayName(scheduledDate),
             sortOrder: baseOrder + index,

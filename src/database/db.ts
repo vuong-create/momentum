@@ -56,6 +56,9 @@ export interface PlannedActivity {
   date: string;
   day: string;
   scheduledDate?: string;
+  originalScheduledDate?: string;
+  rescheduleCount?: number;
+  lastRescheduledAt?: string;
   planningWeekStart?: string;
   scheduledTime?: string;
   sortOrder?: number;
@@ -625,6 +628,20 @@ class MomentumDatabase extends Dexie {
         "++id, name, sortOrder, updatedAt, deletedAt",
       athleticsWorkouts:
         "++id, kind, status, date, completedAt, templateId, volleyballType, plannedActivityId, deletedAt",
+    });
+
+    this.version(18).stores({
+      plannedActivities:
+        "++id, title, completed, status, date, day, scheduledDate, planningWeekStart, scheduledTime, pillar, activityKind, sortOrder, deletedAt, templateId, recurrenceRuleId, recurrenceDate, &recurrenceKey",
+    }).upgrade(async (transaction) => {
+      await transaction
+        .table("plannedActivities")
+        .toCollection()
+        .modify((activity) => {
+          activity.originalScheduledDate =
+            activity.originalScheduledDate ?? activity.scheduledDate;
+          activity.rescheduleCount = activity.rescheduleCount ?? 0;
+        });
     });
   }
 }

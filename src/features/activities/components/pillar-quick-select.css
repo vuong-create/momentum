@@ -1,0 +1,108 @@
+.pillar-quick-select {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.pillar-quick-select-trigger {
+  min-height: 27px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 6px;
+  border: 1px solid color-mix(in srgb, var(--pillar-color) 23%, transparent);
+  border-radius: var(--radius-pill);
+  color: color-mix(in srgb, var(--pillar-color) 72%, white);
+  background: color-mix(in srgb, var(--pillar-color) 7%, transparent);
+  font-size: 8px;
+}
+
+.pillar-quick-select-trigger.is-icon-only {
+  width: 30px;
+  min-height: 30px;
+  justify-content: center;
+  padding: 0;
+}
+
+.pillar-quick-select-trigger:hover,
+.pillar-quick-select-trigger[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--pillar-color) 42%, transparent);
+  background: color-mix(in srgb, var(--pillar-color) 13%, transparent);
+}
+
+.pillar-quick-select-trigger small {
+  color: var(--color-text-disabled);
+  font-size: 8px;
+}
+
+.pillar-quick-select-icon,
+.pillar-quick-select-menu > button > span {
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+}
+
+.pillar-quick-select-icon svg,
+.pillar-quick-select-menu svg {
+  width: 16px;
+  height: 16px;
+  color: var(--pillar-color);
+  opacity: 0.9;
+}
+
+.pillar-quick-select-icon .momentum-mark,
+.pillar-quick-select-menu .momentum-mark {
+  filter: none;
+}
+
+.pillar-quick-select-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 174px;
+  display: grid;
+  gap: 2px;
+  padding: 7px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 11px;
+  background: rgba(17, 17, 17, 0.98);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(18px);
+  animation: momentum-rise-in 150ms var(--ease-out) both;
+}
+
+.pillar-quick-select-menu > button {
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 19px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  border: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  text-align: left;
+}
+
+.pillar-quick-select-menu > button:hover,
+.pillar-quick-select-menu > button.is-selected {
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--pillar-color) 9%, rgba(255, 255, 255, 0.025));
+}
+
+.pillar-quick-select-menu strong {
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.pillar-quick-select-menu small {
+  color: var(--pillar-color);
+  font-size: 9px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pillar-quick-select-menu {
+    animation: none;
+  }
+}

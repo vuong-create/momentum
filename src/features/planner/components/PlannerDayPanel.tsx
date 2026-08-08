@@ -6,9 +6,9 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { homePillars, pillarThemes, type PillarKey } from "../../../app/theme";
 import SegmentedProgress from "../../../components/SegmentedProgress";
 import type { Pillar } from "../../../database/db";
+import PillarQuickSelect from "../../activities/components/PillarQuickSelect";
 import { isActivityCompleted } from "../../activities/services/activityLifecycle";
 import {
   addDays,
@@ -30,6 +30,7 @@ type PlannerDayPanelProps = {
   onOpenDetails: (activityId: number) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
+  onChangePillar: (activity: PlannerActivity, pillar: Pillar) => Promise<void>;
   onRename: (activity: PlannerActivity, title: string) => Promise<void>;
   onMove: (activity: PlannerActivity, dateKey: string) => Promise<void>;
   onDuplicate: (activity: PlannerActivity, dateKey: string) => Promise<void>;
@@ -48,6 +49,7 @@ type DaySectionProps = {
   onOpenDetails: (activityId: number) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
+  onChangePillar: (activity: PlannerActivity, pillar: Pillar) => Promise<void>;
   onRename: (activity: PlannerActivity, title: string) => Promise<void>;
   onMove: (activity: PlannerActivity, dateKey: string) => Promise<void>;
   onDuplicate: (activity: PlannerActivity, dateKey: string) => Promise<void>;
@@ -55,7 +57,6 @@ type DaySectionProps = {
   onReorder: (activities: PlannerActivity[]) => Promise<void>;
 };
 
-const selectablePillars: PillarKey[] = ["core", ...homePillars];
 const sectionNames = ["Important", "Scheduled", "Anytime", "Completed"];
 
 function DaySection({
@@ -68,6 +69,7 @@ function DaySection({
   onOpenDetails,
   onComplete,
   onToggleImportant,
+  onChangePillar,
   onRename,
   onMove,
   onDuplicate,
@@ -106,6 +108,7 @@ function DaySection({
               onOpenDetails={onOpenDetails}
               onComplete={onComplete}
               onToggleImportant={onToggleImportant}
+              onChangePillar={onChangePillar}
               onRename={onRename}
               onMove={onMove}
               onDuplicate={onDuplicate}
@@ -122,7 +125,7 @@ function DaySection({
 export default function PlannerDayPanel(props: PlannerDayPanelProps) {
   const {
     day, weekDays, celebratingActivityId, onClose, onNavigate, onAdd,
-    onOpenDetails, onComplete, onToggleImportant, onRename, onMove,
+    onOpenDetails, onComplete, onToggleImportant, onChangePillar, onRename, onMove,
     onDuplicate, onSendToTop, onReorder, onMoveRemaining,
   } = props;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -212,7 +215,7 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
   const allCollapsed = sectionNames.every((section) => collapsed[section]);
   const sectionProps = {
     weekDays, celebratingActivityId, onOpenDetails, onComplete,
-    onToggleImportant, onRename, onMove, onDuplicate, onSendToTop, onReorder,
+    onToggleImportant, onChangePillar, onRename, onMove, onDuplicate, onSendToTop, onReorder,
   };
   const portalTarget = document.querySelector(".experience-root") ?? document.body;
 
@@ -239,16 +242,18 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
 
         <form className="planner-day-panel-add" onSubmit={handleSubmit}>
           <div className="planner-day-panel-add-row">
-            <span aria-hidden="true">+</span>
+            <PillarQuickSelect
+              value={pillar}
+              iconOnly
+              label={`Choose pillar for new ${day.dayName} activity`}
+              onChange={setPillar}
+            />
             <input ref={inputRef} value={title} onChange={(event) => setTitle(event.target.value)} placeholder={`Add to ${day.dayName}`} aria-label={`Add an activity to ${day.dayName}`} />
             <button type="button" className="planner-day-panel-options-button" onClick={() => setShowAddOptions((current) => !current)}>{showAddOptions ? "Less" : "Options"}</button>
             <button type="submit" disabled={!title.trim() || isSubmitting}>{isSubmitting ? "Adding…" : "Add"}</button>
           </div>
           {showAddOptions && (
             <div className="planner-day-panel-add-options">
-              <select value={pillar} onChange={(event) => setPillar(event.target.value as Pillar)} aria-label="Pillar">
-                {selectablePillars.map((key) => <option key={key} value={key}>{pillarThemes[key].shortLabel}</option>)}
-              </select>
               <input type="time" value={scheduledTime} onChange={(event) => setScheduledTime(event.target.value)} aria-label="Time" />
               <button type="button" className={important ? "is-selected" : ""} onClick={() => setImportant((current) => !current)}>{important ? "★ Important" : "☆ Important"}</button>
             </div>
