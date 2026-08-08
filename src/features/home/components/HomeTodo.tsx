@@ -20,6 +20,7 @@ import { resolveActivityScheduledDate } from "../../activities/services/activity
 import { toDateKey } from "../../planner/services/plannerService";
 
 import HomeTodoItem from "./HomeTodoItem";
+import TaskBrainstormModal from "./TaskBrainstormModal";
 import UnfinishedActivities from "./UnfinishedActivities";
 
 type HomeTodoProps = {
@@ -66,6 +67,7 @@ export default function HomeTodo({
   const [newTask, setNewTask] = useState("");
   const [adding, setAdding] = useState(false);
   const [showAddedFeedback, setShowAddedFeedback] = useState(false);
+  const [brainstormOpen, setBrainstormOpen] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<
     number | null
   >(null);
@@ -149,6 +151,13 @@ export default function HomeTodo({
     }
   }
 
+  async function addBrainstormTasks(tasks: string[]) {
+    for (const task of tasks) {
+      await onAdd(task);
+    }
+    experience.playFeedback("task-added");
+  }
+
   async function handleToggle(
     activity: PlannedActivity
   ) {
@@ -224,9 +233,14 @@ export default function HomeTodo({
           <h2 className="font-pixel">To Do</h2>
         </div>
 
-        <span className="home-todo-count">
-          {incompleteToday.length} remaining
-        </span>
+        <div className="home-todo-heading-actions">
+          <button type="button" onClick={() => setBrainstormOpen(true)}>
+            ✦ Brainstorm
+          </button>
+          <span className="home-todo-count">
+            {incompleteToday.length} remaining
+          </span>
+        </div>
       </div>
 
       <div
@@ -289,6 +303,7 @@ export default function HomeTodo({
                   activity.id
                 }
                 onToggle={handleToggle}
+                onOpen={setSelectedActivityId}
               />
             ))}
           </div>
@@ -329,6 +344,7 @@ export default function HomeTodo({
                     key={activity.id}
                     activity={activity}
                     onToggle={handleToggle}
+                    onOpen={setSelectedActivityId}
                   />
                 ))}
               </div>
@@ -341,6 +357,11 @@ export default function HomeTodo({
         activityId={selectedActivityId}
         onClose={closeActivityDetails}
         onMutation={activityUndo.show}
+      />
+      <TaskBrainstormModal
+        open={brainstormOpen}
+        onClose={() => setBrainstormOpen(false)}
+        onAddTasks={addBrainstormTasks}
       />
       <ActivityUndoToast
         notice={activityUndo.notice}

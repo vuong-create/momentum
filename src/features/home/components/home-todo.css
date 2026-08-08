@@ -32,6 +32,35 @@
   font-size: 9px;
 }
 
+.home-todo-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-todo-heading-actions > button {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 8px;
+  letter-spacing: 0.025em;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms var(--ease-standard);
+}
+
+.home-todo-heading-actions > button:hover {
+  transform: translateY(-1px);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+  background: rgba(255, 255, 255, 0.055);
+}
+
 /* Persistent input strip */
 
 .home-todo-input-strip {
@@ -204,6 +233,50 @@
     box-shadow 170ms var(--ease-standard);
 }
 
+.home-todo-open {
+  min-width: 0;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.home-todo-edit {
+  min-height: 27px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-disabled);
+  background: transparent;
+  font-size: 8px;
+  opacity: 0;
+  transform: translateX(3px);
+  transition:
+    opacity 170ms ease,
+    transform 170ms var(--ease-standard),
+    color 170ms ease,
+    border-color 170ms ease,
+    background 170ms ease;
+}
+
+.home-todo-strip:hover .home-todo-edit,
+.home-todo-edit:focus-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.home-todo-edit:hover {
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .home-todo-strip:hover .home-todo-check {
   box-shadow:
     0 0 14px
@@ -340,6 +413,216 @@
   margin-top: 3px;
   color: var(--color-text-muted);
   font-size: 10px;
+}
+
+/* Task brainstorm */
+
+.task-brainstorm-layer {
+  position: fixed;
+  z-index: 95;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.task-brainstorm-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(11px);
+}
+
+.task-brainstorm-modal {
+  position: relative;
+  z-index: 1;
+  width: min(680px, calc(100vw - 48px));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 85% 0%, rgba(151, 133, 211, 0.09), transparent 34%),
+    #131313;
+  box-shadow: var(--shadow-floating);
+  animation: momentum-rise-in 220ms var(--ease-out) both;
+}
+
+.task-brainstorm-modal > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 26px 18px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.task-brainstorm-modal > header h2 {
+  margin: 7px 0 0;
+  font-size: 25px;
+  font-weight: 400;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.task-brainstorm-modal > header > button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 18px;
+}
+
+.task-brainstorm-body {
+  display: grid;
+  gap: 18px;
+  padding: 22px 26px 24px;
+}
+
+.task-brainstorm-prompt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 18px;
+  align-items: end;
+  padding: 15px 17px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.task-brainstorm-prompt > span {
+  grid-column: 1 / -1;
+  color: var(--color-text-disabled);
+  font-size: 8px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.task-brainstorm-prompt p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-quote);
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.task-brainstorm-prompt button {
+  padding: 5px 0;
+  border: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 8px;
+}
+
+.task-brainstorm-body label {
+  display: grid;
+  gap: 8px;
+}
+
+.task-brainstorm-body label > span {
+  color: var(--color-text-muted);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.task-brainstorm-body textarea {
+  width: 100%;
+  min-height: 210px;
+  padding: 16px 17px;
+  resize: vertical;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  outline: 0;
+  color: var(--color-text-primary);
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.task-brainstorm-body textarea:focus {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.025);
+}
+
+.task-brainstorm-modal > footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 26px 20px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.task-brainstorm-modal > footer > span {
+  flex: 1;
+  color: var(--color-text-muted);
+  font-size: 9px;
+}
+
+.task-brainstorm-modal > footer button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  background: transparent;
+  font-size: 8px;
+}
+
+.task-brainstorm-modal > footer button[type="submit"] {
+  color: #181716;
+  border-color: #d8d4ca;
+  background: #d8d4ca;
+}
+
+.task-brainstorm-modal > footer button:disabled {
+  opacity: 0.35;
+}
+
+@media (max-width: 640px) {
+  .home-todo-heading-actions {
+    align-items: flex-end;
+    flex-direction: column-reverse;
+    gap: 5px;
+  }
+
+  .home-todo-edit {
+    opacity: 1;
+    transform: none;
+  }
+
+  .task-brainstorm-layer {
+    padding: 12px;
+  }
+
+  .task-brainstorm-modal {
+    width: calc(100vw - 24px);
+  }
+
+  .task-brainstorm-prompt {
+    grid-template-columns: 1fr;
+  }
+
+  .task-brainstorm-modal > footer {
+    flex-wrap: wrap;
+  }
+
+  .task-brainstorm-modal > footer > span {
+    width: 100%;
+    flex-basis: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-brainstorm-modal {
+    animation: none;
+  }
 }
 
 @keyframes home-todo-check-complete {

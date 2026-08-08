@@ -171,10 +171,16 @@ Saving should feel immediate.
 
 Existing journal entries can be:
 
+* Opened again after saving
 * Edited
 * Deleted
+* Copied as plain text for quick recovery or use outside Momentum
 
 Deletion should include a simple confirmation to prevent accidental loss.
+
+Opening a saved entry must hydrate the editor from the selected database record
+every time. Editor state must never remain tied to the empty state that existed
+when the modal first mounted.
 
 ---
 

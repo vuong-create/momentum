@@ -134,6 +134,11 @@ it reads the same Planner activities and materializes the same recurrence data.
 
 Momentum does not create duplicate tasks when something appears in multiple places.
 
+On Home, completion and editing are separate actions. The checkbox completes an
+activity; selecting its title opens the shared Activity Details editor so the
+title, day, time, pillar, importance, notes, and recurrence can be corrected
+without visiting Planner first.
+
 Example:
 
 A **Pull workout scheduled Thursday** can appear in:
@@ -262,6 +267,16 @@ Type:
 Press Enter.
 
 Done.
+
+Home also includes an optional **Brainstorm** capture for moments when the user
+has several loose ideas rather than one ready task. It presents a gentle prompt
+and a large one-idea-per-line scratchpad, then adds the cleaned list to Today in
+one action. Blank lines, pasted bullets, numbering, and duplicate lines are
+normalized before capture. This is a capture aid, not a separate task database.
+
+An eventual **Focus Mode** may combine a Pomodoro timer with optional work
+music. It should be attached to a selected activity, respect global sound
+settings, and remain outside the first Brainstorm milestone.
 
 ---
 
