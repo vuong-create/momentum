@@ -166,8 +166,9 @@
   min-height: 46px;
   display: grid;
   grid-template-columns:
-    25px
+    32px
     minmax(0, 1fr)
+    auto
     auto;
   gap: 11px;
   align-items: center;
@@ -214,14 +215,16 @@
 /* Checkbox is the pillar indicator */
 
 .home-todo-check {
-  width: 23px;
-  height: 23px;
+  position: relative;
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
-  border: 1.5px solid var(--pillar-color);
-  border-radius: 8px;
-  color: #080808;
-  background: transparent;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--pillar-color) 34%, transparent);
+  border-radius: 10px;
+  color: var(--pillar-color);
+  background: color-mix(in srgb, var(--pillar-color) 8%, transparent);
   font-size: 11px;
   font-weight: 800;
   box-shadow:
@@ -231,6 +234,32 @@
     background 170ms var(--ease-standard),
     border-color 170ms var(--ease-standard),
     box-shadow 170ms var(--ease-standard);
+}
+
+.home-todo-pillar-icon,
+.home-todo-check-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition:
+    opacity 160ms ease,
+    transform 180ms var(--ease-spring);
+}
+
+.home-todo-pillar-icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--pillar-color);
+  opacity: 0.95;
+}
+
+.home-todo-check-mark {
+  color: var(--color-text-inverse);
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0;
+  transform: scale(0.72);
 }
 
 .home-todo-open {
@@ -285,6 +314,23 @@
       var(--pillar-color) 22%,
       transparent
     );
+}
+
+.home-todo-check:hover {
+  border-color: var(--pillar-color);
+  background: var(--pillar-color);
+}
+
+.home-todo-check:hover .home-todo-pillar-icon,
+.home-todo-strip-complete .home-todo-pillar-icon {
+  opacity: 0;
+  transform: scale(0.75);
+}
+
+.home-todo-check:hover .home-todo-check-mark,
+.home-todo-strip-complete .home-todo-check-mark {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .home-todo-title {

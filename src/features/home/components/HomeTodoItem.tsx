@@ -4,7 +4,10 @@ import {
 } from "../../../app/theme";
 
 import type { PlannedActivity } from "../../../database/db";
+import type { Pillar } from "../../../database/db";
 import { calculatePlannedXP } from "../../activities/services/activityLifecycle";
+import PillarIcon from "../../activities/components/PillarIcon";
+import PillarQuickSelect from "../../activities/components/PillarQuickSelect";
 
 type HomeTodoItemProps = {
   activity: PlannedActivity;
@@ -12,6 +15,7 @@ type HomeTodoItemProps = {
   celebrating?: boolean;
   onToggle: (activity: PlannedActivity) => void;
   onOpen: (activityId: number) => void;
+  onChangePillar: (activity: PlannedActivity, pillar: Pillar) => Promise<void>;
 };
 
 function formatTime(time?: string) {
@@ -34,6 +38,7 @@ export default function HomeTodoItem({
   celebrating = false,
   onToggle,
   onOpen,
+  onChangePillar,
 }: HomeTodoItemProps) {
   const theme =
     pillarThemes[activity.pillar as PillarKey];
@@ -66,7 +71,8 @@ export default function HomeTodoItem({
         onClick={() => onToggle(activity)}
         aria-label={activity.completed ? `Mark ${activity.title} incomplete` : `Complete ${activity.title}`}
       >
-        {activity.completed ? "✓" : ""}
+        <span className="home-todo-pillar-icon"><PillarIcon pillar={activity.pillar as PillarKey} /></span>
+        <span className="home-todo-check-mark">✓</span>
       </button>
 
       <button
@@ -85,6 +91,11 @@ export default function HomeTodoItem({
           </time>
         )}
       </button>
+
+      <PillarQuickSelect
+        value={activity.pillar}
+        onChange={(pillar) => onChangePillar(activity, pillar)}
+      />
 
       <button
         type="button"

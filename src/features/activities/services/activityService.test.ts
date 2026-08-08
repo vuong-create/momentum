@@ -21,6 +21,7 @@ import {
   movePlannedActivities,
   reopenPlannedActivity,
   restoreDismissedActivity,
+  restorePlannedActivitySchedule,
   restoreSoftDeletedActivity,
   softDeletePlannedActivity,
   setPlannedActivityOrder,
@@ -188,11 +189,7 @@ describe("activity service", () => {
     const original = await getPlannedActivity(activityId);
 
     await movePlannedActivity(activityId, "2026-08-05", 400);
-    await movePlannedActivity(
-      activityId,
-      original!.scheduledDate!,
-      original!.sortOrder
-    );
+    await restorePlannedActivitySchedule(original!);
 
     const restored = await getPlannedActivity(activityId);
 
@@ -200,7 +197,24 @@ describe("activity service", () => {
     expect(restored?.scheduledDate).toBe("2026-08-01");
     expect(restored?.day).toBe("Saturday");
     expect(restored?.sortOrder).toBe(original?.sortOrder);
+    expect(restored?.rescheduleCount).toBe(0);
     expect(await db.plannedActivities.count()).toBe(1);
+  });
+
+  it("preserves the first date and counts each real reschedule", async () => {
+    const activityId = await createPlannedActivity({
+      title: "Carry the task",
+      scheduledDate: "2026-08-01",
+    });
+
+    await movePlannedActivity(activityId, "2026-08-03");
+    await movePlannedActivity(activityId, "2026-08-05");
+
+    expect(await getPlannedActivity(activityId)).toMatchObject({
+      scheduledDate: "2026-08-05",
+      originalScheduledDate: "2026-08-01",
+      rescheduleCount: 2,
+    });
   });
 
   it("voids and restores the same events when completion is corrected", async () => {

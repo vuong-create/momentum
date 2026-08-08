@@ -4,7 +4,9 @@ import {
   pillarThemes,
   type PillarKey,
 } from "../../../app/theme";
-import type { PlannedActivity } from "../../../database/db";
+import type { Pillar, PlannedActivity } from "../../../database/db";
+import PillarQuickSelect from "../../activities/components/PillarQuickSelect";
+import { getActivityCarryDays } from "../../activities/services/activityLifecycle";
 
 import "./unfinished-activities.css";
 
@@ -16,7 +18,9 @@ type UnfinishedActivitiesProps = {
     activity: PlannedActivity,
     scheduledDate: string
   ) => Promise<void>;
-  onDismiss: (activity: PlannedActivity) => Promise<void>;
+  onComplete: (activity: PlannedActivity) => Promise<void>;
+  onDelete: (activity: PlannedActivity) => Promise<void>;
+  onChangePillar: (activity: PlannedActivity, pillar: Pillar) => Promise<void>;
   onOpenDetails: (activityId: number) => void;
 };
 
@@ -64,7 +68,9 @@ export default function UnfinishedActivities({
   todayKey,
   onMoveToToday,
   onReschedule,
-  onDismiss,
+  onComplete,
+  onDelete,
+  onChangePillar,
   onOpenDetails,
 }: UnfinishedActivitiesProps) {
   const [expanded, setExpanded] = useState(true);
@@ -73,6 +79,7 @@ export default function UnfinishedActivities({
   );
   const [customDate, setCustomDate] = useState("");
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
   const nextWeekDates = useMemo(
     () => getNextWeekDates(todayKey),
     [todayKey]
@@ -123,6 +130,8 @@ export default function UnfinishedActivities({
               pillarThemes[activity.pillar as PillarKey];
             const isRescheduling = reschedulingId === activity.id;
             const isBusy = busyId === activity.id;
+            const carriedDays = getActivityCarryDays(activity, todayKey);
+            const moveCount = activity.rescheduleCount ?? 0;
 
             return (
               <article
@@ -130,16 +139,37 @@ export default function UnfinishedActivities({
                 className={`home-unfinished-item ${theme.className}`}
               >
                 <div className="home-unfinished-copy">
-                  <span className="home-unfinished-pillar" />
+                  <PillarQuickSelect
+                    value={activity.pillar}
+                    iconOnly
+                    disabled={isBusy}
+                    label={`Change pillar for ${activity.title}`}
+                    onChange={(pillar) => onChangePillar(activity, pillar)}
+                  />
                   <div>
-                    <strong>{activity.title}</strong>
+                    <button
+                      type="button"
+                      className="home-unfinished-title"
+                      onClick={() => activity.id && onOpenDetails(activity.id)}
+                    >
+                      {activity.title}
+                    </button>
                     <span>
-                      Planned for {formatOriginalDate(activity.scheduledDate)}
+                      Carried {carriedDays} {carriedDays === 1 ? "day" : "days"}
+                      {moveCount > 0 ? ` · moved ${moveCount}×` : ""}
+                      {" · "}from {formatOriginalDate(activity.originalScheduledDate ?? activity.scheduledDate)}
                     </span>
                   </div>
                 </div>
 
                 <div className="home-unfinished-actions">
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => runAction(activity, () => onComplete(activity))}
+                  >
+                    Complete now
+                  </button>
                   <button
                     type="button"
                     disabled={isBusy}
@@ -157,22 +187,22 @@ export default function UnfinishedActivities({
                       setCustomDate("");
                     }}
                   >
-                    Reschedule
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => activity.id && onOpenDetails(activity.id)}
-                  >
-                    Details
+                    Choose date
                   </button>
                   <button
                     type="button"
                     disabled={isBusy}
-                    onClick={() =>
-                      runAction(activity, () => onDismiss(activity))
-                    }
+                    className={confirmingDeleteId === activity.id ? "is-confirming-delete" : ""}
+                    onClick={() => {
+                      if (confirmingDeleteId !== activity.id) {
+                        setConfirmingDeleteId(activity.id!);
+                        return;
+                      }
+                      runAction(activity, () => onDelete(activity));
+                      setConfirmingDeleteId(null);
+                    }}
                   >
-                    Dismiss
+                    {confirmingDeleteId === activity.id ? "Confirm delete" : "Delete"}
                   </button>
                 </div>
 

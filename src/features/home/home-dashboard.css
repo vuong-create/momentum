@@ -469,14 +469,7 @@
 /* Main content */
 
 .living-home-main {
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1.25fr)
-    minmax(290px, 0.75fr);
-
-  gap: clamp(30px, 5vw, 66px);
-  align-items: start;
-
+  display: block;
   margin-top: 34px;
   padding-top: 27px;
 
@@ -488,9 +481,32 @@
 /* Thoughts */
 
 .home-thoughts h2 {
-  margin-bottom: 12px;
+  margin: 0;
   font-size: 22px;
   font-weight: 400;
+}
+
+.home-thoughts-quiet {
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.home-thoughts-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+.home-thoughts-heading .living-home-label {
+  margin-bottom: 5px;
+}
+
+.home-thoughts-heading > span {
+  color: var(--text-faint);
+  font-size: 8px;
 }
 
 .home-thoughts-box {
@@ -499,8 +515,8 @@
 
 .home-thoughts textarea {
   width: 100%;
-  min-height: 150px;
-  max-height: 280px;
+  min-height: 92px;
+  max-height: 180px;
   resize: none;
   overflow-y: auto;
 
@@ -624,7 +640,7 @@
 /* Week view */
 
 .home-week-view {
-  margin-top: 29px;
+  margin-top: 34px;
   padding-top: 24px;
 
   border-top:

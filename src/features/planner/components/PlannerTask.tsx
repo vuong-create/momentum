@@ -4,6 +4,9 @@ import {
   pillarThemes,
   type PillarKey,
 } from "../../../app/theme";
+import type { Pillar } from "../../../database/db";
+import PillarIcon from "../../activities/components/PillarIcon";
+import PillarQuickSelect from "../../activities/components/PillarQuickSelect";
 import { calculatePlannedXP } from "../../activities/services/activityLifecycle";
 import {
   addDays,
@@ -21,6 +24,7 @@ type PlannerTaskProps = {
   onOpenDetails: (activityId: number) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
+  onChangePillar: (activity: PlannerActivity, pillar: Pillar) => Promise<void>;
   onRename?: (activity: PlannerActivity, title: string) => Promise<void>;
   onMove?: (activity: PlannerActivity, dateKey: string) => Promise<void>;
   onDuplicate?: (activity: PlannerActivity, dateKey: string) => Promise<void>;
@@ -35,6 +39,7 @@ export default function PlannerTask({
   onOpenDetails,
   onComplete,
   onToggleImportant,
+  onChangePillar,
   onRename,
   onMove,
   onDuplicate,
@@ -130,7 +135,8 @@ export default function PlannerTask({
             : `Complete ${activity.title}`
         }
       >
-        {activity.completed ? "✓" : ""}
+        <span className="planner-task-pillar-icon"><PillarIcon pillar={activity.pillar as PillarKey} /></span>
+        <span className="planner-task-check-mark">✓</span>
       </button>
 
       {editing ? (
@@ -163,10 +169,6 @@ export default function PlannerTask({
         >
           <strong>{activity.title}</strong>
           <div className="planner-task-meta">
-            <span className="planner-task-pillar">
-              <span className="planner-task-pillar-dot" />
-              {theme.shortLabel}
-            </span>
             {activity.scheduledTime && (
               <span>{formatActivityTime(activity.scheduledTime)}</span>
             )}
@@ -174,6 +176,11 @@ export default function PlannerTask({
           </div>
         </button>
       )}
+
+      <PillarQuickSelect
+        value={activity.pillar}
+        onChange={(pillar) => onChangePillar(activity, pillar)}
+      />
 
       <div className="planner-task-actions">
         <button

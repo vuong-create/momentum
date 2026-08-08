@@ -1,6 +1,6 @@
 .home-unfinished {
   margin-bottom: 18px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid rgba(241, 183, 74, 0.16);
   border-radius: var(--radius-md);
   background:
@@ -65,7 +65,7 @@
 }
 
 .home-unfinished-item {
-  padding: 11px;
+  padding: 13px;
   border-top: 1px solid var(--color-border-subtle);
   background: rgba(0, 0, 0, 0.12);
 }
@@ -74,7 +74,7 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 9px;
-  align-items: start;
+  align-items: center;
 }
 
 .home-unfinished-pillar {
@@ -96,29 +96,47 @@
   font-weight: 500;
 }
 
+.home-unfinished-title {
+  min-height: 22px;
+  display: block;
+  padding: 0;
+  border: 0;
+  color: var(--color-text-primary);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 520;
+  text-align: left;
+}
+
+.home-unfinished-title:hover {
+  color: #fff;
+  background: transparent;
+}
+
 .home-unfinished-copy div > span {
   margin-top: 3px;
   color: var(--color-text-disabled);
-  font-size: 7px;
+  font-size: 8px;
 }
 
 .home-unfinished-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
-  margin: 9px 0 0 14px;
+  gap: 5px;
+  margin: 11px 0 0 38px;
 }
 
 .home-unfinished-actions button {
-  min-height: 24px;
-  padding: 0 7px;
+  min-height: 29px;
+  padding: 0 9px;
   border-color: transparent;
   color: var(--color-text-muted);
   background: transparent;
-  font-size: 7px;
+  font-size: 8px;
 }
 
-.home-unfinished-actions button:first-child {
+.home-unfinished-actions button:first-child,
+.home-unfinished-actions button:nth-child(2) {
   border-color: var(--color-border-subtle);
   color: var(--color-text-secondary);
   background: rgba(255, 255, 255, 0.035);
@@ -128,8 +146,14 @@
   margin-left: auto;
 }
 
+.home-unfinished-actions button.is-confirming-delete {
+  color: #e4aaa3;
+  border-color: rgba(218, 112, 100, 0.3);
+  background: rgba(218, 112, 100, 0.07);
+}
+
 .home-unfinished-reschedule {
-  margin: 10px 0 0 14px;
+  margin: 10px 0 0 38px;
   padding: 10px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 9px;
@@ -188,6 +212,11 @@
 }
 
 @media (max-width: 560px) {
+  .home-unfinished-actions,
+  .home-unfinished-reschedule {
+    margin-left: 0;
+  }
+
   .home-unfinished-actions button:last-child {
     margin-left: 0;
   }

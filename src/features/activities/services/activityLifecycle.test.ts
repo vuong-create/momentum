@@ -5,6 +5,7 @@ import type { PlannedActivity } from "../../../database/db";
 import {
   calculatePlannedXP,
   getActivityDisplayStatus,
+  getActivityCarryDays,
   getActivityStatus,
   isActivityVisible,
   isActivityWeeklyEligible,
@@ -73,5 +74,24 @@ describe("activity lifecycle rules", () => {
     expect(
       resolveActivityScheduledDate(legacyActivity, "2026-08-01")
     ).toBe("2026-07-29");
+  });
+
+  it("measures carried days from the first scheduled date", () => {
+    const activity = buildActivity({
+      scheduledDate: "2026-08-06",
+      originalScheduledDate: "2026-08-01",
+      rescheduleCount: 2,
+    });
+
+    expect(getActivityCarryDays(activity, "2026-08-08")).toBe(7);
+  });
+
+  it("never reports future work as carried", () => {
+    expect(
+      getActivityCarryDays(
+        buildActivity({ scheduledDate: "2026-08-10" }),
+        "2026-08-08"
+      )
+    ).toBe(0);
   });
 });

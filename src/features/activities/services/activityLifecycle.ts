@@ -65,6 +65,29 @@ export function getActivityDisplayStatus(
   return status;
 }
 
+function getDateKeyUTCValue(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+export function getActivityCarryDays(
+  activity: PlannedActivity,
+  referenceDateKey: string
+) {
+  const firstDate =
+    activity.originalScheduledDate ?? activity.scheduledDate;
+
+  if (!firstDate || firstDate >= referenceDateKey) return 0;
+
+  return Math.max(
+    0,
+    Math.round(
+      (getDateKeyUTCValue(referenceDateKey) - getDateKeyUTCValue(firstDate)) /
+        (24 * 60 * 60 * 1000)
+    )
+  );
+}
+
 export function isActivityCompleted(
   activity: PlannedActivity
 ) {

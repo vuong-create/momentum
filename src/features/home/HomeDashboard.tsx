@@ -274,7 +274,7 @@ export default function HomeDashboard() {
 
     textarea.style.height = `${Math.max(
       textarea.scrollHeight,
-      150
+      92
     )}px`;
   }, [thought]);
 
@@ -456,67 +456,6 @@ export default function HomeDashboard() {
             togglePlannedActivity
           }
         />
-
-        <section className="home-thoughts">
-          <h2 className="font-pixel">
-            Thoughts
-          </h2>
-
-          <div
-            className={[
-              "home-thoughts-box",
-              thoughtStatus
-                ? "home-thoughts-box-saving"
-                : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <textarea
-              ref={thoughtsRef}
-              value={thought}
-              onChange={(event) =>
-                setThought(
-                  event.target.value
-                )
-              }
-              aria-label="Thoughts"
-            />
-
-            {thoughtStatus && (
-              <span className="home-thought-status">
-                ✓ {thoughtStatus}
-              </span>
-            )}
-          </div>
-
-          <div
-            className={[
-              "home-thought-actions",
-              thought.trim()
-                ? "home-thought-actions-visible"
-                : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <button
-              type="button"
-              onClick={saveToJournal}
-            >
-              Save to Journal
-            </button>
-
-            <button
-              type="button"
-              onClick={
-                continueInJournal
-              }
-            >
-              Continue writing
-            </button>
-          </div>
-        </section>
       </main>
 
       <section className="home-week-view">
@@ -630,6 +569,45 @@ export default function HomeDashboard() {
               </div>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="home-thoughts home-thoughts-quiet">
+        <div className="home-thoughts-heading">
+          <div>
+            <span className="living-home-label">End note</span>
+            <h2 className="font-pixel">Thoughts</h2>
+          </div>
+          <span>Leave something worth remembering.</span>
+        </div>
+
+        <div
+          className={[
+            "home-thoughts-box",
+            thoughtStatus ? "home-thoughts-box-saving" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          <textarea
+            ref={thoughtsRef}
+            value={thought}
+            onChange={(event) => setThought(event.target.value)}
+            placeholder="A thought from today…"
+            aria-label="Thoughts"
+          />
+
+          {thoughtStatus && (
+            <span className="home-thought-status">✓ {thoughtStatus}</span>
+          )}
+        </div>
+
+        <div
+          className={[
+            "home-thought-actions",
+            thought.trim() ? "home-thought-actions-visible" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          <button type="button" onClick={saveToJournal}>Save to Journal</button>
+          <button type="button" onClick={continueInJournal}>Continue writing</button>
         </div>
       </section>
 

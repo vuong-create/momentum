@@ -47,11 +47,14 @@ Information should never need to be entered twice.
 The Home page follows this order:
 
 1. Today
-2. This Week
-3. Pillar Summaries
-4. What's on Your Mind?
+2. Weekly Progress
+3. Thoughts
 
 This hierarchy prioritizes action before analytics.
+
+The Today list is the primary working surface and spans the available content
+width. Weekly Progress follows it, while Thoughts remains a compact end-of-day
+capture at the bottom rather than competing with the day's work.
 
 ---
 
@@ -134,10 +137,13 @@ it reads the same Planner activities and materializes the same recurrence data.
 
 Momentum does not create duplicate tasks when something appears in multiple places.
 
-On Home, completion and editing are separate actions. The checkbox completes an
-activity; selecting its title opens the shared Activity Details editor so the
-title, day, time, pillar, importance, notes, and recurrence can be corrected
-without visiting Planner first.
+On Home, completion and editing are separate actions. The completion control
+uses the activity's pillar icon and becomes a check on hover or completion;
+selecting the title opens the shared Activity Details editor so the title, day,
+time, pillar, importance, notes, and recurrence can be corrected without
+visiting Planner first. A compact pillar selector beside each activity supports
+quick recategorization without opening the full editor. Day Focus uses the same
+interaction pattern.
 
 Example:
 
@@ -430,9 +436,11 @@ All unfinished-task decisions are recoverable for a short period through an
 Undo action. Moving and rescheduling preserve the same activity ID; dismissing
 changes lifecycle status instead of deleting the record.
 
-Current Home implementation groups unfinished activities into one calm,
-expandable review area. Each item exposes Move to Today, a Sunday-first
-next-week picker, an exact date picker, Details, and Dismiss.
+Current Home implementation groups overdue activities into one calm,
+expandable review area. Each item shows how many days it has been carried, its
+original date, and how many times it has been rescheduled. The available actions
+are **Complete now**, **Move to Today**, **Choose date**, and **Delete**. Deletion
+requires confirmation and remains recoverable for a short period through Undo.
 
 ---
 
@@ -583,11 +591,11 @@ Detailed information belongs inside the pillar.
 
 ---
 
-# 23. What's on Your Mind?
+# 23. Thoughts
 
-The bottom portion of Home contains a large journal-style text box.
+The bottom portion of Home contains a compact journal-style text box.
 
-## What's on your mind?
+## Thoughts
 
 `[ Write anything... ]`
 

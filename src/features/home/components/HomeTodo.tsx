@@ -6,15 +6,18 @@ import {
   useState,
 } from "react";
 
-import type { PlannedActivity } from "../../../database/db";
+import type { Pillar, PlannedActivity } from "../../../database/db";
+import { pillarThemes } from "../../../app/theme";
 import useExperience from "../../../experience/useExperience";
 import ActivityDetailsPanel from "../../activities/components/ActivityDetailsPanel";
 import ActivityUndoToast from "../../activities/components/ActivityUndoToast";
 import useActivityUndo from "../../activities/hooks/useActivityUndo";
 import {
-  dismissPlannedActivity,
   movePlannedActivity,
-  restoreDismissedActivity,
+  restorePlannedActivitySchedule,
+  restoreSoftDeletedActivity,
+  softDeletePlannedActivity,
+  updateActivityDetails,
 } from "../../activities/services/activityService";
 import { resolveActivityScheduledDate } from "../../activities/services/activityLifecycle";
 import { toDateKey } from "../../planner/services/plannerService";
@@ -194,31 +197,38 @@ export default function HomeTodo({
     if (!activity.id) return;
 
     const previousDate = resolveActivityScheduledDate(activity, todayKey);
-
     if (!previousDate) return;
-    const previousSortOrder = activity.sortOrder;
 
     await movePlannedActivity(activity.id, scheduledDate);
     experience.playFeedback("task-updated");
     activityUndo.show({
       message,
-      undo: () =>
-        movePlannedActivity(
-          activity.id!,
-          previousDate,
-          previousSortOrder
-        ),
+      undo: () => restorePlannedActivitySchedule(activity),
     });
   }
 
-  async function dismissUnfinishedActivity(activity: PlannedActivity) {
+  async function deleteUnfinishedActivity(activity: PlannedActivity) {
     if (!activity.id) return;
 
-    await dismissPlannedActivity(activity.id);
+    await softDeletePlannedActivity(activity.id);
     experience.playFeedback("task-dismissed");
     activityUndo.show({
-      message: "Activity dismissed",
-      undo: () => restoreDismissedActivity(activity.id!),
+      message: "Activity deleted",
+      undo: () => restoreSoftDeletedActivity(activity.id!),
+    });
+  }
+
+  async function changeActivityPillar(
+    activity: PlannedActivity,
+    pillar: Pillar
+  ) {
+    if (!activity.id || pillar === activity.pillar) return;
+    const previousPillar = activity.pillar;
+    await updateActivityDetails(activity.id, { pillar });
+    experience.playFeedback("task-updated");
+    activityUndo.show({
+      message: `Moved to ${pillarThemes[pillar].shortLabel}`,
+      undo: () => updateActivityDetails(activity.id!, { pillar: previousPillar }),
     });
   }
 
@@ -288,7 +298,9 @@ export default function HomeTodo({
               "Activity rescheduled"
             )
           }
-          onDismiss={dismissUnfinishedActivity}
+          onComplete={handleToggle}
+          onDelete={deleteUnfinishedActivity}
+          onChangePillar={changeActivityPillar}
           onOpenDetails={setSelectedActivityId}
         />
 
@@ -304,6 +316,7 @@ export default function HomeTodo({
                 }
                 onToggle={handleToggle}
                 onOpen={setSelectedActivityId}
+                onChangePillar={changeActivityPillar}
               />
             ))}
           </div>
@@ -345,6 +358,7 @@ export default function HomeTodo({
                     activity={activity}
                     onToggle={handleToggle}
                     onOpen={setSelectedActivityId}
+                    onChangePillar={changeActivityPillar}
                   />
                 ))}
               </div>
