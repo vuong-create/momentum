@@ -14,6 +14,9 @@ export type FeedbackCue =
   | "meal-planned"
   | "meal-cooked"
   | "grocery-checked"
+  | "finance-account-added"
+  | "finance-transaction"
+  | "finance-income"
   | "navigation";
 
 type Tone = {
@@ -163,6 +166,24 @@ function getCueTones(cue: FeedbackCue): Tone[] {
     return [
       { frequency: 410, endFrequency: 520, duration: 0.085, volume: 0.01, type: "sine" },
     ];
+  }
+
+  if (cue === "finance-account-added") {
+    return [
+      { frequency: 246.94, endFrequency: 329.63, duration: 0.13, volume: 0.011, type: "sine" },
+      { frequency: 493.88, delay: 0.065, duration: 0.14, volume: 0.01, type: "triangle" },
+    ];
+  }
+
+  if (cue === "finance-income") {
+    return [
+      { frequency: 293.66, endFrequency: 440, duration: 0.14, volume: 0.012, type: "triangle" },
+      { frequency: 659.25, delay: 0.075, duration: 0.18, volume: 0.013, type: "sine" },
+    ];
+  }
+
+  if (cue === "finance-transaction") {
+    return [{ frequency: 390, endFrequency: 480, duration: 0.09, volume: 0.009, type: "sine" }];
   }
 
   if (cue === "task-added" || cue === "task-updated") {

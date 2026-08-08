@@ -11,8 +11,8 @@ import JournalPage from "../features/journal/JournalPage";
 import ChinesePage from "../features/chinese/ChinesePage";
 import AthleticsPage from "../features/athletics/AthleticsPage";
 import CookingPage from "../features/cooking/CookingPage";
+import FinancePage from "../features/finance/FinancePage";
 import SettingsPage from "../features/settings/SettingsPage";
-import PlaceholderPage from "../pages/PlaceholderPage";
 
 export default function AppShell() {
   return (
@@ -45,13 +45,7 @@ export default function AppShell() {
 
         <Route
           path="/finance"
-          element={
-            <PlaceholderPage
-              title="Finance"
-              eyebrow="Money"
-              description="A clear, detailed command center for your financial life."
-            />
-          }
+          element={<FinancePage />}
         />
 
         <Route

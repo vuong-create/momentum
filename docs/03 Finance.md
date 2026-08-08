@@ -1,7 +1,7 @@
 # Momentum — Finance Pillar
 
-**Status:** 🟢 Design Complete
-**Next Step:** Implementation
+**Status:** 🟢 Finance 1 Foundation Implemented
+**Next Step:** Finance 2 — Monthly Budgeting
 
 ---
 
@@ -1076,3 +1076,30 @@ Managing money should feel:
 * [x] Ready for Implementation
 
 **Finance Pillar Design: COMPLETE**
+
+---
+
+# 34. Current Implementation — Finance 1
+
+Finance 1 establishes the transaction-driven source of truth before budgeting and reporting depend on it.
+
+Implemented:
+
+* Account onboarding for checking, savings, credit, investment, retirement, and cash
+* Opening balances with clear credit-liability guidance
+* Derived account balances and net worth
+* Fast expense, income, transfer, and investment entry
+* One logical transfer with separate From and To accounts
+* Transaction editing, soft deletion, recovery, search, and type filtering
+* Merchant suggestions with remembered account and category context
+* Monthly income, spending, investment, remaining-cash, and savings-rate summaries
+* Six-month income-versus-spending visualization
+* Spending-by-category and recent-transaction summaries
+* Account deletion protection when transaction history still exists
+* Finance-specific restrained sound and motion feedback
+
+The default category catalog remains product configuration in Finance 1. Category customization moves to Finance 2 alongside monthly budget allocations, preventing unstable category identifiers from being introduced before their budget relationships exist.
+
+Finance 1 intentionally does not include budgets, goals, monthly close, rollover, or deep reports.
+
+**Finance 1 Foundation: IMPLEMENTED**
