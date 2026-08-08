@@ -45,6 +45,7 @@ import HomeTodo from "./components/HomeTodo";
 import "./home-dashboard.css";
 import "./components/home-todo.css";
 import FlipClock from "./components/FlipClock";
+import MomentumXPCard from "./components/MomentumXPCard";
 
 const weekDayNames = [
   "Sunday",
@@ -154,8 +155,6 @@ export default function HomeDashboard() {
     () => getXPBreakdown(xpEvents),
     [xpEvents]
   );
-
-  const { globalProgression } = xpSummary;
 
   const todayActivities = useMemo(
     () =>
@@ -437,37 +436,11 @@ export default function HomeDashboard() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="momentum-level-display"
-          aria-label="Momentum level details"
-          aria-expanded={xpBreakdownOpen}
-          onClick={() => setXPBreakdownOpen(true)}
-        >
-          <div className="momentum-level-topline">
-            <strong>
-              Level {globalProgression.level}
-            </strong>
-
-            <span>
-              {xpSummary.totalXP} XP
-            </span>
-          </div>
-
-          <div className="momentum-level-bar">
-            <div
-              className="momentum-level-fill"
-              style={{
-                width:
-                  `${globalProgression.percentage}%`,
-              }}
-            >
-              <span />
-            </div>
-          </div>
-
-          <small>{xpSummary.globalTitle} · View progression</small>
-        </button>
+        <MomentumXPCard
+          summary={xpSummary}
+          expanded={xpBreakdownOpen}
+          onOpen={() => setXPBreakdownOpen(true)}
+        />
       </header>
 
       <main className="living-home-main">

@@ -114,7 +114,9 @@ small {
 /* Numeric displays */
 
 .text-number,
-.momentum-level-topline strong,
+.momentum-level-core strong,
+.momentum-level-progress-copy,
+.momentum-level-total,
 .home-week-summary strong {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.025em;

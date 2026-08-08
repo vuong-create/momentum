@@ -8,7 +8,6 @@ import {
   setPlannedActivityOrder,
   toggleActivityImportance,
   togglePlannedActivity,
-  unschedulePlannedActivity,
   updateActivityDetails,
 } from "../../activities/services/activityService";
 import {
@@ -301,12 +300,24 @@ export async function moveActivities(
   await movePlannedActivities(ids, scheduledDate);
 }
 
-export async function unscheduleActivity(
-  activity: PlannedActivity,
-  planningWeekStart: string
+export async function moveUnscheduledActivitiesToDate(
+  scheduledDate: string
 ) {
-  if (!activity.id) return;
-  await unschedulePlannedActivity(activity.id, planningWeekStart);
+  const activities = await db.plannedActivities.toArray();
+  const ids = activities.flatMap((activity) =>
+    activity.id &&
+    !activity.scheduledDate &&
+    Boolean(activity.planningWeekStart) &&
+    isActivityVisible(activity)
+      ? [activity.id]
+      : []
+  );
+
+  if (ids.length > 0) {
+    await movePlannedActivities(ids, scheduledDate);
+  }
+
+  return ids.length;
 }
 
 export async function toggleActivity(

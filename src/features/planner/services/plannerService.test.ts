@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import "fake-indexeddb/auto";
+
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
+
+import { db } from "../../../database/db";
 
 import {
   addMonths,
@@ -7,10 +11,20 @@ import {
   getMonthGridBounds,
   getRelativeWeekLabel,
   getWeekStart,
+  moveUnscheduledActivitiesToDate,
   sortActivitiesForFocus,
   toDateKey,
 } from "./plannerService";
 import type { PlannerActivity } from "../types";
+
+beforeEach(async () => {
+  await db.open();
+  await db.plannedActivities.clear();
+});
+
+afterAll(async () => {
+  await db.delete();
+});
 
 describe("planner week boundaries", () => {
   it("starts the week on Sunday", () => {
@@ -123,5 +137,28 @@ describe("planner week boundaries", () => {
   it("navigates month keys across year boundaries", () => {
     expect(addMonths("2026-12", 1)).toBe("2027-01");
     expect(addMonths("2026-01", -1)).toBe("2025-12");
+  });
+
+  it("moves legacy unscheduled work to Today", async () => {
+    const id = await db.plannedActivities.add({
+      title: "Review vocabulary",
+      completed: false,
+      status: "planned",
+      date: "2026-08-02T12:00:00.000Z",
+      day: "Sunday",
+      planningWeekStart: "2026-08-02",
+      pillar: "chinese",
+      xpReward: 10,
+      difficulty: "medium",
+    });
+
+    await expect(
+      moveUnscheduledActivitiesToDate("2026-08-03")
+    ).resolves.toBe(1);
+
+    await expect(db.plannedActivities.get(id)).resolves.toMatchObject({
+      scheduledDate: "2026-08-03",
+      day: "Monday",
+    });
   });
 });

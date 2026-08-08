@@ -13,7 +13,6 @@ import type { ActivityTemplate } from "../../database/db";
 import {
   movePlannedActivity,
   softDeletePlannedActivity,
-  unschedulePlannedActivity,
   updateActivityDetails,
 } from "../activities/services/activityService";
 import {
@@ -32,7 +31,6 @@ import WeekHeader from "./components/WeekHeader";
 import PlannerComposer from "./components/PlannerComposer";
 import PlannerDayCarousel from "./components/PlannerDayCarousel";
 import PlannerDayPanel from "./components/PlannerDayPanel";
-import PlannerUnscheduled from "./components/PlannerUnscheduled";
 import PlannerTemplates from "./components/PlannerTemplates";
 import PlannerMonthOverview from "./components/PlannerMonthOverview";
 
@@ -155,20 +153,12 @@ export default function PlannerPage() {
   }
 
   async function restoreActivityLocation(activity: PlannerActivity) {
-    if (!activity.id) return Promise.resolve();
-    if (activity.scheduledDate) {
-      await movePlannedActivity(
-        activity.id,
-        activity.scheduledDate,
-        activity.sortOrder
-      );
-    } else {
-      await unschedulePlannedActivity(
-        activity.id,
-        activity.planningWeekStart ?? planner.weekStartKey,
-        activity.sortOrder
-      );
-    }
+    if (!activity.id || !activity.scheduledDate) return Promise.resolve();
+    await movePlannedActivity(
+      activity.id,
+      activity.scheduledDate,
+      activity.sortOrder
+    );
     await updateActivityDetails(activity.id, {
       recurrenceOverride: activity.recurrenceOverride,
     });
@@ -179,16 +169,6 @@ export default function PlannerPage() {
     experience.playFeedback("task-updated");
     activityUndo.show({
       message: `Moved to ${new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date(`${dateKey}T00:00:00`))}`,
-      undo: () => restoreActivityLocation(activity),
-    });
-  }
-
-  async function moveToUnscheduled(activity: PlannerActivity) {
-    if (!activity.scheduledDate && activity.planningWeekStart === planner.weekStartKey) return;
-    await planner.moveToUnscheduled(activity);
-    experience.playFeedback("task-updated");
-    activityUndo.show({
-      message: "Moved to Unscheduled This Week",
       undo: () => restoreActivityLocation(activity),
     });
   }
@@ -246,10 +226,6 @@ export default function PlannerPage() {
     if (target) setSelectedDayKey(target.dateKey);
   }
 
-  async function addUnscheduled(title: string) {
-    await addActivity({ title, planningWeekStart: planner.weekStartKey, pillar: "core" });
-  }
-
   async function useTemplate(template: ActivityTemplate) {
     const newId = await planner.addFromTemplate(template, selectedDateKey);
     experience.playFeedback("task-added");
@@ -296,15 +272,6 @@ export default function PlannerPage() {
         }
         onUse={useTemplate}
         onDelete={removeTemplate}
-      />
-
-      <PlannerUnscheduled
-        activities={planner.unscheduledActivities}
-        days={planner.days}
-        onAdd={addUnscheduled}
-        onOpenDetails={(activityId) => openActivityDetails(activityId)}
-        onSchedule={moveActivity}
-        onUnschedule={moveToUnscheduled}
       />
 
       <PlannerDayCarousel

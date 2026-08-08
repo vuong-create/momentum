@@ -1041,7 +1041,12 @@ Momentum should retain enough XP history to understand where Lifetime XP came fr
 
 A full complicated ledger does not need to dominate the interface.
 
-The Home XP card opens a centered progression breakdown where users can inspect global progress, pillar contributions, pillar levels, and recent XP activity. History can be filtered by pillar without duplicating the underlying events.
+The Home XP card is the deliberately expressive RPG moment within the calm
+Home composition: a Momentum crest, segmented energy bar, rank, lifetime XP,
+and active pillar marks all read from the shared XP ledger. It opens a centered
+progression breakdown where users can inspect global progress, pillar
+contributions, pillar levels, and recent XP activity. History can be filtered
+by pillar without duplicating the underlying events.
 
 Example:
 
