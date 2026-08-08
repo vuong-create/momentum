@@ -17,6 +17,7 @@ import {
   softDeleteJournalEntry,
   updateJournalEntry,
   visibleJournalEntries,
+  type JournalEntryInput,
 } from "./services/journalService";
 import {
   createLibraryBook,
@@ -40,9 +41,9 @@ import "./journal.css";
 type JournalView = "today" | "journal" | "library" | "look-back" | "quotes";
 
 const journalTabs: { id: JournalView; label: string }[] = [
-  { id: "today", label: "Today" },
+  { id: "today", label: "Write" },
   { id: "journal", label: "Journal" },
-  { id: "library", label: "Library" },
+  { id: "library", label: "Books" },
   { id: "look-back", label: "Look Back" },
   { id: "quotes", label: "Quotes" },
 ];
@@ -69,14 +70,20 @@ export default function JournalPage() {
     sessionStorage.setItem("momentum.journal.tab", nextView);
   }
 
-  async function saveNewEntry(input: { title?: string; text: string; entryDate: string }) {
+  async function saveNewEntry(input: JournalEntryInput) {
     await createJournalEntry(input);
     experience.playFeedback("task-added");
   }
 
-  async function saveEntry(entry: JournalEntry, patch: { title?: string; text: string; entryDate: string }) {
+  async function saveEntry(entry: JournalEntry, patch: Partial<Pick<JournalEntry, "title" | "text" | "entryDate" | "category" | "promptId">> & { text: string; entryDate: string }) {
     if (!entry.id) return;
-    const previous = { title: entry.title, text: entry.text, entryDate: entry.entryDate };
+    const previous = {
+      title: entry.title,
+      text: entry.text,
+      entryDate: entry.entryDate,
+      category: entry.category,
+      promptId: entry.promptId,
+    };
     await updateJournalEntry(entry.id, patch);
     experience.playFeedback("task-updated");
     undo.show({ message: "Journal entry updated", undo: () => updateJournalEntry(entry.id!, previous) });
@@ -130,6 +137,7 @@ export default function JournalPage() {
       title: `Book: ${book.title}`,
       text: [book.reflection.trim(), book.favoriteQuote?.trim() ? `Favorite line: “${book.favoriteQuote.trim()}”` : ""].filter(Boolean).join("\n\n"),
       entryDate: book.finishedDate || book.startedDate,
+      category: "books",
     });
     await updateLibraryBook(book.id, {
       title: book.title,
@@ -168,14 +176,14 @@ export default function JournalPage() {
     <div className="journal-page">
       <header className="journal-header">
         <div>
-          <span className="text-label">Happiness</span>
-          <h1 className="font-pixel">Journal</h1>
-          <p>Capture · Reflect · Remember</p>
+          <span className="text-label">Your inner world</span>
+          <h1 className="font-pixel">Library</h1>
+          <p>Write · Remember · Collect</p>
         </div>
         <div className="journal-header-kept"><span>{entries.length}</span><small>{entries.length === 1 ? "memory kept" : "memories kept"}</small></div>
       </header>
 
-      <nav className="journal-tabs" aria-label="Journal sections">
+      <nav className="journal-tabs" aria-label="Library sections">
         {journalTabs.map((tab) => (
           <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}>
             {tab.label}

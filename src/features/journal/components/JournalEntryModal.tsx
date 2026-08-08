@@ -1,12 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 
-import type { JournalEntry } from "../../../database/db";
+import type { JournalEntry, JournalEntryCategory } from "../../../database/db";
+import JournalCategorySelect from "./JournalCategorySelect";
 
 type JournalEntryModalProps = {
   entry: JournalEntry | null;
   onClose: () => void;
-  onSave: (entry: JournalEntry, patch: { title?: string; text: string; entryDate: string }) => Promise<void>;
+  onSave: (entry: JournalEntry, patch: { title?: string; text: string; entryDate: string; category?: JournalEntryCategory; promptId?: string }) => Promise<void>;
   onDelete: (entry: JournalEntry) => Promise<void>;
 };
 
@@ -42,6 +43,7 @@ function JournalEntryEditor({
   const [title, setTitle] = useState(entry.title ?? "");
   const [text, setText] = useState(entry.text);
   const [entryDate, setEntryDate] = useState(entry.entryDate);
+  const [category, setCategory] = useState<JournalEntryCategory | undefined>(entry.category);
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -63,6 +65,8 @@ function JournalEntryEditor({
         title: title.trim() || undefined,
         text: text.trim(),
         entryDate,
+        category,
+        promptId: entry.promptId,
       });
       onClose();
     } finally {
@@ -89,6 +93,7 @@ function JournalEntryEditor({
         <div className="journal-entry-modal-body">
           <label><span>Date</span><input type="date" value={entryDate} onChange={(event) => setEntryDate(event.target.value)} /></label>
           <label><span>Optional title</span><input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Give this memory a name" /></label>
+          <div className="journal-entry-category-field"><span>Category</span><JournalCategorySelect value={category} onChange={setCategory} /></div>
           <label className="journal-entry-modal-text"><span>Entry</span><textarea value={text} onChange={(event) => setText(event.target.value)} rows={13} /></label>
         </div>
         <footer>

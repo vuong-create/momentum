@@ -256,11 +256,21 @@ export interface JournalEntry {
   id?: number;
   title?: string;
   text: string;
+  category?: JournalEntryCategory;
+  promptId?: string;
   createdAt: string;
   updatedAt: string;
   entryDate: string;
   deletedAt?: string;
 }
+
+export type JournalEntryCategory =
+  | "reflection"
+  | "gratitude"
+  | "memory"
+  | "growth"
+  | "ideas"
+  | "books";
 
 export interface Note {
   id?: number;
@@ -642,6 +652,11 @@ class MomentumDatabase extends Dexie {
             activity.originalScheduledDate ?? activity.scheduledDate;
           activity.rescheduleCount = activity.rescheduleCount ?? 0;
         });
+    });
+
+    this.version(19).stores({
+      journalEntries:
+        "++id, createdAt, updatedAt, entryDate, category, promptId, deletedAt",
     });
   }
 }

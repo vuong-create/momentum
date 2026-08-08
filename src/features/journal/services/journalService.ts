@@ -1,10 +1,12 @@
 import { db } from "../../../database/db";
-import type { JournalEntry } from "../../../database/db";
+import type { JournalEntry, JournalEntryCategory } from "../../../database/db";
 
 export type JournalEntryInput = {
   title?: string;
   text: string;
   entryDate?: string;
+  category?: JournalEntryCategory;
+  promptId?: string;
 };
 
 export function toJournalDateKey(date = new Date()) {
@@ -23,6 +25,8 @@ export async function createJournalEntry(input: JournalEntryInput) {
   return db.journalEntries.add({
     title: input.title?.trim() || undefined,
     text,
+    category: input.category,
+    promptId: input.promptId,
     entryDate: input.entryDate ?? toJournalDateKey(),
     createdAt: now,
     updatedAt: now,
@@ -31,7 +35,7 @@ export async function createJournalEntry(input: JournalEntryInput) {
 
 export async function updateJournalEntry(
   id: number,
-  patch: Partial<Pick<JournalEntry, "title" | "text" | "entryDate">>
+  patch: Partial<Pick<JournalEntry, "title" | "text" | "entryDate" | "category" | "promptId">>
 ) {
   const entry = await db.journalEntries.get(id);
   if (!entry || entry.deletedAt) throw new Error("Journal entry was not found.");
@@ -48,6 +52,12 @@ export async function updateJournalEntry(
       : {}),
     ...(patch.entryDate !== undefined
       ? { entryDate: patch.entryDate }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(patch, "category")
+      ? { category: patch.category }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(patch, "promptId")
+      ? { promptId: patch.promptId || undefined }
       : {}),
     updatedAt: new Date().toISOString(),
   });
@@ -97,12 +107,3 @@ export function getRandomMemory(
   if (candidates.length === 0) return visibleJournalEntries(entries)[0];
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
-
-export const reflectionPrompts = [
-  "What was good about today?",
-  "What has been on your mind lately?",
-  "What are you looking forward to?",
-  "What made you laugh today?",
-  "What do you want to remember about today?",
-  "What are you grateful for right now?",
-];

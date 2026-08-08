@@ -69,12 +69,12 @@ export const pillarThemes: Record<PillarKey, PillarTheme> = {
 
   happiness: {
     key: "happiness",
-    label: "Journal",
-    shortLabel: "Journal",
+    label: "Library",
+    shortLabel: "Library",
     icon: "✎",
     route: "/journal",
     className: "pillar-journal",
-    description: "Thoughts and memories",
+    description: "Thoughts, books, and memories",
   },
 };
 

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
-import type { JournalEntry } from "../../../database/db";
+import type { JournalEntry, JournalEntryCategory } from "../../../database/db";
+import { journalCategories } from "../journalPrompts";
 import { toJournalDateKey } from "../services/journalService";
 import JournalEntryCard from "./JournalEntryCard";
 
@@ -12,6 +13,7 @@ type JournalHistoryProps = {
 export default function JournalHistory({ entries, onOpen }: JournalHistoryProps) {
   const [query, setQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<JournalEntryCategory | "all">("all");
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -25,9 +27,10 @@ export default function JournalHistory({ entries, onOpen }: JournalHistoryProps)
 
   const filtered = entries.filter((entry) => {
     const matchesDate = !selectedDate || entry.entryDate === selectedDate;
+    const matchesCategory = selectedCategory === "all" || entry.category === selectedCategory;
     const normalized = query.trim().toLowerCase();
     const matchesQuery = !normalized || `${entry.title ?? ""} ${entry.text}`.toLowerCase().includes(normalized);
-    return matchesDate && matchesQuery;
+    return matchesDate && matchesCategory && matchesQuery;
   });
 
   const firstDay = new Date(month.getFullYear(), month.getMonth(), 1).getDay();
@@ -69,6 +72,12 @@ export default function JournalHistory({ entries, onOpen }: JournalHistoryProps)
           <div><span className="text-label">Your pages</span><h2 className="font-pixel">Journal</h2></div>
           <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search memories…" aria-label="Search journal entries" />
         </header>
+        <div className="journal-category-filters" role="group" aria-label="Filter journal entries by category">
+          <button type="button" className={selectedCategory === "all" ? "is-selected" : ""} onClick={() => setSelectedCategory("all")}>All</button>
+          {journalCategories.map((category) => (
+            <button key={category.id} type="button" className={selectedCategory === category.id ? "is-selected" : ""} onClick={() => setSelectedCategory(category.id)}>{category.mark} {category.label}</button>
+          ))}
+        </div>
         {selectedDate && <button type="button" className="journal-date-filter" onClick={() => setSelectedDate(null)}>Showing {new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(`${selectedDate}T00:00:00`))} ×</button>}
         <div className="journal-entry-list">
           {filtered.length > 0 ? filtered.map((entry) => <JournalEntryCard key={entry.id} entry={entry} onOpen={onOpen} />) : (
