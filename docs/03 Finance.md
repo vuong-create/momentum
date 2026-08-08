@@ -1,7 +1,7 @@
 # Momentum — Finance Pillar
 
-**Status:** 🟢 Finance 1 Foundation Implemented
-**Next Step:** Finance 2 — Monthly Budgeting
+**Status:** 🟢 Finance 2 Budgeting and Reports Implemented
+**Next Step:** Finance 3 — Goals, Rollover, and Monthly Close
 
 ---
 
@@ -1103,3 +1103,30 @@ The default category catalog remains product configuration in Finance 1. Categor
 Finance 1 intentionally does not include budgets, goals, monthly close, rollover, or deep reports.
 
 **Finance 1 Foundation: IMPLEMENTED**
+
+---
+
+# 35. Current Implementation — Finance 2
+
+Finance 2 turns the transaction foundation into a practical monthly planning
+and financial-history system.
+
+Implemented:
+
+* Stable category and subcategory records with one-time migration of Finance 1 transaction labels
+* Category and subcategory creation, renaming, ordering, archiving, restoration, and default selection
+* Safe category changes: historical transactions keep their identity when labels or organization change
+* Expected monthly income and subcategory-level budget allocations
+* Spending and progress derived directly from the transaction ledger
+* Unbudgeted and over-budget visibility without punitive language or effects
+* Copy-last-month behavior for fast recurring setup
+* Automatic monthly net-worth snapshots containing the balance of every active account
+* Manual point-in-time snapshots with recoverable deletion
+* Net-worth and individual-account history across 3 months, 6 months, year to date, 1 year, or all time
+* Reports for account balances, income versus spending, and category spending
+
+Finance 2 intentionally stores snapshots of historical balances while keeping
+the live account balance transaction-derived. Budget rollover, savings goals,
+and the guided monthly close remain Finance 3 work.
+
+**Finance 2 Budgeting and Reports: IMPLEMENTED**

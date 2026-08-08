@@ -1272,9 +1272,15 @@ components/
   FinanceTransactions
   FinanceAccounts
   FinanceAccountModal
+  FinanceBudget
+  FinanceCategoryManager
+  FinanceReports
 services/
   financeService
   financeCalculations
+  financeCategoryService
+  financeBudgetService
+  financeSnapshotService
 ```
 
 Finance remains the largest independent module.
@@ -2006,7 +2012,11 @@ Current milestone status:
 * Low-friction expense, income, transfer, and investment entry implemented
 * Transaction editing, deletion, undo, search, filters, and merchant memory implemented
 * Five-second Overview, account table, recent activity, and six-month flow implemented
-* Finance 2 will add customizable categories, monthly budgets, progress, and copy-last-month behavior
+* Customizable categories and subcategories with stable transaction relationships implemented
+* Monthly expected income, subcategory budgets, derived progress, and copy-last-month behavior implemented
+* Automatic monthly and manual net-worth/account-balance snapshots implemented
+* Net-worth, account-history, cash-flow, and category Reports implemented
+* Finance 3 will add goals, budget rollover, and the guided monthly close
 
 ## Phase 9 — Polish
 

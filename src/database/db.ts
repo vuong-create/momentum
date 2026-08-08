@@ -412,11 +412,74 @@ export interface FinanceTransaction {
   accountId?: number;
   fromAccountId?: number;
   toAccountId?: number;
+  categoryId?: number;
+  subcategoryId?: number;
   category?: string;
   subcategory?: string;
   notes?: string;
   tags: string[];
   investmentHolding?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface FinanceCategory {
+  id?: number;
+  name: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface FinanceSubcategory {
+  id?: number;
+  categoryId: number;
+  name: string;
+  sortOrder: number;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface FinanceBudgetMonth {
+  id?: number;
+  month: string;
+  expectedIncome: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinanceBudgetAllocation {
+  id?: number;
+  month: string;
+  subcategoryId: number;
+  baseAmount: number;
+  rolloverAmount: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface FinanceSnapshotAccount {
+  accountId: number;
+  name: string;
+  type: FinanceAccountType;
+  balance: number;
+}
+
+export interface FinanceNetWorthSnapshot {
+  id?: number;
+  snapshotKey: string;
+  date: string;
+  month: string;
+  source: "monthly" | "manual";
+  assets: number;
+  liabilities: number;
+  netWorth: number;
+  accounts: FinanceSnapshotAccount[];
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -451,6 +514,11 @@ class MomentumDatabase extends Dexie {
   cookingMealLogs!: Table<CookingMealLog>;
   financeAccounts!: Table<FinanceAccount>;
   financeTransactions!: Table<FinanceTransaction>;
+  financeCategories!: Table<FinanceCategory>;
+  financeSubcategories!: Table<FinanceSubcategory>;
+  financeBudgetMonths!: Table<FinanceBudgetMonth>;
+  financeBudgetAllocations!: Table<FinanceBudgetAllocation>;
+  financeNetWorthSnapshots!: Table<FinanceNetWorthSnapshot>;
 
   constructor() {
     super("MomentumDatabase");
@@ -781,6 +849,21 @@ class MomentumDatabase extends Dexie {
         "++id, name, type, updatedAt, deletedAt",
       financeTransactions:
         "++id, date, type, accountId, fromAccountId, toAccountId, merchant, category, subcategory, updatedAt, *tags, deletedAt",
+    });
+
+    this.version(22).stores({
+      financeTransactions:
+        "++id, date, type, accountId, fromAccountId, toAccountId, categoryId, subcategoryId, merchant, category, subcategory, updatedAt, *tags, deletedAt",
+      financeCategories:
+        "++id, name, sortOrder, updatedAt, deletedAt",
+      financeSubcategories:
+        "++id, categoryId, name, sortOrder, isDefault, updatedAt, deletedAt",
+      financeBudgetMonths:
+        "++id, &month, updatedAt",
+      financeBudgetAllocations:
+        "++id, month, subcategoryId, &[month+subcategoryId], updatedAt, deletedAt",
+      financeNetWorthSnapshots:
+        "++id, &snapshotKey, date, month, source, updatedAt, deletedAt",
     });
   }
 }

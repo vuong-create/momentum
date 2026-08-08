@@ -14,6 +14,8 @@ export interface FinanceTransactionInput {
   accountId?: number;
   fromAccountId?: number;
   toAccountId?: number;
+  categoryId?: number;
+  subcategoryId?: number;
   category?: string;
   subcategory?: string;
   notes?: string;
@@ -45,6 +47,8 @@ function normalizeTransaction(input: FinanceTransactionInput, existing?: Finance
     accountId: input.type === "transfer" ? undefined : input.accountId,
     fromAccountId: input.type === "transfer" ? input.fromAccountId : undefined,
     toAccountId: input.type === "transfer" ? input.toAccountId : undefined,
+    categoryId: input.type === "expense" || input.type === "income" ? input.categoryId : undefined,
+    subcategoryId: input.type === "expense" || input.type === "income" ? input.subcategoryId : undefined,
     category: input.type === "expense" || input.type === "income" ? input.category : undefined,
     subcategory: input.type === "expense" || input.type === "income" ? input.subcategory : undefined,
     notes: input.notes?.trim() || undefined,
@@ -100,11 +104,11 @@ export async function restoreFinanceTransaction(id: number) {
 }
 
 export function merchantSuggestions(transactions: FinanceTransaction[]) {
-  const memory = new Map<string, { merchant: string; category?: string; subcategory?: string; accountId?: number; count: number }>();
+  const memory = new Map<string, { merchant: string; categoryId?: number; subcategoryId?: number; category?: string; subcategory?: string; accountId?: number; count: number }>();
   transactions.filter((item) => !item.deletedAt && item.merchant).forEach((item) => {
     const key = item.merchant.toLocaleLowerCase();
     const current = memory.get(key);
-    memory.set(key, { merchant: item.merchant, category: item.category, subcategory: item.subcategory, accountId: item.accountId, count: (current?.count ?? 0) + 1 });
+    memory.set(key, { merchant: item.merchant, categoryId: item.categoryId, subcategoryId: item.subcategoryId, category: item.category, subcategory: item.subcategory, accountId: item.accountId, count: (current?.count ?? 0) + 1 });
   });
   return [...memory.values()].sort((a, b) => b.count - a.count || a.merchant.localeCompare(b.merchant));
 }

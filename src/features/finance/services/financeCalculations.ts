@@ -1,4 +1,4 @@
-import type { FinanceAccount, FinanceTransaction } from "../../../database/db";
+import type { FinanceAccount, FinanceCategory, FinanceTransaction } from "../../../database/db";
 
 export function visibleFinanceAccounts(accounts: FinanceAccount[]) {
   return accounts.filter((account) => !account.deletedAt);
@@ -53,11 +53,11 @@ export function getMonthSummary(transactions: FinanceTransaction[], month: strin
   };
 }
 
-export function getCategorySpending(transactions: FinanceTransaction[], month: string) {
+export function getCategorySpending(transactions: FinanceTransaction[], month: string, categories: FinanceCategory[] = []) {
   const totals = new Map<string, number>();
   visibleFinanceTransactions(transactions)
     .filter((item) => item.type === "expense" && item.date.startsWith(month))
-    .forEach((item) => totals.set(item.category || "Uncategorized", (totals.get(item.category || "Uncategorized") ?? 0) + item.amount));
+    .forEach((item) => { const name = categories.find((category) => category.id === item.categoryId)?.name || item.category || "Uncategorized"; totals.set(name, (totals.get(name) ?? 0) + item.amount); });
   return [...totals.entries()].map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
 }
 
