@@ -1,5 +1,6 @@
 import type { JournalEntry } from "../../../database/db";
 import { formatJournalDate } from "../dateFormatting";
+import { getJournalCategory } from "../journalPrompts";
 
 type JournalEntryCardProps = {
   entry: JournalEntry;
@@ -7,10 +8,15 @@ type JournalEntryCardProps = {
 };
 
 export default function JournalEntryCard({ entry, onOpen }: JournalEntryCardProps) {
+  const category = getJournalCategory(entry.category);
+
   return (
     <article className="journal-entry-card">
       <button type="button" onClick={() => onOpen(entry)}>
-        <span className="journal-entry-date">{formatJournalDate(entry.entryDate)}</span>
+        <span className="journal-entry-card-meta">
+          <span className="journal-entry-date">{formatJournalDate(entry.entryDate)}</span>
+          {category && <span className={`journal-category-badge journal-category-${category.id}`}>{category.mark} {category.label}</span>}
+        </span>
         {entry.title && <h3>{entry.title}</h3>}
         <p>{entry.text}</p>
         <small>

@@ -1719,6 +1719,9 @@ id
 title
 text
 
+category
+promptId
+
 createdAt
 updatedAt
 
@@ -1727,7 +1730,10 @@ entryDate
 
 Only text is required.
 
-Title remains optional.
+Title, category, and prompt origin remain optional. `category` uses one of
+`reflection`, `gratitude`, `memory`, `growth`, `ideas`, or `books`. `promptId`
+records which writing template started the entry without making the saved entry
+dependent on that template later. Existing uncategorized entries remain valid.
 
 ---
 

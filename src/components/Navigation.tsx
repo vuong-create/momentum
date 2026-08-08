@@ -51,7 +51,7 @@ const navigation: NavigationItem[] = [
   },
   {
     to: "/journal",
-    label: "Journal",
+    label: "Library",
     icon: "journal",
     pillarClass: "pillar-happiness",
   },

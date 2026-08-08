@@ -42,16 +42,34 @@ describe("journal services", () => {
       title: "  A good day  ",
       text: "  Dinner with friends.  ",
       entryDate: "2026-08-01",
+      category: "gratitude",
+      promptId: "three-good-things",
     });
-    await updateJournalEntry(id, { text: "Dinner and volleyball." });
+    await updateJournalEntry(id, {
+      text: "Dinner and volleyball.",
+      category: "memory",
+    });
     expect(await db.journalEntries.get(id)).toMatchObject({
       title: "A good day",
       text: "Dinner and volleyball.",
+      category: "memory",
+      promptId: "three-good-things",
     });
     await softDeleteJournalEntry(id);
     expect(visibleJournalEntries(await db.journalEntries.toArray())).toHaveLength(0);
     await restoreJournalEntry(id);
     expect(visibleJournalEntries(await db.journalEntries.toArray())).toHaveLength(1);
+  });
+
+  it("keeps categories optional and allows an entry to return to uncategorized", async () => {
+    const id = await createJournalEntry({
+      text: "A free page",
+      category: "reflection",
+    });
+    await updateJournalEntry(id, { category: undefined });
+    const entry = await db.journalEntries.get(id);
+    expect(entry?.text).toBe("A free page");
+    expect(entry?.category).toBeUndefined();
   });
 
   it("derives On This Day without creating memory records", async () => {

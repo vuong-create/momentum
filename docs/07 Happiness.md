@@ -1,13 +1,15 @@
-# Momentum — Happiness & Journal Pillar
+# Momentum — Library Pillar
 
 **Status:** 🟢 Foundation Implemented
-**Next Step:** Photo Memories
+**Next Step:** Reading and reflection refinements
 
 ---
 
 # 1. Purpose
 
-The Happiness & Journal pillar is Momentum's personal reflection and memory space.
+Library is Momentum's personal reflection, memory, and reading space. Journal is
+the writing section inside the broader Library pillar rather than the name of
+the entire destination.
 
 Its purpose is not to measure happiness or turn reflection into another productivity system.
 
@@ -62,11 +64,11 @@ The system prioritizes meaningful memories over graphs and statistics.
 
 # 3. Navigation
 
-Happiness & Journal contains five lightweight sections:
+Library contains five lightweight sections:
 
-1. Today
+1. Write
 2. Journal
-3. Library
+3. Books
 4. Look Back
 5. Quotes
 
@@ -84,9 +86,11 @@ A rotating quote provides a small moment of inspiration or reflection.
 
 A frictionless journal entry box.
 
-### Reflection Prompt
+### Prompt Library
 
-An optional rotating question for days when the user wants something to write about.
+An optional set of purpose-driven prompts for days when the user wants a way
+into the page. Selecting a prompt generates a light writing template; free
+writing always remains available.
 
 Nothing on this page is required.
 
@@ -104,7 +108,14 @@ The primary journal input is:
 
 No title is required.
 
-No category is required.
+No category is required. Optional one-tap categories help later retrieval:
+
+* Reflection
+* Gratitude
+* Memory
+* Growth
+* Ideas
+* Books
 
 No tags are required.
 
@@ -233,7 +244,9 @@ The exact local storage method will be determined during implementation.
 
 # 13. Reflection Prompts
 
-Momentum can optionally display one rotating reflection prompt.
+Momentum displays a compact prompt library grouped by purpose. Selecting a
+prompt assigns its category, suggests a title when the title is empty, and
+places a structured template onto the notebook page.
 
 Examples:
 
@@ -249,21 +262,21 @@ Examples:
 
 > What are you grateful for right now?
 
-The prompt library can grow over time.
+The prompt library can grow over time without changing saved entry content.
 
 ---
 
-# 14. Prompt Rotation
+# 14. Prompt Selection
 
-Reflection prompts rotate automatically.
+Prompts may be filtered by category.
 
 Actions:
 
-`Write`
+`Choose prompt`
 
-`Another Prompt`
+`Write freely`
 
-`Skip`
+`Filter by category`
 
 The user can always ignore the prompt and write freely.
 
@@ -888,7 +901,17 @@ Implemented in the first Journal milestone:
 * Personal Library with reading states and a physical bookshelf view
 * Optional book reflection link into Journal
 
-Photo attachments, memory galleries, and media compression are intentionally reserved for the next Journal milestone.
+Photo attachments, memory galleries, and media compression remain intentionally
+deferred; Apple Photos already covers that role well enough for now.
+
+Implemented in the Library evolution milestone:
+
+* Library becomes the visible pillar name while `/journal` remains the stable route
+* Write, Journal, Books, Look Back, and Quotes remain focused subsections
+* Optional Reflection, Gratitude, Memory, Growth, Ideas, and Books categories
+* Category badges, filtering, and editing
+* Prompt gallery with category filtering and generated writing templates
+* Prompt origin stored with the entry for future prompt-library analytics
 
 ---
 

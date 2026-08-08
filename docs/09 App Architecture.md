@@ -1380,7 +1380,7 @@ Meal scheduling reads from the shared Weekly Planner rather than creating a sepa
 
 ---
 
-# 53. Happiness / Journal Module
+# 53. Library / Journal Module
 
 Conceptual folder:
 
@@ -1388,8 +1388,10 @@ Conceptual folder:
 features/journal/
 
 JournalPage
+journalPrompts
 components/
   JournalToday
+  JournalCategorySelect
   JournalHistory
   JournalEntryModal
   JournalLookBack
@@ -1404,6 +1406,11 @@ services/
 The notebook appearance belongs primarily in presentation components.
 
 The underlying Journal data remains normal structured records.
+
+The user-facing pillar is **Library**, while the established `/journal` route,
+feature folder, and database table remain stable to avoid a cosmetic rename
+causing migration risk. Prompt definitions live as static product configuration;
+entries store only an optional category and prompt ID alongside their own text.
 
 ---
 
@@ -1915,7 +1922,7 @@ Current milestone status:
 * Centered Home progression breakdown and recent history implemented
 * Weekly bonus automation, milestone snapshots, and celebrations remain future XP milestones
 
-## Phase 4 — Happiness / Journal
+## Phase 4 — Library / Journal
 
 * Quick journal
 * Notebook view
@@ -1927,7 +1934,8 @@ Current milestone status:
 * Quick Journal, notebook view, history, calendar, editing, and undo implemented
 * Look Back and unified quote collection implemented
 * Personal Library and bookshelf implemented
-* Photo memories deferred to the next Journal milestone
+* Library pillar naming, optional categories, and prompt-generated templates implemented
+* Photo memories remain intentionally deferred
 
 ## Phase 5 — Chinese
 
