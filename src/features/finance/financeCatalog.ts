@@ -1,4 +1,4 @@
-import type { FinanceAccountType, FinanceTransactionType } from "../../database/db";
+import type { FinanceAccountType, FinanceCategoryFlow, FinanceTransactionType } from "../../database/db";
 
 export const financeAccountTypes: Array<{ value: FinanceAccountType; label: string }> = [
   { value: "checking", label: "Checking" },
@@ -16,22 +16,21 @@ export const financeTransactionTypes: Array<{ value: Exclude<FinanceTransactionT
   { value: "investment", label: "Investment" },
 ];
 
-export const financeCategories: Array<{ name: string; subcategories: string[] }> = [
-  { name: "Food", subcategories: ["Groceries", "Dining"] },
-  { name: "Housing", subcategories: ["Rent", "Household"] },
-  { name: "Transportation", subcategories: ["Gas", "Maintenance"] },
-  { name: "Personal", subcategories: ["Hygiene", "Clothing"] },
-  { name: "Lifestyle", subcategories: ["Growth Hobbies", "Entertainment", "Gym"] },
-  { name: "Gifts & Giving", subcategories: ["Gifts", "Giving"] },
-  { name: "Savings", subcategories: ["HYSA", "Vacation"] },
-  { name: "Investments", subcategories: ["Brokerage", "401(k)", "Crypto"] },
-  { name: "Income", subcategories: ["Paycheck", "Bonus", "Other Income"] },
-  { name: "Miscellaneous", subcategories: ["Other"] },
-];
+export const financeFlowLabels: Record<FinanceCategoryFlow, string> = {
+  expense: "Expense",
+  investment: "Investment",
+  income: "Income",
+  saving: "Long-term Saving",
+};
 
-export function subcategoriesFor(category: string) {
-  return financeCategories.find((item) => item.name === category)?.subcategories ?? [];
-}
+export const financeFlowOrder: FinanceCategoryFlow[] = ["expense", "investment", "income", "saving"];
+
+export const financeCategories: Array<{ name: string; flowType: FinanceCategoryFlow }> = [
+  ...["Rent", "Groceries", "Dining", "Household", "Personal Care", "Clothing", "Fitness", "Volleyball", "Language Learning", "Entertainment", "Gifts", "Travel", "Transportation", "Chump", "Gas", "Subscriptions", "Miscellaneous"].map((name) => ({ name, flowType: "expense" as const })),
+  ...["Vanguard Brokerage", "Crypto", "Individual Stocks"].map((name) => ({ name, flowType: "investment" as const })),
+  ...["NEO", "SJVBC"].map((name) => ({ name, flowType: "income" as const })),
+  { name: "HYSA", flowType: "saving" },
+];
 
 export function accountTypeLabel(type: FinanceAccountType) {
   return financeAccountTypes.find((item) => item.value === type)?.label ?? type;

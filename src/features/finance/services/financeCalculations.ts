@@ -38,16 +38,19 @@ export function getNetWorth(accounts: FinanceAccount[], transactions: FinanceTra
   return getAccountBalances(accounts, transactions).reduce((total, item) => total + item.balance, 0);
 }
 
-export function getMonthSummary(transactions: FinanceTransaction[], month: string) {
+export function getMonthSummary(transactions: FinanceTransaction[], month: string, categories: FinanceCategory[] = []) {
   const monthTransactions = visibleFinanceTransactions(transactions).filter((item) => item.date.startsWith(month));
   const income = monthTransactions.filter((item) => item.type === "income").reduce((total, item) => total + item.amount, 0);
   const expenses = monthTransactions.filter((item) => item.type === "expense").reduce((total, item) => total + item.amount, 0);
   const invested = monthTransactions.filter((item) => item.type === "investment").reduce((total, item) => total + item.amount, 0);
-  const remaining = income - expenses - invested;
+  const savingIds = new Set(categories.filter((item) => item.flowType === "saving").map((item) => item.id));
+  const saved = monthTransactions.filter((item) => item.type === "transfer" && (savingIds.has(item.categoryId) || item.category === "HYSA")).reduce((total, item) => total + item.amount, 0);
+  const remaining = income - expenses - invested - saved;
   return {
     income,
     expenses,
     invested,
+    saved,
     remaining,
     savingsRate: income > 0 ? Math.max(0, ((income - expenses) / income) * 100) : 0,
   };
@@ -61,11 +64,11 @@ export function getCategorySpending(transactions: FinanceTransaction[], month: s
   return [...totals.entries()].map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
 }
 
-export function getSixMonthCashFlow(transactions: FinanceTransaction[], now: Date) {
+export function getSixMonthCashFlow(transactions: FinanceTransaction[], now: Date, categories: FinanceCategory[] = []) {
   return Array.from({ length: 6 }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
     const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-    return { month, label: date.toLocaleDateString("en-US", { month: "short" }), ...getMonthSummary(transactions, month) };
+    return { month, label: date.toLocaleDateString("en-US", { month: "short" }), ...getMonthSummary(transactions, month, categories) };
   });
 }
 

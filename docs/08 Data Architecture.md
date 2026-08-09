@@ -793,16 +793,16 @@ Primary records:
 * Net worth snapshots
 * Monthly reviews
 
-Current Finance 2 implementation:
+Current Finance 2.1 implementation:
 
 * `financeAccounts` stores the account identity, type, and opening balance.
 * `financeTransactions` stores expenses, income, transfers, and investments.
 * Current balances, net worth, monthly cash flow, savings rate, and category spending are derived in the Finance calculation layer.
 * Transfers are one logical record with `fromAccountId` and `toAccountId`; they never count as income or spending.
 * Account and transaction deletion is soft and recoverable. Accounts with active transaction history cannot be removed.
-* `financeCategories` and `financeSubcategories` provide stable identifiers for customization; legacy Finance 1 transaction labels migrate to those identifiers without replacing transaction records.
-* `financeBudgetMonths` stores expected income once per month and `financeBudgetAllocations` stores the base allocation per month and subcategory.
-* Budget spending is never duplicated: it is derived from expense transactions linked to each subcategory.
+* `financeCategories` provides stable one-level identifiers grouped by financial flow. Legacy Finance 1 and Finance 2 category/subcategory labels migrate without replacing transaction records.
+* `financeBudgetMonths` preserves monthly setup metadata and `financeBudgetAllocations` stores the planned amount per month and category.
+* Actual expense, income, investment, and saving values are never duplicated; each is derived from the matching transaction flow and category.
 * `financeNetWorthSnapshots` stores dated assets, liabilities, net worth, and an embedded balance for every account. The current month's automatic snapshot is updated as the ledger changes; manual snapshots preserve deliberate points in time.
 
 ---
@@ -877,23 +877,15 @@ FinanceCategory
 
 id
 name
+flowType
 order
 active
 ```
 
-Subcategory:
-
-```text
-FinanceSubcategory
-
-id
-categoryId
-name
-order
-active
-```
-
-Only two category levels exist.
+`flowType` is one of expense, investment, income, or saving. The transaction
+type and category flow provide the hierarchy, so the active Finance interface
+does not require subcategories. Legacy subcategory records remain readable
+only for the one-time Finance 2.1 migration.
 
 Merchants remain separate.
 
@@ -952,14 +944,14 @@ year
 expectedIncome
 ```
 
-Individual subcategory budget:
+Individual category plan:
 
 ```text
 BudgetAllocation
 
 id
 monthlyBudgetId
-subcategoryId
+categoryId
 
 baseAmount
 rolloverAmount
@@ -974,7 +966,7 @@ available = baseAmount + rolloverAmount
 Actual spending comes from Transactions.
 
 Current persistent tables use one `FinanceBudgetMonth` per `YYYY-MM` month and
-one `FinanceBudgetAllocation` per month/subcategory pair. `rolloverAmount`
+one `FinanceBudgetAllocation` per month/category pair. `rolloverAmount`
 exists in the schema so Finance 3 can add deliberate rollover rules without a
 budget migration; it remains zero in Finance 2.
 
