@@ -13,9 +13,9 @@ import FinanceOverview from "./components/FinanceOverview";
 import FinanceReports from "./components/FinanceReports";
 import FinanceTransactions from "./components/FinanceTransactions";
 import TransactionComposer from "./components/TransactionComposer";
-import { formatMoney, getMonthSummary, getNetWorth, visibleFinanceAccounts, visibleFinanceTransactions } from "./services/financeCalculations";
-import { copyPreviousBudget, setBudgetAllocation, setExpectedIncome } from "./services/financeBudgetService";
-import { archiveFinanceCategory, archiveFinanceSubcategory, createFinanceCategory, createFinanceSubcategory, ensureFinanceCategories, moveFinanceCategory, renameFinanceCategory, restoreFinanceCategory, restoreFinanceSubcategory, setDefaultFinanceSubcategory, updateFinanceSubcategory, visibleFinanceCategories, visibleFinanceSubcategories } from "./services/financeCategoryService";
+import { formatMoney, getMonthSummary, visibleFinanceAccounts, visibleFinanceTransactions } from "./services/financeCalculations";
+import { calculateBudgetRows, copyPreviousBudget, setBudgetAllocation } from "./services/financeBudgetService";
+import { archiveFinanceCategory, createFinanceCategory, ensureFinanceCategories, moveFinanceCategory, renameFinanceCategory, restoreFinanceCategory, visibleFinanceCategories } from "./services/financeCategoryService";
 import { createFinanceAccount, createFinanceTransaction, restoreFinanceAccount, restoreFinanceTransaction, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceAccount, updateFinanceTransaction, type FinanceAccountInput, type FinanceTransactionInput } from "./services/financeService";
 import { restoreNetWorthSnapshot, saveManualNetWorthSnapshot, softDeleteNetWorthSnapshot, upsertMonthlyNetWorthSnapshot, visibleNetWorthSnapshots } from "./services/financeSnapshotService";
 
@@ -41,24 +41,23 @@ export default function FinancePage() {
   const allAccounts = useLiveQuery(() => db.financeAccounts.toArray(), []) ?? [];
   const allTransactions = useLiveQuery(() => db.financeTransactions.toArray(), []) ?? [];
   const allCategories = useLiveQuery(() => db.financeCategories.toArray(), []) ?? [];
-  const allSubcategories = useLiveQuery(() => db.financeSubcategories.toArray(), []) ?? [];
   const budgetMonths = useLiveQuery(() => db.financeBudgetMonths.toArray(), []) ?? [];
   const budgetAllocations = useLiveQuery(() => db.financeBudgetAllocations.toArray(), []) ?? [];
   const allSnapshots = useLiveQuery(() => db.financeNetWorthSnapshots.toArray(), []) ?? [];
   const accounts = visibleFinanceAccounts(allAccounts);
   const transactions = visibleFinanceTransactions(allTransactions);
   const categories = visibleFinanceCategories(allCategories);
-  const subcategories = visibleFinanceSubcategories(allSubcategories);
   const snapshots = visibleNetWorthSnapshots(allSnapshots);
   const todayKey = dateKey(experience.now);
   const month = todayKey.slice(0, 7);
-  const summary = getMonthSummary(transactions, month);
-  const netWorth = getNetWorth(accounts, transactions);
+  const summary = getMonthSummary(transactions, month, categories);
+  const currentBudgetRows = calculateBudgetRows(month, budgetAllocations, categories, transactions);
+  const expenseBudgetRemaining = currentBudgetRows.filter((row) => row.category.flowType === "expense").reduce((total, row) => total + row.remaining, 0);
 
   useEffect(() => { void ensureFinanceCategories(); }, []);
   useEffect(() => { void upsertMonthlyNetWorthSnapshot(accounts, transactions, new Date(`${todayKey}T12:00:00`)); }, [accounts, transactions, todayKey]);
 
-  function selectView(next: FinanceView) { setView(next); sessionStorage.setItem("momentum.finance.tab", next); if (next !== "transactions") setEditingTransaction(null); }
+  function selectView(next: FinanceView) { setView(next); sessionStorage.setItem("momentum.finance.tab", next); window.scrollTo({ top: 0, behavior: "smooth" }); if (next !== "transactions") setEditingTransaction(null); }
   async function saveAccount(input: FinanceAccountInput) {
     if (accountModal && accountModal !== "new" && accountModal.id) {
       const previous = { ...accountModal }; await updateFinanceAccount(accountModal.id, input); experience.playFeedback("task-updated");
@@ -78,18 +77,18 @@ export default function FinancePage() {
   async function removeTransaction(item: FinanceTransaction) { if (!item.id) return; await softDeleteFinanceTransaction(item.id); experience.playFeedback("task-dismissed"); undo.show({ message: "Transaction removed", undo: () => restoreFinanceTransaction(item.id!) }); }
 
   return <div className="finance-page">
-    <header className="finance-page-header"><div><span className="text-label">Clarity · Intention · Growth</span><h1 className="font-pixel">Finance</h1><p>Your financial life, without the spreadsheet friction.</p></div><div className="finance-header-stats"><span><small>Net worth</small><strong>{formatMoney(netWorth, true)}</strong></span><span><small>This month</small><strong className={summary.remaining >= 0 ? "is-positive" : "is-negative"}>{formatMoney(summary.remaining, true)}</strong></span><span><small>Accounts</small><strong>{accounts.length}</strong></span></div></header>
+    <header className="finance-page-header"><div><span className="text-label">Clarity · Intention · Growth</span><h1 className="font-pixel">Finance</h1><p>Your financial life, without the spreadsheet friction.</p></div><div className="finance-header-stats"><span><small>Spent this month</small><strong>{formatMoney(summary.expenses, true)}</strong></span><span><small>Savings rate</small><strong className={summary.savingsRate >= 0 ? "is-positive" : "is-negative"}>{summary.savingsRate.toFixed(0)}%</strong></span><span><small>Budget remaining</small><strong className={expenseBudgetRemaining >= 0 ? "is-positive" : "is-negative"}>{formatMoney(expenseBudgetRemaining, true)}</strong></span></div></header>
     <nav className="finance-tabs" aria-label="Finance sections">{tabs.map((tab) => <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}</button>)}</nav>
     <main className="finance-content">
-      {view === "transactions" && <TransactionComposer key={editingTransaction?.id ?? "new"} accounts={accounts} transactions={transactions} categories={categories} subcategories={subcategories} editing={editingTransaction} todayKey={todayKey} onSave={saveTransaction} onCancelEdit={() => setEditingTransaction(null)} />}
-      {view === "overview" && <FinanceOverview accounts={accounts} transactions={transactions} categories={allCategories} subcategories={allSubcategories} now={experience.now} onAddAccount={() => setAccountModal("new")} onOpenTransactions={() => selectView("transactions")} />}
-      {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} subcategories={allSubcategories} transactions={transactions} onEdit={(item) => { setEditingTransaction(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} onDelete={removeTransaction} />}
-      {view === "budget" && <FinanceBudget now={experience.now} categories={categories} subcategories={subcategories} months={budgetMonths} allocations={budgetAllocations} transactions={transactions} onSetExpectedIncome={async (budgetMonth, amount) => { await setExpectedIncome(budgetMonth, amount); experience.playFeedback("task-updated"); }} onSetAllocation={async (budgetMonth, subcategoryId, amount) => { await setBudgetAllocation(budgetMonth, subcategoryId, amount); experience.playFeedback("task-updated"); }} onCopyPrevious={async (budgetMonth) => { const count = await copyPreviousBudget(budgetMonth); experience.playFeedback("task-restored"); return count; }} onManageCategories={() => setCategoryManagerOpen(true)} />}
+      {view === "transactions" && <TransactionComposer key={editingTransaction?.id ?? "new"} accounts={accounts} transactions={transactions} categories={categories} editing={editingTransaction} todayKey={todayKey} onSave={saveTransaction} onCancelEdit={() => setEditingTransaction(null)} />}
+      {view === "overview" && <FinanceOverview accounts={accounts} transactions={transactions} categories={allCategories} now={experience.now} onAddAccount={() => setAccountModal("new")} onOpenTransactions={() => selectView("transactions")} />}
+      {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} onEdit={(item) => { setEditingTransaction(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} onDelete={removeTransaction} />}
+      {view === "budget" && <FinanceBudget now={experience.now} categories={categories} months={budgetMonths} allocations={budgetAllocations} transactions={transactions} onSetAllocation={async (budgetMonth, categoryId, amount) => { await setBudgetAllocation(budgetMonth, categoryId, amount); experience.playFeedback("task-updated"); }} onCopyPrevious={async (budgetMonth) => { const count = await copyPreviousBudget(budgetMonth); experience.playFeedback("task-restored"); return count; }} onManageCategories={() => setCategoryManagerOpen(true)} />}
       {view === "accounts" && <FinanceAccounts accounts={accounts} transactions={transactions} onAdd={() => setAccountModal("new")} onEdit={setAccountModal} />}
-      {view === "reports" && <FinanceReports now={experience.now} accounts={accounts} categories={allCategories} transactions={transactions} snapshots={snapshots} onSaveSnapshot={async () => { const id = await saveManualNetWorthSnapshot(accounts, transactions, experience.now); experience.playFeedback("finance-snapshot"); undo.show({ message: "Net worth snapshot saved", undo: () => softDeleteNetWorthSnapshot(id) }); }} onDeleteSnapshot={async (snapshot: FinanceNetWorthSnapshot) => { await softDeleteNetWorthSnapshot(snapshot.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Snapshot removed", undo: () => restoreNetWorthSnapshot(snapshot.id!) }); }} />}
+      {view === "reports" && <FinanceReports now={experience.now} accounts={accounts} categories={allCategories} allocations={budgetAllocations} transactions={transactions} snapshots={snapshots} onSaveSnapshot={async () => { const id = await saveManualNetWorthSnapshot(accounts, transactions, experience.now); experience.playFeedback("finance-snapshot"); undo.show({ message: "Net worth snapshot saved", undo: () => softDeleteNetWorthSnapshot(id) }); }} onDeleteSnapshot={async (snapshot: FinanceNetWorthSnapshot) => { await softDeleteNetWorthSnapshot(snapshot.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Snapshot removed", undo: () => restoreNetWorthSnapshot(snapshot.id!) }); }} />}
     </main>
     {accountModal && <FinanceAccountModal account={accountModal === "new" ? null : accountModal} onClose={() => setAccountModal(null)} onSave={saveAccount} onDelete={accountModal !== "new" && accountModal.id ? async () => { await softDeleteFinanceAccount(accountModal.id!); experience.playFeedback("task-dismissed"); undo.show({ message: `${accountModal.name} removed`, undo: () => restoreFinanceAccount(accountModal.id!) }); } : undefined} />}
-    {categoryManagerOpen && <FinanceCategoryManager categories={allCategories} subcategories={allSubcategories} onClose={() => setCategoryManagerOpen(false)} onAddCategory={async (name) => { await createFinanceCategory(name); experience.playFeedback("task-added"); }} onRenameCategory={renameFinanceCategory} onMoveCategory={moveFinanceCategory} onArchiveCategory={archiveFinanceCategory} onRestoreCategory={restoreFinanceCategory} onAddSubcategory={async (categoryId, name) => { await createFinanceSubcategory(categoryId, name); experience.playFeedback("task-added"); }} onUpdateSubcategory={updateFinanceSubcategory} onArchiveSubcategory={archiveFinanceSubcategory} onRestoreSubcategory={restoreFinanceSubcategory} onSetDefault={setDefaultFinanceSubcategory} />}
+    {categoryManagerOpen && <FinanceCategoryManager categories={allCategories} onClose={() => setCategoryManagerOpen(false)} onAddCategory={async (name, flowType) => { await createFinanceCategory(name, flowType); experience.playFeedback("task-added"); }} onRenameCategory={renameFinanceCategory} onMoveCategory={moveFinanceCategory} onArchiveCategory={archiveFinanceCategory} onRestoreCategory={restoreFinanceCategory} />}
     <ActivityUndoToast notice={undo.notice} onDismiss={undo.dismiss} onUndo={undo.undo} />
   </div>;
 }

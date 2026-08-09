@@ -393,6 +393,12 @@ export type FinanceTransactionType =
   | "investment"
   | "adjustment";
 
+export type FinanceCategoryFlow =
+  | "expense"
+  | "investment"
+  | "income"
+  | "saving";
+
 export interface FinanceAccount {
   id?: number;
   name: string;
@@ -427,6 +433,7 @@ export interface FinanceTransaction {
 export interface FinanceCategory {
   id?: number;
   name: string;
+  flowType: FinanceCategoryFlow;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -455,7 +462,8 @@ export interface FinanceBudgetMonth {
 export interface FinanceBudgetAllocation {
   id?: number;
   month: string;
-  subcategoryId: number;
+  categoryId?: number;
+  subcategoryId?: number;
   baseAmount: number;
   rolloverAmount: number;
   createdAt: string;
@@ -864,6 +872,13 @@ class MomentumDatabase extends Dexie {
         "++id, month, subcategoryId, &[month+subcategoryId], updatedAt, deletedAt",
       financeNetWorthSnapshots:
         "++id, &snapshotKey, date, month, source, updatedAt, deletedAt",
+    });
+
+    this.version(23).stores({
+      financeCategories:
+        "++id, name, flowType, sortOrder, updatedAt, deletedAt",
+      financeBudgetAllocations:
+        "++id, month, categoryId, subcategoryId, &[month+categoryId], updatedAt, deletedAt",
     });
   }
 }

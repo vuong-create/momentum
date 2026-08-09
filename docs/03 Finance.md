@@ -1,6 +1,6 @@
 # Momentum — Finance Pillar
 
-**Status:** 🟢 Finance 2 Budgeting and Reports Implemented
+**Status:** 🟢 Finance 2.1 Planning and Reports Polish Implemented
 **Next Step:** Finance 3 — Goals, Rollover, and Monthly Close
 
 ---
@@ -93,7 +93,6 @@ Fields:
 * Amount
 * Type
 * Category
-* Subcategory
 * Merchant
 * Account
 * Notes
@@ -128,8 +127,7 @@ could suggest:
 
 and remember commonly associated information such as:
 
-* Category: Food
-* Subcategory: Groceries
+* Category: Groceries
 
 This reduces repetitive entry.
 
@@ -145,7 +143,6 @@ It should support:
 * Inline editing
 * Date filtering
 * Category filtering
-* Subcategory filtering
 * Merchant filtering
 * Account filtering
 * Tag filtering
@@ -166,67 +163,29 @@ Users can:
 * Delete
 * Reorder
 
-The structure uses exactly two levels:
-
-**Category → Subcategory**
-
-No third category level.
-
-Merchants provide additional detail without requiring more category levels.
+The current structure intentionally uses one visible category level. Transaction
+type provides the higher-level financial flow, avoiding redundant category and
+subcategory decisions during entry.
 
 ## Default Categories
 
-### Food
+### Expense
 
-* Groceries
-* Dining
+Rent, Groceries, Dining, Household, Personal Care, Clothing, Fitness,
+Volleyball, Language Learning, Entertainment, Gifts, Travel, Transportation,
+Chump, Gas, Subscriptions, and Miscellaneous.
 
-### Housing
+### Investment
 
-* Rent
-* Household
-
-### Transportation
-
-* Gas
-* Maintenance
-
-### Personal
-
-* Hygiene
-* Clothing
-
-### Lifestyle
-
-* Growth Hobbies
-* Entertainment
-* Gym
-
-### Gifts & Giving
-
-* Kelsey
-* Gifts
-
-### Savings
-
-* HYSA
-* Vacation
-
-### Investments
-
-* Vanguard
-* 401(k)
-* Crypto
+Vanguard Brokerage, Crypto, and Individual Stocks.
 
 ### Income
 
-* Paycheck
-* Bonus
-* Other Income
+NEO and SJVBC.
 
-### Miscellaneous
+### Long-term Saving
 
-* Other
+HYSA.
 
 These are defaults and remain fully customizable.
 
@@ -284,18 +243,14 @@ Transfers move money between accounts without being counted as spending or incom
 
 Budgets are monthly.
 
-Budget amounts are set at the **subcategory level**.
-
-Parent categories automatically total their subcategories.
+Plan amounts are set directly on the single visible category level.
 
 Example:
 
-Food
-
 * Groceries — $500
 * Dining — $250
-
-Food Total — $750
+* HYSA — $600
+* Vanguard Brokerage — $400
 
 ## Monthly Setup
 
@@ -311,7 +266,7 @@ The goal is for normal monthly budget setup to take less than a minute.
 
 # 9. Budget Progress Bars
 
-Each budgeted subcategory displays:
+Each planned category displays:
 
 * Base budget
 * Rollover
@@ -355,7 +310,7 @@ There is no XP penalty or financial punishment.
 
 Unused budget money is rewarded.
 
-If a subcategory finishes under budget, the unused amount rolls into the next month.
+If a category finishes under budget, the unused amount rolls into the next month.
 
 Example:
 
@@ -471,7 +426,7 @@ Example:
 * Saved / Invested
 * Rollover
 
-Detailed category and subcategory progress bars appear below.
+Detailed category progress bars appear below.
 
 ---
 
@@ -631,7 +586,6 @@ Reports include:
 * Spending history
 * Savings rate over time
 * Spending by category
-* Spending by subcategory
 * Net worth over time
 * Monthly surplus / deficit
 * Merchant spending
@@ -775,7 +729,7 @@ Suggested columns:
 
 * Date
 * Merchant
-* Category / Subcategory
+* Category
 * Amount
 
 A **View All** action opens Transactions.
@@ -1106,27 +1060,29 @@ Finance 1 intentionally does not include budgets, goals, monthly close, rollover
 
 ---
 
-# 35. Current Implementation — Finance 2
+# 35. Current Implementation — Finance 2.1
 
 Finance 2 turns the transaction foundation into a practical monthly planning
 and financial-history system.
 
 Implemented:
 
-* Stable category and subcategory records with one-time migration of Finance 1 transaction labels
-* Category and subcategory creation, renaming, ordering, archiving, restoration, and default selection
+* Stable one-level flow categories with one-time migration of Finance 1 and Finance 2 labels
+* Category creation, renaming, ordering, archiving, and restoration within each financial flow
 * Safe category changes: historical transactions keep their identity when labels or organization change
-* Expected monthly income and subcategory-level budget allocations
+* Category-level monthly plans with a hybrid slider and exact dollar input
 * Spending and progress derived directly from the transaction ledger
 * Unbudgeted and over-budget visibility without punitive language or effects
 * Copy-last-month behavior for fast recurring setup
 * Automatic monthly net-worth snapshots containing the balance of every active account
 * Manual point-in-time snapshots with recoverable deletion
 * Net-worth and individual-account history across 3 months, 6 months, year to date, 1 year, or all time
-* Reports for account balances, income versus spending, and category spending
+* Month in Review with planned, actual, utilization, three-month average, and remaining values
+* Budget-versus-actual, savings-rate, account-balance, income-versus-spending, category-spending, and net-worth charts
+* Net worth contained within Reports rather than repeated in Overview or the Finance header
 
 Finance 2 intentionally stores snapshots of historical balances while keeping
 the live account balance transaction-derived. Budget rollover, savings goals,
 and the guided monthly close remain Finance 3 work.
 
-**Finance 2 Budgeting and Reports: IMPLEMENTED**
+**Finance 2.1 Planning and Reports Polish: IMPLEMENTED**

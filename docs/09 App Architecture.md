@@ -2012,10 +2012,12 @@ Current milestone status:
 * Low-friction expense, income, transfer, and investment entry implemented
 * Transaction editing, deletion, undo, search, filters, and merchant memory implemented
 * Five-second Overview, account table, recent activity, and six-month flow implemented
-* Customizable categories and subcategories with stable transaction relationships implemented
-* Monthly expected income, subcategory budgets, derived progress, and copy-last-month behavior implemented
+* One-level flow categories for expenses, investments, income, and long-term saving implemented
+* Finance 2 category/subcategory data safely migrates to the approved Finance 2.1 catalog
+* Hybrid slider and exact-input monthly planning with copy-last-month behavior implemented
 * Automatic monthly and manual net-worth/account-balance snapshots implemented
-* Net-worth, account-history, cash-flow, and category Reports implemented
+* Net worth removed from Overview/header and contained within Reports
+* Month in Review, budget-versus-actual, savings-rate, net-worth, account-history, cash-flow, and category Reports implemented
 * Finance 3 will add goals, budget rollover, and the guided monthly close
 
 ## Phase 9 — Polish
