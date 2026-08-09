@@ -793,14 +793,17 @@ Primary records:
 * Net worth snapshots
 * Monthly reviews
 
-Current Finance 1 implementation:
+Current Finance 2 implementation:
 
 * `financeAccounts` stores the account identity, type, and opening balance.
 * `financeTransactions` stores expenses, income, transfers, and investments.
 * Current balances, net worth, monthly cash flow, savings rate, and category spending are derived in the Finance calculation layer.
 * Transfers are one logical record with `fromAccountId` and `toAccountId`; they never count as income or spending.
 * Account and transaction deletion is soft and recoverable. Accounts with active transaction history cannot be removed.
-* The initial category catalog is static product configuration until Finance 2 adds customizable categories and budget relationships.
+* `financeCategories` and `financeSubcategories` provide stable identifiers for customization; legacy Finance 1 transaction labels migrate to those identifiers without replacing transaction records.
+* `financeBudgetMonths` stores expected income once per month and `financeBudgetAllocations` stores the base allocation per month and subcategory.
+* Budget spending is never duplicated: it is derived from expense transactions linked to each subcategory.
+* `financeNetWorthSnapshots` stores dated assets, liabilities, net worth, and an embedded balance for every account. The current month's automatic snapshot is updated as the ledger changes; manual snapshots preserve deliberate points in time.
 
 ---
 
@@ -930,6 +933,10 @@ rather than becoming disconnected from transaction data.
 
 Finance 1 follows this rule exactly. `currentBalance` is not stored.
 
+Finance 2 preserves this rule. Reports store explicit historical snapshots, but
+the live balance shown throughout the application is still recalculated from
+the opening balance and transaction history.
+
 ---
 
 # 29. Finance Budgets
@@ -965,6 +972,39 @@ available = baseAmount + rolloverAmount
 ```
 
 Actual spending comes from Transactions.
+
+Current persistent tables use one `FinanceBudgetMonth` per `YYYY-MM` month and
+one `FinanceBudgetAllocation` per month/subcategory pair. `rolloverAmount`
+exists in the schema so Finance 3 can add deliberate rollover rules without a
+budget migration; it remains zero in Finance 2.
+
+---
+
+# 29A. Finance Net Worth Snapshots
+
+Historical reports use a deliberate snapshot record:
+
+```text
+FinanceNetWorthSnapshot
+
+snapshotKey
+date
+month
+source
+
+assets
+liabilities
+netWorth
+
+accounts[]
+createdAt
+updatedAt
+deletedAt
+```
+
+Each embedded account value preserves the account ID, name, type, and balance
+at that moment. This allows an individual account history to remain readable
+even when the live account is later renamed or archived.
 
 ---
 

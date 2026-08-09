@@ -17,6 +17,7 @@ export type FeedbackCue =
   | "finance-account-added"
   | "finance-transaction"
   | "finance-income"
+  | "finance-snapshot"
   | "navigation";
 
 type Tone = {
@@ -184,6 +185,13 @@ function getCueTones(cue: FeedbackCue): Tone[] {
 
   if (cue === "finance-transaction") {
     return [{ frequency: 390, endFrequency: 480, duration: 0.09, volume: 0.009, type: "sine" }];
+  }
+
+  if (cue === "finance-snapshot") {
+    return [
+      { frequency: 261.63, endFrequency: 392, duration: 0.14, volume: 0.011, type: "sine" },
+      { frequency: 587.33, delay: 0.075, duration: 0.18, volume: 0.012, type: "triangle" },
+    ];
   }
 
   if (cue === "task-added" || cue === "task-updated") {
