@@ -1,6 +1,6 @@
 import type { FinanceAccount, FinanceCategory, FinanceTransaction } from "../../../database/db";
 import { accountTypeLabel } from "../financeCatalog";
-import { formatMoney, getAccountBalances, getCategorySpending, getMonthSummary, getSixMonthCashFlow } from "../services/financeCalculations";
+import { formatMoney, getAccountBalances, getCategorySpending, getMonthSummary, getSixMonthCashFlow, transactionSignedAmount } from "../services/financeCalculations";
 
 interface Props {
   accounts: FinanceAccount[];
@@ -12,7 +12,6 @@ interface Props {
 }
 
 function monthKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; }
-function transactionAmount(item: FinanceTransaction) { return item.type === "expense" ? -item.amount : item.type === "transfer" ? 0 : item.amount; }
 
 export default function FinanceOverview({ accounts, transactions, categories: categoryRecords, now, onAddAccount, onOpenTransactions }: Props) {
   const month = monthKey(now);
@@ -47,6 +46,6 @@ export default function FinanceOverview({ accounts, transactions, categories: ca
       <section className="finance-panel finance-category-summary"><header><div><span className="text-label">Spending</span><h3>By category</h3></div><small>{new Intl.DateTimeFormat("en-US", { month: "long" }).format(now)}</small></header>{categories.length ? <div>{categories.slice(0, 5).map((item) => <article key={item.category}><div><span>{item.category}</span><strong>{formatMoney(item.amount)}</strong></div><i><span style={{ width: `${item.amount / categories[0].amount * 100}%` }} /></i></article>)}</div> : <p className="finance-empty-copy">Expenses will organize themselves here.</p>}</section>
     </div>
 
-    <section className="finance-panel finance-recent"><header><div><span className="text-label">Recent activity</span><h3>Latest transactions</h3></div><button type="button" onClick={onOpenTransactions}>View all →</button></header>{recent.length ? <div>{recent.map((item) => { const category = categoryRecords.find((entry) => entry.id === item.categoryId)?.name ?? item.category; return <article key={item.id}><time>{new Date(`${item.date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</time><span className={`finance-transaction-glyph type-${item.type}`}>{item.type === "income" ? "＋" : item.type === "transfer" ? "↔" : item.type === "investment" ? "↗" : "−"}</span><div><strong>{item.merchant}</strong><small>{category ?? (item.type === "transfer" ? "Transfer" : item.type)}</small></div><b className={transactionAmount(item) > 0 ? "is-positive" : transactionAmount(item) < 0 ? "is-negative" : ""}>{item.type === "transfer" ? formatMoney(item.amount) : `${transactionAmount(item) > 0 ? "+" : ""}${formatMoney(transactionAmount(item))}`}</b></article>; })}</div> : <p className="finance-empty-copy">Your latest financial decisions will appear here.</p>}</section>
+    <section className="finance-panel finance-recent"><header><div><span className="text-label">Recent activity</span><h3>Latest transactions</h3></div><button type="button" onClick={onOpenTransactions}>View all →</button></header>{recent.length ? <div>{recent.map((item) => { const category = categoryRecords.find((entry) => entry.id === item.categoryId)?.name ?? item.category; const signed = transactionSignedAmount(item); return <article key={item.id}><time>{new Date(`${item.date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</time><span className={`finance-transaction-glyph type-${item.type}`}>{item.type === "income" ? "＋" : item.type === "transfer" ? "↔" : item.type === "investment" ? "↗" : item.type === "adjustment" ? "≈" : "−"}</span><div><strong>{item.merchant}</strong><small>{category ?? (item.type === "transfer" ? "Transfer" : item.type === "adjustment" ? "Balance correction" : item.type)}</small></div><b className={signed > 0 ? "is-positive" : signed < 0 ? "is-negative" : ""}>{item.type === "transfer" ? formatMoney(item.amount) : `${signed > 0 ? "+" : ""}${formatMoney(signed)}`}</b></article>; })}</div> : <p className="finance-empty-copy">Your latest financial decisions will appear here.</p>}</section>
   </div>;
 }

@@ -15,7 +15,13 @@ export function transactionEffect(transaction: FinanceTransaction, accountId: nu
     return 0;
   }
   if (transaction.accountId !== accountId) return 0;
+  return transactionSignedAmount(transaction);
+}
+
+export function transactionSignedAmount(transaction: FinanceTransaction) {
   if (transaction.type === "expense") return -transaction.amount;
+  if (transaction.type === "transfer") return 0;
+  if (transaction.type === "adjustment") return transaction.adjustmentDirection === "decrease" ? -transaction.amount : transaction.amount;
   return transaction.amount;
 }
 

@@ -2018,6 +2018,10 @@ Current milestone status:
 * Automatic monthly and manual net-worth/account-balance snapshots implemented
 * Net worth removed from Overview/header and contained within Reports
 * Month in Review, budget-versus-actual, savings-rate, net-worth, account-history, cash-flow, and category Reports implemented
+* Month in Review redesigned as a graphic, collapsible flow-and-category story; the broader Reports gallery uses coordinated editorial data visuals
+* Transaction quick entry includes searchable category selection while preserving merchant-based category memory
+* Accounts support auditable current-balance reconciliation without rewriting history or distorting monthly cash flow
+* Local CSV transaction import includes preview, year confirmation, account/category mapping, row repair, duplicate protection, validation, toast undo, and a persistent latest-import receipt
 * Finance 3 will add goals, budget rollover, and the guided monthly close
 
 ## Phase 9 — Polish

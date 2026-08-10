@@ -1,4 +1,5 @@
 import { db, type FinanceAccountType, type FinanceTransaction, type FinanceTransactionType } from "../../../database/db";
+import { getAccountBalance } from "./financeCalculations";
 
 export interface FinanceAccountInput {
   name: string;
@@ -87,6 +88,29 @@ export async function restoreFinanceAccount(id: number) {
 
 export async function createFinanceTransaction(input: FinanceTransactionInput) {
   return db.financeTransactions.add(normalizeTransaction(input));
+}
+
+export async function setFinanceAccountBalance(accountId: number, targetBalance: number, date: string, notes?: string) {
+  const account = await db.financeAccounts.get(accountId);
+  if (!account || account.deletedAt) throw new Error("Account not found.");
+  const currentBalance = getAccountBalance(account, await db.financeTransactions.toArray());
+  const delta = Math.round((Number(targetBalance) - currentBalance) * 100) / 100;
+  if (!Number.isFinite(delta)) throw new Error("Enter a valid balance.");
+  if (Math.abs(delta) < 0.01) throw new Error("This account already has that balance.");
+  const timestamp = nowISO();
+  const id = await db.financeTransactions.add({
+    date,
+    amount: Math.abs(delta),
+    type: "adjustment",
+    merchant: "Balance adjustment",
+    accountId,
+    notes: notes?.trim() || `Set current balance to ${Math.round(Number(targetBalance) * 100) / 100}`,
+    tags: [],
+    adjustmentDirection: delta > 0 ? "increase" : "decrease",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  });
+  return { id, delta };
 }
 
 export async function updateFinanceTransaction(id: number, input: FinanceTransactionInput) {

@@ -1,6 +1,6 @@
 # Momentum — Finance Pillar
 
-**Status:** 🟢 Finance 2.1 Planning and Reports Polish Implemented
+**Status:** 🟢 Finance 2.2 Import, Reconciliation, and Report Atelier Implemented
 **Next Step:** Finance 3 — Goals, Rollover, and Monthly Close
 
 ---
@@ -1060,7 +1060,7 @@ Finance 1 intentionally does not include budgets, goals, monthly close, rollover
 
 ---
 
-# 35. Current Implementation — Finance 2.1
+# 35. Current Implementation — Finance 2.2
 
 Finance 2 turns the transaction foundation into a practical monthly planning
 and financial-history system.
@@ -1080,9 +1080,14 @@ Implemented:
 * Month in Review with planned, actual, utilization, three-month average, and remaining values
 * Budget-versus-actual, savings-rate, account-balance, income-versus-spending, category-spending, and net-worth charts
 * Net worth contained within Reports rather than repeated in Overview or the Finance header
+* Graphic Month in Review with collapsible financial-flow and category detail
+* Editorial report cards and visual spending, saving, cash-flow, budget, and net-worth treatments
+* Searchable keyboard-friendly category selection in transaction quick entry
+* Account reconciliation through explicit positive or negative balance-adjustment events
+* Local CSV transaction preview with year confirmation, account/category mapping, row-level repair, duplicate protection, skipped-row reporting, and reversible import batches with a persistent latest-import receipt
 
 Finance 2 intentionally stores snapshots of historical balances while keeping
 the live account balance transaction-derived. Budget rollover, savings goals,
 and the guided monthly close remain Finance 3 work.
 
-**Finance 2.1 Planning and Reports Polish: IMPLEMENTED**
+**Finance 2.2 Import, Reconciliation, and Report Atelier: IMPLEMENTED**

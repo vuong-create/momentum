@@ -793,7 +793,7 @@ Primary records:
 * Net worth snapshots
 * Monthly reviews
 
-Current Finance 2.1 implementation:
+Current Finance 2.2 implementation:
 
 * `financeAccounts` stores the account identity, type, and opening balance.
 * `financeTransactions` stores expenses, income, transfers, and investments.
@@ -804,6 +804,8 @@ Current Finance 2.1 implementation:
 * `financeBudgetMonths` preserves monthly setup metadata and `financeBudgetAllocations` stores the planned amount per month and category.
 * Actual expense, income, investment, and saving values are never duplicated; each is derived from the matching transaction flow and category.
 * `financeNetWorthSnapshots` stores dated assets, liabilities, net worth, and an embedded balance for every account. The current month's automatic snapshot is updated as the ledger changes; manual snapshots preserve deliberate points in time.
+* Balance corrections are explicit `adjustment` transactions with an increase/decrease direction. They affect account balance and net worth but are excluded from income, spending, investment, saving, and budget calculations.
+* Imported transactions carry an import batch ID and stable row fingerprint. `financeImportBatches` records the source filename, file fingerprint, confirmed year, imported/skipped counts, and reversible state.
 
 ---
 
@@ -831,6 +833,10 @@ notes
 tags
 
 investmentHolding
+adjustmentDirection
+
+importBatchId
+importFingerprint
 
 createdAt
 updatedAt
@@ -842,6 +848,7 @@ Transaction types:
 * Income
 * Transfer
 * Investment
+* Adjustment
 
 ---
 
@@ -929,6 +936,10 @@ Finance 2 preserves this rule. Reports store explicit historical snapshots, but
 the live balance shown throughout the application is still recalculated from
 the opening balance and transaction history.
 
+When the user sets a current balance, Momentum stores only the difference as a
+dated adjustment. Editing an opening balance remains available for correcting
+the true pre-ledger baseline; routine reconciliation never silently rewrites it.
+
 ---
 
 # 29. Finance Budgets
@@ -997,6 +1008,32 @@ deletedAt
 Each embedded account value preserves the account ID, name, type, and balance
 at that moment. This allows an individual account history to remain readable
 even when the live account is later renamed or archived.
+
+---
+
+# 29B. Finance Import Batches
+
+CSV import is preview-first and atomic:
+
+```text
+FinanceImportBatch
+
+fileName
+fileFingerprint
+importYear
+importedCount
+skippedCount
+createdAccountIds
+createdAt
+revertedAt
+```
+
+The parser normalizes source dates and currency before persistence. Account and
+category choices are resolved before the database transaction begins. A stable
+row fingerprint prevents active imported records from being duplicated, while
+the batch relationship allows the entire import to be soft-reverted as one
+recoverable action. Accounts created solely for that batch are also archived
+when they have no remaining activity. File contents remain local to the browser.
 
 ---
 

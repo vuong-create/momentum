@@ -6,7 +6,8 @@ import { db } from "../../../database/db";
 import { getAccountBalance, getMonthSummary, getNetWorth } from "./financeCalculations";
 import { calculateBudgetRows, calculateMonthReviewRows, copyPreviousBudget, setBudgetAllocation } from "./financeBudgetService";
 import { ensureFinanceCategories, renameFinanceCategory, visibleFinanceCategories } from "./financeCategoryService";
-import { createFinanceAccount, createFinanceTransaction, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceTransaction } from "./financeService";
+import { createFinanceAccount, createFinanceTransaction, setFinanceAccountBalance, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceTransaction } from "./financeService";
+import { importFinanceCsv, previewFinanceCsv, revertFinanceImport } from "./financeImportService";
 import { saveManualNetWorthSnapshot, upsertMonthlyNetWorthSnapshot, visibleNetWorthSnapshots } from "./financeSnapshotService";
 
 beforeEach(async () => {
@@ -49,6 +50,18 @@ describe("finance foundation", () => {
     expect(getAccountBalance(account, await db.financeTransactions.toArray())).toBe(85);
     await softDeleteFinanceTransaction(id);
     expect(getAccountBalance(account, await db.financeTransactions.toArray())).toBe(100);
+  });
+
+  it("reconciles an account with auditable adjustments that do not change monthly cash flow", async () => {
+    const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 100 });
+    const account = (await db.financeAccounts.get(checking))!;
+    const increase = await setFinanceAccountBalance(checking, 175, "2026-08-08", "Reconcile statement");
+    expect(increase.delta).toBe(75);
+    expect(getAccountBalance(account, await db.financeTransactions.toArray())).toBe(175);
+    const decrease = await setFinanceAccountBalance(checking, 120, "2026-08-09");
+    expect(decrease.delta).toBe(-55);
+    expect(getAccountBalance(account, await db.financeTransactions.toArray())).toBe(120);
+    expect(getMonthSummary(await db.financeTransactions.toArray(), "2026-08")).toMatchObject({ income: 0, expenses: 0, invested: 0, saved: 0, remaining: 0 });
   });
 
   it("protects accounts that still own transaction history", async () => {
@@ -123,5 +136,33 @@ describe("finance foundation", () => {
     const snapshots = visibleNetWorthSnapshots(await db.financeNetWorthSnapshots.toArray());
     expect(snapshots).toHaveLength(2);
     expect(snapshots.find((item) => item.source === "monthly")).toMatchObject({ date: "2026-08-09", netWorth: 1200, accounts: [expect.objectContaining({ name: "Checking", balance: 1200 })] });
+  });
+
+  it("previews, imports, deduplicates, and reverts transaction CSV batches", async () => {
+    await ensureFinanceCategories(); const categories = await db.financeCategories.toArray();
+    const csv = [
+      "Month,Day,Category,Sub-Category,Amount,Merchant,Notes,Account",
+      "January,2,Expense,Groceries,$12.50,Aldi,Food,BOA",
+      "January,15,Income,NEO,$1000.00,NEO,Paycheck,TD BANK",
+      "January,15,Long-term Saving,HYSA,$250.00,Discover,Transfer,TD BANK",
+      "March,31,,SJ,$600.00,SJVBC,March,TD BANK",
+      "July,6,Expense,Clothes/Shoes,$ -,Banana Republic,White Shirt,BOA",
+    ].join("\n");
+    const preview = previewFinanceCsv(csv, "2026 Transactions.csv");
+    expect(preview).toMatchObject({ year: 2026, issues: [{ sourceRow: 6, message: expect.stringMatching(/amount/i) }] });
+    expect(preview.rows).toHaveLength(4); expect(preview.rows.find((row) => row.sourceCategory === "SJ")).toMatchObject({ type: "income", suggestedCategory: "SJVBC", needsReview: true });
+    const result = await importFinanceCsv(preview, categories, {
+      accountMappings: { BOA: { createType: "credit" }, "TD BANK": { createType: "checking" } },
+      categoryMappings: { Groceries: "Groceries", NEO: "NEO", HYSA: "HYSA", SJ: "SJVBC" },
+      createSavingsAccount: true,
+    });
+    expect(result).toMatchObject({ importedCount: 4, skippedCount: 1 });
+    expect(await db.financeAccounts.count()).toBe(3);
+    const imported = await db.financeTransactions.where("importBatchId").equals(result.batchId).toArray();
+    expect(imported.find((item) => item.category === "HYSA")).toMatchObject({ type: "transfer", accountId: undefined, fromAccountId: expect.any(Number), toAccountId: expect.any(Number) });
+    await expect(importFinanceCsv(preview, categories, { accountMappings: {}, categoryMappings: {} })).rejects.toThrow(/already been imported/i);
+    await revertFinanceImport(result.batchId);
+    expect((await db.financeTransactions.where("importBatchId").equals(result.batchId).toArray()).every((item) => item.deletedAt)).toBe(true);
+    expect((await db.financeAccounts.toArray()).every((item) => item.deletedAt)).toBe(true);
   });
 });
