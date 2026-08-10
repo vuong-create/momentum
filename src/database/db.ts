@@ -425,6 +425,9 @@ export interface FinanceTransaction {
   notes?: string;
   tags: string[];
   investmentHolding?: string;
+  adjustmentDirection?: "increase" | "decrease";
+  importBatchId?: number;
+  importFingerprint?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -493,6 +496,18 @@ export interface FinanceNetWorthSnapshot {
   deletedAt?: string;
 }
 
+export interface FinanceImportBatch {
+  id?: number;
+  fileName: string;
+  fileFingerprint: string;
+  importYear: number;
+  importedCount: number;
+  skippedCount: number;
+  createdAccountIds: number[];
+  createdAt: string;
+  revertedAt?: string;
+}
+
 export interface AppSettings {
   id: "preferences";
   soundsEnabled: boolean;
@@ -527,6 +542,7 @@ class MomentumDatabase extends Dexie {
   financeBudgetMonths!: Table<FinanceBudgetMonth>;
   financeBudgetAllocations!: Table<FinanceBudgetAllocation>;
   financeNetWorthSnapshots!: Table<FinanceNetWorthSnapshot>;
+  financeImportBatches!: Table<FinanceImportBatch>;
 
   constructor() {
     super("MomentumDatabase");
@@ -879,6 +895,13 @@ class MomentumDatabase extends Dexie {
         "++id, name, flowType, sortOrder, updatedAt, deletedAt",
       financeBudgetAllocations:
         "++id, month, categoryId, subcategoryId, &[month+categoryId], updatedAt, deletedAt",
+    });
+
+    this.version(24).stores({
+      financeTransactions:
+        "++id, date, type, accountId, fromAccountId, toAccountId, categoryId, merchant, updatedAt, importBatchId, importFingerprint, *tags, deletedAt",
+      financeImportBatches:
+        "++id, createdAt, fileName, fileFingerprint, importYear, revertedAt",
     });
   }
 }
