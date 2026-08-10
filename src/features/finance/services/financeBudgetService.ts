@@ -75,3 +75,13 @@ export function calculateMonthReviewRows(month: string, allocations: FinanceBudg
     return { ...row, averageActual: previousActuals.reduce((total, value) => total + value, 0) / averageMonths };
   });
 }
+
+export function calculateYearReviewRows(year: number, allocations: FinanceBudgetAllocation[], categories: FinanceCategory[], transactions: FinanceTransaction[]) {
+  const monthRows = Array.from({ length: 12 }, (_, index) => calculateBudgetRows(`${year}-${String(index + 1).padStart(2, "0")}`, allocations, categories, transactions));
+  const latestActivityMonth = transactions.filter((item) => !item.deletedAt && item.date.startsWith(`${year}-`)).reduce((latest, item) => Math.max(latest, Number(item.date.slice(5, 7))), 0) || 12;
+  return categories.filter((item) => !item.deletedAt).map((category): MonthReviewRow => {
+    const rows = monthRows.map((items) => items.find((item) => item.category.id === category.id)!);
+    const baseAmount = rows.reduce((total, item) => total + item.baseAmount, 0); const rolloverAmount = rows.reduce((total, item) => total + item.rolloverAmount, 0); const actual = rows.reduce((total, item) => total + item.actual, 0); const available = baseAmount + rolloverAmount;
+    return { month: String(year), categoryId: category.id, baseAmount, rolloverAmount, createdAt: "", updatedAt: "", category, actual, available, remaining: available - actual, percentage: available > 0 ? actual / available * 100 : actual > 0 ? 100 : 0, averageActual: actual / latestActivityMonth };
+  });
+}

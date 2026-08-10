@@ -1083,7 +1083,13 @@ Implemented:
 * Graphic Month in Review with collapsible financial-flow and category detail
 * Editorial report cards and visual spending, saving, cash-flow, budget, and net-worth treatments
 * Searchable keyboard-friendly category selection in transaction quick entry
+* Always-visible transaction date and notes for faster complete entry
+* Ledger filtering by month, merchant, category, account, type, and keyword with contextual result totals
+* Condensed ledger rows for quicker scanning without shrinking action targets
 * Account reconciliation through explicit positive or negative balance-adjustment events
+* Paid-in-full credit cards treated as spending sources and excluded from balances and net worth
+* Persistent privacy mode that blurs account and net-worth figures throughout Finance
+* Month and full-year report scopes with annual plan, activity, cash-flow, and category aggregation
 * Local CSV transaction preview with year confirmation, account/category mapping, row-level repair, duplicate protection, skipped-row reporting, and reversible import batches with a persistent latest-import receipt
 
 Finance 2 intentionally stores snapshots of historical balances while keeping

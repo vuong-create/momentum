@@ -29,7 +29,6 @@ export default function TransactionComposer({ accounts, transactions, categories
   const [date, setDate] = useState(editing?.date ?? todayKey);
   const [notes, setNotes] = useState(editing?.notes ?? "");
   const [holding, setHolding] = useState(editing?.investmentHolding ?? "");
-  const [detailsOpen, setDetailsOpen] = useState(Boolean(editing));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const memory = useMemo(() => merchantSuggestions(transactions), [transactions]);
@@ -41,7 +40,6 @@ export default function TransactionComposer({ accounts, transactions, categories
 
   function reset() {
     setAmount(""); setMerchant(""); setDate(todayKey); setNotes(""); setHolding(""); setError("");
-    if (!editing) setDetailsOpen(false);
   }
 
   function rememberMerchant(value: string) {
@@ -78,12 +76,11 @@ export default function TransactionComposer({ accounts, transactions, categories
       {type === "transfer" ? <><label><span>From</span><select value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label><span>To</span><select value={toAccountId} onChange={(event) => { setToAccountId(event.target.value); const account = accounts.find((item) => item.id === Number(event.target.value)); if (account?.name.toLocaleLowerCase().includes("hysa")) { const hysa = categories.find((item) => item.flowType === "saving" && item.name === "HYSA"); setCategoryId(String(hysa?.id ?? "")); } }}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></> : <label><span>Account</span><select value={accountId || String(accounts[0]?.id ?? "")} onChange={(event) => setAccountId(event.target.value)}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
       <button className="finance-save-transaction" type="submit" disabled={saving || accounts.length === 0}>{saving ? "Saving…" : editing ? "Update" : "Add"}<span>↵</span></button>
     </div>
-    <div className="finance-composer-toggle"><button type="button" onClick={() => setDetailsOpen((open) => !open)}>{detailsOpen ? "Hide details" : "Date, note & details"}<span>{detailsOpen ? "−" : "+"}</span></button>{!detailsOpen && <small>{type === "transfer" ? `${accounts.find((item) => item.id === Number(fromAccountId))?.name ?? "From account"} → ${accounts.find((item) => item.id === Number(toAccountId))?.name ?? "To account"}` : accounts.find((item) => item.id === Number(accountId || accounts[0]?.id))?.name ?? "Choose account"} · {date === todayKey ? "Today" : date}</small>}</div>
-    {detailsOpen && <div className="finance-composer-details">
+    <div className="finance-composer-context">
       {type === "investment" && <label><span>Holding</span><input value={holding} onChange={(event) => setHolding(event.target.value)} placeholder="VOO (optional)" /></label>}
       <label><span>Date</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
       <label className="finance-detail-notes"><span>Notes</span><input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional context" /></label>
-    </div>}
+    </div>
     {accounts.length === 0 && <p className="finance-form-error">Add an account before recording a transaction.</p>}
     {error && <p className="finance-form-error">{error}</p>}
   </form>;

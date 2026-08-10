@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import type { FinanceAccount, FinanceCategory, FinanceImportBatch, FinanceTransaction } from "../../../database/db";
 import { formatMoney, transactionSignedAmount } from "../services/financeCalculations";
@@ -6,22 +6,32 @@ import { formatMoney, transactionSignedAmount } from "../services/financeCalcula
 interface Props { accounts: FinanceAccount[]; categories: FinanceCategory[]; transactions: FinanceTransaction[]; latestImport?: FinanceImportBatch; onImport: () => void; onRevertImport: (batch: FinanceImportBatch) => Promise<void>; onEdit: (item: FinanceTransaction) => void; onDelete: (item: FinanceTransaction) => Promise<void>; }
 
 export default function FinanceTransactions({ accounts, categories, transactions, latestImport, onImport, onRevertImport, onEdit, onDelete }: Props) {
-  const [search, setSearch] = useState(""); const [type, setType] = useState("all");
-  const accountMap = new Map(accounts.map((item) => [item.id, item.name]));
-  const filtered = useMemo(() => transactions.filter((item) => {
-    const category = categories.find((entry) => entry.id === item.categoryId)?.name ?? item.category ?? "";
-    const haystack = `${item.merchant} ${category} ${item.notes ?? ""}`.toLocaleLowerCase();
-    return (type === "all" || item.type === type) && haystack.includes(search.toLocaleLowerCase());
-  }).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)), [transactions, categories, search, type]);
+  const [search, setSearch] = useState(""); const [type, setType] = useState("all"); const [month, setMonth] = useState("all"); const [merchant, setMerchant] = useState("all"); const [accountId, setAccountId] = useState("all"); const [categoryId, setCategoryId] = useState("all");
+  const accountMap = new Map(accounts.map((item) => [item.id, item.name])); const categoryMap = new Map(categories.map((item) => [item.id, item.name]));
+  const months = [...new Set(transactions.map((item) => item.date.slice(0, 7)))].sort((a, b) => b.localeCompare(a)); const merchants = [...new Set(transactions.map((item) => item.merchant).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const filtered = transactions.filter((item) => {
+    const category = categoryMap.get(item.categoryId) ?? item.category ?? ""; const accountNames = item.type === "transfer" ? `${accountMap.get(item.fromAccountId) ?? ""} ${accountMap.get(item.toAccountId) ?? ""}` : accountMap.get(item.accountId) ?? "";
+    const haystack = `${item.merchant} ${category} ${accountNames} ${item.notes ?? ""}`.toLocaleLowerCase(); const selectedAccountId = Number(accountId);
+    return (type === "all" || item.type === type) && (month === "all" || item.date.startsWith(month)) && (merchant === "all" || item.merchant === merchant) && (categoryId === "all" || item.categoryId === Number(categoryId)) && (accountId === "all" || item.accountId === selectedAccountId || item.fromAccountId === selectedAccountId || item.toAccountId === selectedAccountId) && haystack.includes(search.trim().toLocaleLowerCase());
+  }).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+  const hasFilters = Boolean(search.trim()) || type !== "all" || month !== "all" || merchant !== "all" || accountId !== "all" || categoryId !== "all"; const incoming = filtered.reduce((total, item) => total + Math.max(0, transactionSignedAmount(item)), 0); const outgoing = filtered.reduce((total, item) => total + Math.max(0, -transactionSignedAmount(item)), 0); const net = incoming - outgoing;
+  function clearFilters() { setSearch(""); setType("all"); setMonth("all"); setMerchant("all"); setAccountId("all"); setCategoryId("all"); }
 
   return <section className="finance-transactions-view">
-    <header className="finance-section-heading"><div><span className="text-label">Ledger</span><h2>Transactions</h2><p>Every balance begins here.</p></div><div><button className="finance-import-button" type="button" onClick={onImport}>⇧ Import CSV</button><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search transactions…" /><select value={type} onChange={(event) => setType(event.target.value)}><option value="all">All types</option><option value="expense">Expenses</option><option value="income">Income</option><option value="transfer">Transfers</option><option value="investment">Investments</option><option value="adjustment">Adjustments</option></select></div></header>
+    <header className="finance-section-heading"><div><span className="text-label">Ledger</span><h2>Transactions</h2><p>Every balance begins here.</p></div><div><button className="finance-import-button" type="button" onClick={onImport}>⇧ Import CSV</button><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search ledger…" /></div></header>
+    <section className="finance-ledger-filters finance-panel" aria-label="Ledger filters">
+      <label><span>Month</span><select value={month} onChange={(event) => setMonth(event.target.value)}><option value="all">All months</option>{months.map((item) => <option key={item} value={item}>{new Date(`${item}-15T12:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</option>)}</select></label>
+      <label><span>Merchant</span><select value={merchant} onChange={(event) => setMerchant(event.target.value)}><option value="all">All merchants</option>{merchants.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+      <label><span>Category</span><select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="all">All categories</option>{categories.filter((item) => !item.deletedAt).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+      <label><span>Account</span><select value={accountId} onChange={(event) => setAccountId(event.target.value)}><option value="all">All accounts</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+      <label><span>Type</span><select value={type} onChange={(event) => setType(event.target.value)}><option value="all">All types</option><option value="expense">Expenses</option><option value="income">Income</option><option value="transfer">Transfers</option><option value="investment">Investments</option><option value="adjustment">Adjustments</option></select></label>
+      {hasFilters && <button type="button" onClick={clearFilters}>Clear</button>}
+    </section>
     {latestImport && <aside className="finance-import-receipt"><span>Latest import</span><div><strong>{latestImport.fileName}</strong><small>{latestImport.importedCount} transactions · {new Date(latestImport.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</small></div><button type="button" onClick={() => onRevertImport(latestImport)}>Undo import</button></aside>}
     <div className="finance-transaction-table finance-panel"><header><span>Date</span><span>Merchant</span><span>Category</span><span>Account</span><span>Amount</span><span /></header>{filtered.length ? filtered.map((item) => {
-      const signed = transactionSignedAmount(item);
-      const account = item.type === "transfer" ? `${accountMap.get(item.fromAccountId) ?? "—"} → ${accountMap.get(item.toAccountId) ?? "—"}` : accountMap.get(item.accountId) ?? "—";
-      const category = categories.find((entry) => entry.id === item.categoryId)?.name ?? item.category;
+      const signed = transactionSignedAmount(item); const account = item.type === "transfer" ? `${accountMap.get(item.fromAccountId) ?? "—"} → ${accountMap.get(item.toAccountId) ?? "—"}` : accountMap.get(item.accountId) ?? "—"; const category = categoryMap.get(item.categoryId) ?? item.category;
       return <article key={item.id} onDoubleClick={() => item.type !== "adjustment" && onEdit(item)}><time>{new Date(`${item.date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</time><div><span className={`finance-transaction-glyph type-${item.type}`}>{item.type === "income" ? "＋" : item.type === "transfer" ? "↔" : item.type === "investment" ? "↗" : item.type === "adjustment" ? "≈" : "−"}</span><strong>{item.merchant}</strong></div><span>{category ?? (item.type === "transfer" ? "Transfer" : item.type === "adjustment" ? "Balance correction" : item.type)}</span><span>{account}</span><b className={signed > 0 ? "is-positive" : signed < 0 ? "is-negative" : ""}>{item.type === "transfer" ? formatMoney(item.amount) : `${signed > 0 ? "+" : ""}${formatMoney(signed)}`}</b><menu>{item.type !== "adjustment" && <button type="button" onClick={() => onEdit(item)}>Edit</button>}<button type="button" onClick={() => onDelete(item)}>Delete</button></menu></article>;
-    }) : <div className="finance-table-empty"><span>⌁</span><strong>No matching transactions.</strong><small>New entries appear here immediately.</small></div>}</div>
+    }) : <div className="finance-table-empty"><span>⌁</span><strong>No matching transactions.</strong><small>Adjust or clear the filters to widen the result.</small></div>}</div>
+    {hasFilters && <footer className="finance-filter-total finance-panel"><div><span>Filtered result</span><strong>{filtered.length} {filtered.length === 1 ? "transaction" : "transactions"}</strong></div><div><span>Money in</span><strong className="is-positive">{formatMoney(incoming)}</strong></div><div><span>Money out</span><strong>{formatMoney(outgoing)}</strong></div><div><span>Net</span><strong className={net >= 0 ? "is-positive" : "is-negative"}>{net >= 0 ? "+" : ""}{formatMoney(net)}</strong></div></footer>}
   </section>;
 }
