@@ -426,6 +426,7 @@ export interface FinanceTransaction {
   tags: string[];
   investmentHolding?: string;
   adjustmentDirection?: "increase" | "decrease";
+  hiddenFromLedger?: boolean;
   importBatchId?: number;
   importFingerprint?: string;
   createdAt: string;
@@ -902,6 +903,22 @@ class MomentumDatabase extends Dexie {
         "++id, date, type, accountId, fromAccountId, toAccountId, categoryId, merchant, updatedAt, importBatchId, importFingerprint, *tags, deletedAt",
       financeImportBatches:
         "++id, createdAt, fileName, fileFingerprint, importYear, revertedAt",
+    });
+
+    this.version(25).stores({
+      financeTransactions:
+        "++id, date, type, accountId, fromAccountId, toAccountId, categoryId, merchant, updatedAt, importBatchId, importFingerprint, *tags, deletedAt",
+    }).upgrade(async (transaction) => {
+      await transaction
+        .table("financeTransactions")
+        .toCollection()
+        .modify((item) => {
+          if (item.type === "investment" && item.accountId && !item.fromAccountId) {
+            item.fromAccountId = item.accountId;
+            item.accountId = undefined;
+          }
+          item.hiddenFromLedger = item.hiddenFromLedger ?? item.type === "adjustment";
+        });
     });
   }
 }

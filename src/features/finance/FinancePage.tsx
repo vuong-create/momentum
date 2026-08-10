@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { db, type FinanceAccount, type FinanceImportBatch, type FinanceNetWorthSnapshot, type FinanceTransaction } from "../../database/db";
+import { db, type FinanceAccount, type FinanceNetWorthSnapshot, type FinanceTransaction } from "../../database/db";
 import useExperience from "../../experience/useExperience";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
 import useActivityUndo from "../activities/hooks/useActivityUndo";
@@ -18,7 +18,7 @@ import TransactionComposer from "./components/TransactionComposer";
 import { formatMoney, getAccountBalance, getMonthSummary, visibleFinanceAccounts, visibleFinanceTransactions } from "./services/financeCalculations";
 import { calculateBudgetRows, copyPreviousBudget, setBudgetAllocation } from "./services/financeBudgetService";
 import { archiveFinanceCategory, createFinanceCategory, ensureFinanceCategories, moveFinanceCategory, renameFinanceCategory, restoreFinanceCategory, visibleFinanceCategories } from "./services/financeCategoryService";
-import { createFinanceAccount, createFinanceTransaction, restoreFinanceAccount, restoreFinanceTransaction, setFinanceAccountBalance, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceAccount, updateFinanceTransaction, type FinanceAccountInput, type FinanceTransactionInput } from "./services/financeService";
+import { createFinanceAccount, createFinanceTransaction, restoreFinanceAccount, restoreFinanceTransaction, setFinanceAccountBalance, setFinanceTransactionLedgerVisibility, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceAccount, updateFinanceTransaction, type FinanceAccountInput, type FinanceTransactionInput } from "./services/financeService";
 import { restoreNetWorthSnapshot, saveManualNetWorthSnapshot, softDeleteNetWorthSnapshot, upsertMonthlyNetWorthSnapshot, visibleNetWorthSnapshots } from "./services/financeSnapshotService";
 import { importFinanceCsv, revertFinanceImport, type FinanceCsvPreview, type FinanceImportOptions } from "./services/financeImportService";
 
@@ -50,12 +50,10 @@ export default function FinancePage() {
   const budgetMonths = useLiveQuery(() => db.financeBudgetMonths.toArray(), []) ?? [];
   const budgetAllocations = useLiveQuery(() => db.financeBudgetAllocations.toArray(), []) ?? [];
   const allSnapshots = useLiveQuery(() => db.financeNetWorthSnapshots.toArray(), []) ?? [];
-  const importBatches = useLiveQuery(() => db.financeImportBatches.toArray(), []) ?? [];
   const accounts = visibleFinanceAccounts(allAccounts);
   const transactions = visibleFinanceTransactions(allTransactions);
   const categories = visibleFinanceCategories(allCategories);
   const snapshots = visibleNetWorthSnapshots(allSnapshots);
-  const latestImport = [...importBatches].filter((item) => !item.revertedAt).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
   const todayKey = dateKey(experience.now);
   const month = todayKey.slice(0, 7);
   const summary = getMonthSummary(transactions, month, categories);
@@ -90,8 +88,8 @@ export default function FinancePage() {
     <nav className="finance-tabs" aria-label="Finance sections">{tabs.map((tab) => <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}</button>)}</nav>
     <main className="finance-content">
       {view === "transactions" && <TransactionComposer key={editingTransaction?.id ?? "new"} accounts={accounts} transactions={transactions} categories={categories} editing={editingTransaction} todayKey={todayKey} onSave={saveTransaction} onCancelEdit={() => setEditingTransaction(null)} />}
-      {view === "overview" && <FinanceOverview accounts={accounts} transactions={transactions} categories={allCategories} now={experience.now} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAddAccount={() => setAccountModal("new")} onOpenTransactions={() => selectView("transactions")} />}
-      {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} latestImport={latestImport} onImport={() => setImportOpen(true)} onRevertImport={async (batch: FinanceImportBatch) => { await revertFinanceImport(batch.id!); experience.playFeedback("task-dismissed"); }} onEdit={(item) => { setEditingTransaction(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} onDelete={removeTransaction} />}
+      {view === "overview" && <FinanceOverview accounts={accounts} transactions={transactions} categories={allCategories} budgetRows={currentBudgetRows} now={experience.now} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAddAccount={() => setAccountModal("new")} onOpenTransactions={() => selectView("transactions")} />}
+      {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} onImport={() => setImportOpen(true)} onEdit={(item) => { setEditingTransaction(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} onDelete={removeTransaction} onSetVisibility={async (item, hidden) => { if (!item.id) return; await setFinanceTransactionLedgerVisibility(item.id, hidden); experience.playFeedback(hidden ? "task-dismissed" : "task-restored"); undo.show({ message: hidden ? "Transaction hidden from ledger" : "Transaction restored to ledger", undo: () => setFinanceTransactionLedgerVisibility(item.id!, !hidden) }); }} />}
       {view === "budget" && <FinanceBudget now={experience.now} categories={categories} months={budgetMonths} allocations={budgetAllocations} transactions={transactions} onSetAllocation={async (budgetMonth, categoryId, amount) => { await setBudgetAllocation(budgetMonth, categoryId, amount); experience.playFeedback("task-updated"); }} onCopyPrevious={async (budgetMonth) => { const count = await copyPreviousBudget(budgetMonth); experience.playFeedback("task-restored"); return count; }} onManageCategories={() => setCategoryManagerOpen(true)} />}
       {view === "accounts" && <FinanceAccounts accounts={accounts} transactions={transactions} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAdd={() => setAccountModal("new")} onEdit={setAccountModal} onAdjust={setBalanceAccount} />}
       {view === "reports" && <FinanceReports now={experience.now} accounts={accounts} categories={allCategories} allocations={budgetAllocations} transactions={transactions} snapshots={snapshots} onSaveSnapshot={async () => { const id = await saveManualNetWorthSnapshot(accounts, transactions, experience.now); experience.playFeedback("finance-snapshot"); undo.show({ message: "Net worth snapshot saved", undo: () => softDeleteNetWorthSnapshot(id) }); }} onDeleteSnapshot={async (snapshot: FinanceNetWorthSnapshot) => { await softDeleteNetWorthSnapshot(snapshot.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Snapshot removed", undo: () => restoreNetWorthSnapshot(snapshot.id!) }); }} />}

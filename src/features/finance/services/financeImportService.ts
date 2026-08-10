@@ -166,7 +166,8 @@ export async function importFinanceCsv(preview: FinanceCsvPreview, categories: F
       const targetName = options.rowCategoryOverrides?.[row.sourceRow] ?? options.categoryMappings[row.sourceCategory] ?? row.suggestedCategory;
       const category = categoryByName.get(targetName.toLocaleLowerCase()); if (!category) throw new Error(`Map ${row.sourceCategory} to an active Momentum category.`);
       const accountId = accountIds.get(row.sourceAccount)!;
-      records.push({ date: row.date, amount: row.amount, type: row.type, merchant: row.merchant, accountId: row.type === "transfer" ? undefined : accountId, fromAccountId: row.type === "transfer" ? accountId : undefined, toAccountId: row.type === "transfer" ? savingsAccountId : undefined, categoryId: category.id, category: category.name, notes: row.notes, tags: [], investmentHolding: row.type === "investment" ? row.notes : undefined, importBatchId: batchId, importFingerprint: row.fingerprint, createdAt: timestamp, updatedAt: timestamp });
+      const routed = row.type === "transfer" || row.type === "investment";
+      records.push({ date: row.date, amount: row.amount, type: row.type, merchant: row.merchant, accountId: routed ? undefined : accountId, fromAccountId: routed ? accountId : undefined, toAccountId: row.type === "transfer" ? savingsAccountId : undefined, categoryId: category.id, category: category.name, notes: row.notes, tags: [], investmentHolding: row.type === "investment" ? row.notes : undefined, hiddenFromLedger: false, importBatchId: batchId, importFingerprint: row.fingerprint, createdAt: timestamp, updatedAt: timestamp });
     }
     if (records.length) await db.financeTransactions.bulkAdd(records); importedCount = records.length;
     await db.financeImportBatches.update(batchId, { importedCount, skippedCount });

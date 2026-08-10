@@ -3,10 +3,10 @@ import "fake-indexeddb/auto";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "../../../database/db";
-import { getAccountBalance, getMonthSummary, getNetWorth } from "./financeCalculations";
+import { getAccountBalance, getInvestmentContributionBreakdown, getMonthSummary, getNetWorth, isTransactionHiddenFromLedger } from "./financeCalculations";
 import { calculateBudgetRows, calculateMonthReviewRows, calculateYearReviewRows, copyPreviousBudget, setBudgetAllocation } from "./financeBudgetService";
 import { ensureFinanceCategories, renameFinanceCategory, visibleFinanceCategories } from "./financeCategoryService";
-import { createFinanceAccount, createFinanceTransaction, setFinanceAccountBalance, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceTransaction } from "./financeService";
+import { createFinanceAccount, createFinanceTransaction, setFinanceAccountBalance, setFinanceTransactionLedgerVisibility, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceTransaction } from "./financeService";
 import { importFinanceCsv, previewFinanceCsv, revertFinanceImport } from "./financeImportService";
 import { saveManualNetWorthSnapshot, upsertMonthlyNetWorthSnapshot, visibleNetWorthSnapshots } from "./financeSnapshotService";
 
@@ -42,13 +42,17 @@ describe("finance foundation", () => {
     expect(getMonthSummary(transactions, "2026-08")).toMatchObject({ income: 0, expenses: 0, remaining: 0 });
   });
 
-  it("treats investment contributions as cash outflow while reporting them separately", async () => {
+  it("routes investment contributions without changing net worth and reports account and holding totals", async () => {
     const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
-    await createFinanceTransaction({ date: "2026-08-08", amount: 300, type: "investment", merchant: "Vanguard", accountId: checking, category: "Vanguard Brokerage" });
-    const account = (await db.financeAccounts.get(checking))!;
+    const brokerage = await createFinanceAccount({ name: "Vanguard", type: "investment", openingBalance: 5000 });
+    await createFinanceTransaction({ date: "2026-08-08", amount: 300, type: "investment", merchant: "Vanguard", fromAccountId: checking, toAccountId: brokerage, category: "Vanguard Brokerage", investmentHolding: "VOO" });
+    const accounts = await db.financeAccounts.toArray(); const checkingAccount = accounts.find((item) => item.id === checking)!; const brokerageAccount = accounts.find((item) => item.id === brokerage)!;
     const transactions = await db.financeTransactions.toArray();
-    expect(getAccountBalance(account, transactions)).toBe(700);
+    expect(getAccountBalance(checkingAccount, transactions)).toBe(700);
+    expect(getAccountBalance(brokerageAccount, transactions)).toBe(5300);
+    expect(getNetWorth(accounts, transactions)).toBe(6000);
     expect(getMonthSummary(transactions, "2026-08")).toMatchObject({ expenses: 0, invested: 300, remaining: -300 });
+    expect(getInvestmentContributionBreakdown(transactions, accounts, "2026-08")).toEqual({ total: 300, byAccount: [{ label: "Vanguard", amount: 300 }], byHolding: [{ label: "VOO", amount: 300 }] });
   });
 
   it("treats paid-in-full credit cards as spending sources instead of balance accounts", async () => {
@@ -82,6 +86,9 @@ describe("finance foundation", () => {
     expect(decrease.delta).toBe(-55);
     expect(getAccountBalance(account, await db.financeTransactions.toArray())).toBe(120);
     expect(getMonthSummary(await db.financeTransactions.toArray(), "2026-08")).toMatchObject({ income: 0, expenses: 0, invested: 0, saved: 0, remaining: 0 });
+    const corrections = await db.financeTransactions.toArray(); expect(corrections.every(isTransactionHiddenFromLedger)).toBe(true);
+    await setFinanceTransactionLedgerVisibility(increase.id, false);
+    expect(isTransactionHiddenFromLedger((await db.financeTransactions.get(increase.id))!)).toBe(false);
   });
 
   it("protects accounts that still own transaction history", async () => {
@@ -130,14 +137,27 @@ describe("finance foundation", () => {
     expect(await db.financeBudgetAllocations.where("month").equals("2026-09").count()).toBe(1);
   });
 
+  it("preserves over-budget percentages so overview bars can show the plan is exceeded", async () => {
+    await ensureFinanceCategories();
+    const categories = await db.financeCategories.toArray();
+    const volleyball = categories.find((item) => item.name === "Volleyball")!;
+    const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    await createFinanceTransaction({ date: "2026-08-08", amount: 140, type: "expense", merchant: "League fee", accountId: checking, categoryId: volleyball.id, category: volleyball.name });
+    await setBudgetAllocation("2026-08", volleyball.id!, 100);
+
+    const row = calculateBudgetRows("2026-08", await db.financeBudgetAllocations.toArray(), categories, await db.financeTransactions.toArray()).find((item) => item.category.id === volleyball.id);
+    expect(row).toMatchObject({ actual: 140, available: 100, remaining: -40, percentage: 140 });
+  });
+
   it("separates expenses, investment contributions, income, and HYSA saving in review calculations", async () => {
     await ensureFinanceCategories(); const categories = await db.financeCategories.toArray();
     const category = (name: string) => categories.find((item) => item.name === name)!;
     const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    const brokerage = await createFinanceAccount({ name: "Vanguard", type: "investment", openingBalance: 0 });
     const hysaAccount = await createFinanceAccount({ name: "HYSA", type: "savings", openingBalance: 0 });
     await createFinanceTransaction({ date: "2026-08-08", amount: 2000, type: "income", merchant: "NEO", accountId: checking, categoryId: category("NEO").id, category: "NEO" });
     await createFinanceTransaction({ date: "2026-08-08", amount: 500, type: "expense", merchant: "Rent", accountId: checking, categoryId: category("Rent").id, category: "Rent" });
-    await createFinanceTransaction({ date: "2026-08-08", amount: 300, type: "investment", merchant: "Vanguard", accountId: checking, categoryId: category("Vanguard Brokerage").id, category: "Vanguard Brokerage" });
+    await createFinanceTransaction({ date: "2026-08-08", amount: 300, type: "investment", merchant: "Vanguard", fromAccountId: checking, toAccountId: brokerage, categoryId: category("Vanguard Brokerage").id, category: "Vanguard Brokerage" });
     await createFinanceTransaction({ date: "2026-08-08", amount: 400, type: "transfer", merchant: "Save", fromAccountId: checking, toAccountId: hysaAccount, categoryId: category("HYSA").id, category: "HYSA" });
     await setBudgetAllocation("2026-08", category("Rent").id!, 800); await setBudgetAllocation("2026-08", category("HYSA").id!, 500);
     expect(getMonthSummary(await db.financeTransactions.toArray(), "2026-08", categories)).toMatchObject({ income: 2000, expenses: 500, invested: 300, saved: 400, remaining: 800 });

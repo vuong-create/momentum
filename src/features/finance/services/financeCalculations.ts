@@ -13,13 +13,32 @@ export function isBalanceTrackedAccount(account: FinanceAccount) {
 }
 
 export function transactionEffect(transaction: FinanceTransaction, accountId: number) {
-  if (transaction.type === "transfer") {
+  if (transaction.type === "transfer" || transaction.type === "investment") {
     if (transaction.fromAccountId === accountId) return -transaction.amount;
     if (transaction.toAccountId === accountId) return transaction.amount;
-    return 0;
+    if (transaction.type === "transfer" || transaction.fromAccountId || transaction.toAccountId) return 0;
   }
   if (transaction.accountId !== accountId) return 0;
   return transactionSignedAmount(transaction);
+}
+
+export function isTransactionHiddenFromLedger(transaction: FinanceTransaction) {
+  return transaction.hiddenFromLedger ?? transaction.type === "adjustment";
+}
+
+export function getInvestmentContributionBreakdown(transactions: FinanceTransaction[], accounts: FinanceAccount[], periodPrefix: string) {
+  const accountNames = new Map(accounts.map((account) => [account.id, account.name]));
+  const contributions = visibleFinanceTransactions(transactions).filter((item) => item.type === "investment" && item.date.startsWith(periodPrefix));
+  function totalsFor(keyFor: (item: FinanceTransaction) => string) {
+    const totals = new Map<string, number>();
+    contributions.forEach((item) => { const key = keyFor(item); totals.set(key, (totals.get(key) ?? 0) + item.amount); });
+    return [...totals.entries()].map(([label, amount]) => ({ label, amount })).sort((a, b) => b.amount - a.amount || a.label.localeCompare(b.label));
+  }
+  return {
+    total: contributions.reduce((total, item) => total + item.amount, 0),
+    byAccount: totalsFor((item) => accountNames.get(item.toAccountId) ?? "Needs investment account"),
+    byHolding: totalsFor((item) => item.investmentHolding?.trim() || "Unspecified holding"),
+  };
 }
 
 export function transactionSignedAmount(transaction: FinanceTransaction) {

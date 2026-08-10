@@ -793,18 +793,19 @@ Primary records:
 * Net worth snapshots
 * Monthly reviews
 
-Current Finance 2.2 implementation:
+Current Finance 2.4 implementation:
 
 * `financeAccounts` stores the account identity, type, and opening balance.
 * `financeTransactions` stores expenses, income, transfers, and investments.
 * Current balances, net worth, monthly cash flow, savings rate, and category spending are derived in the Finance calculation layer. Paid-in-full credit cards remain transaction sources but are excluded from balance and net-worth aggregation.
-* Transfers are one logical record with `fromAccountId` and `toAccountId`; they never count as income or spending.
+* Transfers and investment contributions are one logical record with `fromAccountId` and `toAccountId`. Transfers never count as income or spending; investment contributions remain an investment cash-allocation flow while moving value between accounts without changing net worth.
 * Account and transaction deletion is soft and recoverable. Accounts with active transaction history cannot be removed.
 * `financeCategories` provides stable one-level identifiers grouped by financial flow. Legacy Finance 1 and Finance 2 category/subcategory labels migrate without replacing transaction records.
 * `financeBudgetMonths` preserves monthly setup metadata and `financeBudgetAllocations` stores the planned amount per month and category.
 * Actual expense, income, investment, and saving values are never duplicated; each is derived from the matching transaction flow and category.
 * `financeNetWorthSnapshots` stores dated assets, liabilities, net worth, and an embedded balance for every balance-tracked account. The current month's automatic snapshot is updated as the ledger changes; manual snapshots preserve deliberate points in time. Legacy snapshots are interpreted without credit-card balances at read time.
-* Balance corrections are explicit `adjustment` transactions with an increase/decrease direction. They affect account balance and net worth but are excluded from income, spending, investment, saving, and budget calculations.
+* Balance corrections are explicit `adjustment` transactions with an increase/decrease direction. They affect account balance and net worth but are excluded from income, spending, investment, saving, and budget calculations. They default to hidden from the standard ledger.
+* `hiddenFromLedger` controls presentation only. Hidden transactions remain part of all balance, budget, snapshot, and report calculations and can be revealed or restored from the ledger visibility filter.
 * Imported transactions carry an import batch ID and stable row fingerprint. `financeImportBatches` records the source filename, file fingerprint, confirmed year, imported/skipped counts, and reversible state.
 
 ---
@@ -828,12 +829,15 @@ subcategoryId
 
 merchant
 accountId
+fromAccountId
+toAccountId
 
 notes
 tags
 
 investmentHolding
 adjustmentDirection
+hiddenFromLedger
 
 importBatchId
 importFingerprint

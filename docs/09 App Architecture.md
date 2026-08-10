@@ -2022,9 +2022,12 @@ Current milestone status:
 * Transaction quick entry includes searchable category selection while preserving merchant-based category memory
 * Transaction date and notes remain visible in quick entry; the ledger provides detailed multi-field filters, contextual totals, and denser rows
 * Accounts support auditable current-balance reconciliation without rewriting history or distorting monthly cash flow
-* Paid-in-full credit cards are spending sources rather than balance accounts, and Finance privacy mode blurs sensitive balance figures
+* Paid-in-full credit cards are spending sources rather than balance accounts, stay out of the Overview account list, and Finance privacy mode blurs sensitive balance figures
 * Reports switch between monthly and annual perspectives with twelve-month aggregation
-* Local CSV transaction import includes preview, year confirmation, account/category mapping, row repair, duplicate protection, validation, toast undo, and a persistent latest-import receipt
+* Investment contributions route from a cash source to an investment account, preserve net worth, and support account/holding contribution reports
+* Ledger visibility hides reconciliation entries by default without removing their accounting effects; individual records can be hidden or restored
+* Overview category progress is driven by the same Budget rows and over-plan rules as the Budget screen
+* Local CSV transaction import includes preview, year confirmation, account/category mapping, row repair, duplicate protection, validation, and immediate toast undo without a persistent receipt
 * Finance 3 will add goals, budget rollover, and the guided monthly close
 
 ## Phase 9 — Polish
