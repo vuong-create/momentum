@@ -1060,7 +1060,7 @@ Finance 1 intentionally does not include budgets, goals, monthly close, rollover
 
 ---
 
-# 35. Current Implementation — Finance 2.2
+# 35. Current Implementation — Finance 2.4
 
 Finance 2 turns the transaction foundation into a practical monthly planning
 and financial-history system.
@@ -1087,15 +1087,18 @@ Implemented:
 * Ledger filtering by month, merchant, category, account, type, and keyword with contextual result totals
 * Condensed ledger rows for quicker scanning without shrinking action targets
 * Account reconciliation through explicit positive or negative balance-adjustment events
-* Paid-in-full credit cards treated as spending sources and excluded from balances and net worth
+* Paid-in-full credit cards treated as spending sources and excluded from balances, net worth, and the Overview account list
 * Persistent privacy mode that blurs account and net-worth figures throughout Finance
-* Investment contributions treated as negative cash outflow from the selected source account while remaining separate from ordinary expenses in budgets and reports
-* Investment account market value remains balance-driven; explicit source-to-brokerage transfers and holding valuation are future investment-account work
+* Investment contributions route from a cash source into an investment or retirement account, remain negative cash allocation in the ledger, and preserve net worth
+* Existing single-account investment records migrate without guessing a destination and surface clearly for review
+* Monthly and annual investment contribution reports group activity by destination account and optional holding
+* Ledger visibility controls hide balance corrections by default and allow any transaction to be hidden or restored without changing calculations
+* Overview spending bars use the same monthly budget rows as Budget, including explicit over-plan states
 * Month and full-year report scopes with annual plan, activity, cash-flow, and category aggregation
-* Local CSV transaction preview with year confirmation, account/category mapping, row-level repair, duplicate protection, skipped-row reporting, and reversible import batches with a persistent latest-import receipt
+* Local CSV transaction preview with year confirmation, account/category mapping, row-level repair, duplicate protection, skipped-row reporting, and immediate reversible import undo without a persistent receipt
 
 Finance 2 intentionally stores snapshots of historical balances while keeping
 the live account balance transaction-derived. Budget rollover, savings goals,
 and the guided monthly close remain Finance 3 work.
 
-**Finance 2.2 Import, Reconciliation, and Report Atelier: IMPLEMENTED**
+**Finance 2.4 Investment Routing and Ledger Visibility: IMPLEMENTED**

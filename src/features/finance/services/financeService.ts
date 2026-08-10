@@ -27,12 +27,20 @@ export interface FinanceTransactionInput {
 function nowISO() { return new Date().toISOString(); }
 function normalizeMoney(value: number) { return Math.round(Math.abs(Number(value) || 0) * 100) / 100; }
 
+async function validateInvestmentAccounts(input: FinanceTransactionInput) {
+  if (input.type !== "investment" || !input.fromAccountId || !input.toAccountId) return;
+  const [source, destination] = await Promise.all([db.financeAccounts.get(input.fromAccountId), db.financeAccounts.get(input.toAccountId)]);
+  if (!source || source.deletedAt || !destination || destination.deletedAt) throw new Error("Choose active investment accounts.");
+  if (["investment", "retirement", "credit"].includes(source.type)) throw new Error("Choose checking, savings, or cash as the contribution source.");
+  if (destination.type !== "investment" && destination.type !== "retirement") throw new Error("Choose an investment or retirement account as the destination.");
+}
+
 export function validateTransaction(input: FinanceTransactionInput) {
   if (!input.date) throw new Error("Choose a transaction date.");
   if (normalizeMoney(input.amount) <= 0) throw new Error("Amount must be greater than zero.");
-  if (input.type === "transfer") {
-    if (!input.fromAccountId || !input.toAccountId) throw new Error("Choose both transfer accounts.");
-    if (input.fromAccountId === input.toAccountId) throw new Error("Transfer accounts must be different.");
+  if (input.type === "transfer" || input.type === "investment") {
+    if (!input.fromAccountId || !input.toAccountId) throw new Error(input.type === "investment" ? "Choose a source and investment account." : "Choose both transfer accounts.");
+    if (input.fromAccountId === input.toAccountId) throw new Error(input.type === "investment" ? "Source and investment accounts must be different." : "Transfer accounts must be different.");
   } else if (!input.accountId) throw new Error("Choose an account.");
 }
 
@@ -45,9 +53,9 @@ function normalizeTransaction(input: FinanceTransactionInput, existing?: Finance
     amount: normalizeMoney(input.amount),
     type: input.type,
     merchant: input.merchant.trim() || (input.type === "transfer" ? "Transfer" : "Untitled"),
-    accountId: input.type === "transfer" ? undefined : input.accountId,
-    fromAccountId: input.type === "transfer" ? input.fromAccountId : undefined,
-    toAccountId: input.type === "transfer" ? input.toAccountId : undefined,
+    accountId: input.type === "transfer" || input.type === "investment" ? undefined : input.accountId,
+    fromAccountId: input.type === "transfer" || input.type === "investment" ? input.fromAccountId : undefined,
+    toAccountId: input.type === "transfer" || input.type === "investment" ? input.toAccountId : undefined,
     categoryId: input.categoryId,
     subcategoryId: undefined,
     category: input.category,
@@ -87,6 +95,7 @@ export async function restoreFinanceAccount(id: number) {
 }
 
 export async function createFinanceTransaction(input: FinanceTransactionInput) {
+  await validateInvestmentAccounts(input);
   return db.financeTransactions.add(normalizeTransaction(input));
 }
 
@@ -107,6 +116,7 @@ export async function setFinanceAccountBalance(accountId: number, targetBalance:
     notes: notes?.trim() || `Set current balance to ${Math.round(Number(targetBalance) * 100) / 100}`,
     tags: [],
     adjustmentDirection: delta > 0 ? "increase" : "decrease",
+    hiddenFromLedger: true,
     createdAt: timestamp,
     updatedAt: timestamp,
   });
@@ -116,6 +126,7 @@ export async function setFinanceAccountBalance(accountId: number, targetBalance:
 export async function updateFinanceTransaction(id: number, input: FinanceTransactionInput) {
   const current = await db.financeTransactions.get(id);
   if (!current) throw new Error("Transaction not found.");
+  await validateInvestmentAccounts(input);
   await db.financeTransactions.put({ ...normalizeTransaction(input, current), id });
 }
 
@@ -127,12 +138,18 @@ export async function restoreFinanceTransaction(id: number) {
   await db.financeTransactions.update(id, { deletedAt: undefined, updatedAt: nowISO() });
 }
 
+export async function setFinanceTransactionLedgerVisibility(id: number, hiddenFromLedger: boolean) {
+  const transaction = await db.financeTransactions.get(id);
+  if (!transaction || transaction.deletedAt) throw new Error("Transaction not found.");
+  await db.financeTransactions.update(id, { hiddenFromLedger, updatedAt: nowISO() });
+}
+
 export function merchantSuggestions(transactions: FinanceTransaction[]) {
-  const memory = new Map<string, { merchant: string; categoryId?: number; subcategoryId?: number; category?: string; subcategory?: string; accountId?: number; count: number }>();
+  const memory = new Map<string, { merchant: string; categoryId?: number; subcategoryId?: number; category?: string; subcategory?: string; accountId?: number; fromAccountId?: number; toAccountId?: number; count: number }>();
   transactions.filter((item) => !item.deletedAt && item.merchant).forEach((item) => {
     const key = item.merchant.toLocaleLowerCase();
     const current = memory.get(key);
-    memory.set(key, { merchant: item.merchant, categoryId: item.categoryId, subcategoryId: item.subcategoryId, category: item.category, subcategory: item.subcategory, accountId: item.accountId, count: (current?.count ?? 0) + 1 });
+    memory.set(key, { merchant: item.merchant, categoryId: item.categoryId, subcategoryId: item.subcategoryId, category: item.category, subcategory: item.subcategory, accountId: item.accountId, fromAccountId: item.fromAccountId, toAccountId: item.toAccountId, count: (current?.count ?? 0) + 1 });
   });
   return [...memory.values()].sort((a, b) => b.count - a.count || a.merchant.localeCompare(b.merchant));
 }

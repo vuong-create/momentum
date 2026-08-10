@@ -23,8 +23,8 @@ export default function TransactionComposer({ accounts, transactions, categories
   const [amount, setAmount] = useState(editing ? String(editing.amount) : "");
   const [merchant, setMerchant] = useState(editing?.merchant ?? "");
   const [accountId, setAccountId] = useState(String(editing?.accountId ?? ""));
-  const [fromAccountId, setFromAccountId] = useState(String(editing?.fromAccountId ?? ""));
-  const [toAccountId, setToAccountId] = useState(String(editing?.toAccountId ?? ""));
+  const [fromAccountId, setFromAccountId] = useState(String(editing?.fromAccountId ?? (editing?.type === "investment" ? editing.accountId : undefined) ?? (!editing ? accounts.find((item) => !["investment", "retirement", "credit"].includes(item.type))?.id : undefined) ?? ""));
+  const [toAccountId, setToAccountId] = useState(String(editing?.toAccountId ?? (!editing ? accounts.find((item) => item.type === "investment" || item.type === "retirement")?.id : undefined) ?? ""));
   const [categoryId, setCategoryId] = useState(String(editing?.categoryId ?? ""));
   const [date, setDate] = useState(editing?.date ?? todayKey);
   const [notes, setNotes] = useState(editing?.notes ?? "");
@@ -37,6 +37,8 @@ export default function TransactionComposer({ accounts, transactions, categories
   const fallbackCategory = typeCategories.find((item) => item.name === preferredName) ?? typeCategories[0];
   const selectedCategoryId = Number(categoryId) || fallbackCategory?.id;
   const selectedCategory = categories.find((item) => item.id === selectedCategoryId);
+  const contributionSources = accounts.filter((item) => !["investment", "retirement", "credit"].includes(item.type));
+  const investmentAccounts = accounts.filter((item) => item.type === "investment" || item.type === "retirement");
 
   function reset() {
     setAmount(""); setMerchant(""); setDate(todayKey); setNotes(""); setHolding(""); setError("");
@@ -47,6 +49,8 @@ export default function TransactionComposer({ accounts, transactions, categories
     const remembered = memory.find((item) => item.merchant.toLocaleLowerCase() === value.toLocaleLowerCase());
     if (!remembered) return;
     if (remembered.accountId) setAccountId(String(remembered.accountId));
+    if (remembered.fromAccountId) setFromAccountId(String(remembered.fromAccountId));
+    if (remembered.toAccountId) setToAccountId(String(remembered.toAccountId));
     if (remembered.categoryId) setCategoryId(String(remembered.categoryId));
   }
 
@@ -55,12 +59,16 @@ export default function TransactionComposer({ accounts, transactions, categories
     const nextPreferred = next === "expense" ? "Groceries" : next === "income" ? "NEO" : next === "investment" ? "Vanguard Brokerage" : "HYSA";
     const nextCategory = categories.find((item) => item.flowType === flowFor(next) && item.name === nextPreferred) ?? categories.find((item) => item.flowType === flowFor(next));
     setCategoryId(String(nextCategory?.id ?? ""));
+    if (next === "investment") {
+      setFromAccountId((current) => contributionSources.some((item) => item.id === Number(current)) ? current : String(contributionSources[0]?.id ?? ""));
+      setToAccountId((current) => investmentAccounts.some((item) => item.id === Number(current)) ? current : String(investmentAccounts[0]?.id ?? ""));
+    }
   }
 
   async function submit(event: FormEvent) {
     event.preventDefault(); setSaving(true); setError("");
     try {
-      await onSave({ date, amount: Number(amount), type, merchant, accountId: Number(accountId || accounts[0]?.id) || undefined, fromAccountId: Number(fromAccountId) || undefined, toAccountId: Number(toAccountId) || undefined, categoryId: selectedCategoryId, category: selectedCategory?.name, notes, investmentHolding: holding });
+      await onSave({ date, amount: Number(amount), type, merchant, accountId: type === "transfer" || type === "investment" ? undefined : Number(accountId || accounts[0]?.id) || undefined, fromAccountId: Number(fromAccountId) || undefined, toAccountId: Number(toAccountId) || undefined, categoryId: selectedCategoryId, category: selectedCategory?.name, notes, investmentHolding: holding });
       reset();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not save transaction."); }
     finally { setSaving(false); }
@@ -69,11 +77,11 @@ export default function TransactionComposer({ accounts, transactions, categories
   return <form className={`finance-transaction-composer finance-panel ${editing ? "is-editing" : ""}`} onSubmit={submit}>
     <header><div><span className="text-label">{editing ? "Editing transaction" : "Quick entry"}</span><h2>{editing ? editing.merchant : "Record money in seconds."}</h2></div>{editing && <button type="button" onClick={() => { reset(); onCancelEdit?.(); }}>Cancel edit</button>}</header>
     <div className="finance-type-switch">{financeTransactionTypes.map((item) => <button key={item.value} type="button" className={type === item.value ? "is-selected" : ""} onClick={() => chooseType(item.value)}>{item.label}</button>)}</div>
-    <div className={`finance-composer-primary ${type === "transfer" ? "is-transfer" : ""}`}>
+    <div className={`finance-composer-primary ${type === "transfer" ? "is-transfer" : type === "investment" ? "is-investment" : ""}`}>
       <label className="finance-amount-field"><span>Amount</span><div><i>$</i><input autoFocus={!editing} inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" /></div></label>
       <label><span>{type === "transfer" ? "Description" : type === "income" ? "Source" : "Merchant"}</span><input list="finance-merchants" value={merchant} onChange={(event) => rememberMerchant(event.target.value)} placeholder={type === "income" ? "Paycheck" : type === "transfer" ? "Move to savings" : "Aldi"} /><datalist id="finance-merchants">{memory.map((item) => <option key={item.merchant} value={item.merchant} />)}</datalist></label>
       <FinanceCategoryCombobox categories={typeCategories} selectedId={selectedCategoryId} onChange={(id) => setCategoryId(String(id))} />
-      {type === "transfer" ? <><label><span>From</span><select value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label><span>To</span><select value={toAccountId} onChange={(event) => { setToAccountId(event.target.value); const account = accounts.find((item) => item.id === Number(event.target.value)); if (account?.name.toLocaleLowerCase().includes("hysa")) { const hysa = categories.find((item) => item.flowType === "saving" && item.name === "HYSA"); setCategoryId(String(hysa?.id ?? "")); } }}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></> : <label><span>Account</span><select value={accountId || String(accounts[0]?.id ?? "")} onChange={(event) => setAccountId(event.target.value)}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+      {type === "transfer" ? <><label><span>From</span><select value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label><span>To</span><select value={toAccountId} onChange={(event) => { setToAccountId(event.target.value); const account = accounts.find((item) => item.id === Number(event.target.value)); if (account?.name.toLocaleLowerCase().includes("hysa")) { const hysa = categories.find((item) => item.flowType === "saving" && item.name === "HYSA"); setCategoryId(String(hysa?.id ?? "")); } }}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></> : type === "investment" ? <><label><span>From</span><select value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}><option value="">Choose source</option>{contributionSources.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label><span>Investment account</span><select value={toAccountId} onChange={(event) => setToAccountId(event.target.value)}><option value="">Choose destination</option>{investmentAccounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></> : <label><span>Account</span><select value={accountId || String(accounts[0]?.id ?? "")} onChange={(event) => setAccountId(event.target.value)}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
       <button className="finance-save-transaction" type="submit" disabled={saving || accounts.length === 0}>{saving ? "Saving…" : editing ? "Update" : "Add"}<span>↵</span></button>
     </div>
     <div className="finance-composer-context">
@@ -82,6 +90,7 @@ export default function TransactionComposer({ accounts, transactions, categories
       <label className="finance-detail-notes"><span>Notes</span><input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional context" /></label>
     </div>
     {accounts.length === 0 && <p className="finance-form-error">Add an account before recording a transaction.</p>}
+    {type === "investment" && investmentAccounts.length === 0 && <p className="finance-form-error">Add an investment or retirement account before recording a contribution.</p>}
     {error && <p className="finance-form-error">{error}</p>}
   </form>;
 }
