@@ -42,6 +42,7 @@ export default function FinancePage() {
   const [balanceAccount, setBalanceAccount] = useState<FinanceAccount | null>(null);
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [balancesHidden, setBalancesHidden] = useState(() => localStorage.getItem("momentum.finance.hideBalances") === "true");
   const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
   const allAccounts = useLiveQuery(() => db.financeAccounts.toArray(), []) ?? [];
   const allTransactions = useLiveQuery(() => db.financeTransactions.toArray(), []) ?? [];
@@ -65,6 +66,7 @@ export default function FinancePage() {
   useEffect(() => { void upsertMonthlyNetWorthSnapshot(accounts, transactions, new Date(`${todayKey}T12:00:00`)); }, [accounts, transactions, todayKey]);
 
   function selectView(next: FinanceView) { setView(next); sessionStorage.setItem("momentum.finance.tab", next); window.scrollTo({ top: 0, behavior: "smooth" }); if (next !== "transactions") setEditingTransaction(null); }
+  function toggleBalances() { setBalancesHidden((current) => { const next = !current; localStorage.setItem("momentum.finance.hideBalances", String(next)); return next; }); }
   async function saveAccount(input: FinanceAccountInput) {
     if (accountModal && accountModal !== "new" && accountModal.id) {
       const previous = { ...accountModal }; await updateFinanceAccount(accountModal.id, input); experience.playFeedback("task-updated");
@@ -83,7 +85,7 @@ export default function FinancePage() {
   }
   async function removeTransaction(item: FinanceTransaction) { if (!item.id) return; await softDeleteFinanceTransaction(item.id); experience.playFeedback("task-dismissed"); undo.show({ message: "Transaction removed", undo: () => restoreFinanceTransaction(item.id!) }); }
 
-  return <div className="finance-page">
+  return <div className={`finance-page ${balancesHidden ? "is-balances-hidden" : ""}`}>
     <header className="finance-page-header"><div><span className="text-label">Clarity · Intention · Growth</span><h1 className="font-pixel">Finance</h1><p>Your financial life, without the spreadsheet friction.</p></div><div className="finance-header-stats"><span><small>Spent this month</small><strong>{formatMoney(summary.expenses, true)}</strong></span><span><small>Savings rate</small><strong className={summary.savingsRate >= 0 ? "is-positive" : "is-negative"}>{summary.savingsRate.toFixed(0)}%</strong></span><span><small>Budget remaining</small><strong className={expenseBudgetRemaining >= 0 ? "is-positive" : "is-negative"}>{formatMoney(expenseBudgetRemaining, true)}</strong></span></div></header>
     <nav className="finance-tabs" aria-label="Finance sections">{tabs.map((tab) => <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}</button>)}</nav>
     <main className="finance-content">
@@ -91,7 +93,7 @@ export default function FinancePage() {
       {view === "overview" && <FinanceOverview accounts={accounts} transactions={transactions} categories={allCategories} now={experience.now} onAddAccount={() => setAccountModal("new")} onOpenTransactions={() => selectView("transactions")} />}
       {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} latestImport={latestImport} onImport={() => setImportOpen(true)} onRevertImport={async (batch: FinanceImportBatch) => { await revertFinanceImport(batch.id!); experience.playFeedback("task-dismissed"); }} onEdit={(item) => { setEditingTransaction(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} onDelete={removeTransaction} />}
       {view === "budget" && <FinanceBudget now={experience.now} categories={categories} months={budgetMonths} allocations={budgetAllocations} transactions={transactions} onSetAllocation={async (budgetMonth, categoryId, amount) => { await setBudgetAllocation(budgetMonth, categoryId, amount); experience.playFeedback("task-updated"); }} onCopyPrevious={async (budgetMonth) => { const count = await copyPreviousBudget(budgetMonth); experience.playFeedback("task-restored"); return count; }} onManageCategories={() => setCategoryManagerOpen(true)} />}
-      {view === "accounts" && <FinanceAccounts accounts={accounts} transactions={transactions} onAdd={() => setAccountModal("new")} onEdit={setAccountModal} onAdjust={setBalanceAccount} />}
+      {view === "accounts" && <FinanceAccounts accounts={accounts} transactions={transactions} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAdd={() => setAccountModal("new")} onEdit={setAccountModal} onAdjust={setBalanceAccount} />}
       {view === "reports" && <FinanceReports now={experience.now} accounts={accounts} categories={allCategories} allocations={budgetAllocations} transactions={transactions} snapshots={snapshots} onSaveSnapshot={async () => { const id = await saveManualNetWorthSnapshot(accounts, transactions, experience.now); experience.playFeedback("finance-snapshot"); undo.show({ message: "Net worth snapshot saved", undo: () => softDeleteNetWorthSnapshot(id) }); }} onDeleteSnapshot={async (snapshot: FinanceNetWorthSnapshot) => { await softDeleteNetWorthSnapshot(snapshot.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Snapshot removed", undo: () => restoreNetWorthSnapshot(snapshot.id!) }); }} />}
     </main>
     {accountModal && <FinanceAccountModal account={accountModal === "new" ? null : accountModal} onClose={() => setAccountModal(null)} onSave={saveAccount} onDelete={accountModal !== "new" && accountModal.id ? async () => { await softDeleteFinanceAccount(accountModal.id!); experience.playFeedback("task-dismissed"); undo.show({ message: `${accountModal.name} removed`, undo: () => restoreFinanceAccount(accountModal.id!) }); } : undefined} />}

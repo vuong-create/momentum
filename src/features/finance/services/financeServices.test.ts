@@ -4,7 +4,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "../../../database/db";
 import { getAccountBalance, getMonthSummary, getNetWorth } from "./financeCalculations";
-import { calculateBudgetRows, calculateMonthReviewRows, copyPreviousBudget, setBudgetAllocation } from "./financeBudgetService";
+import { calculateBudgetRows, calculateMonthReviewRows, calculateYearReviewRows, copyPreviousBudget, setBudgetAllocation } from "./financeBudgetService";
 import { ensureFinanceCategories, renameFinanceCategory, visibleFinanceCategories } from "./financeCategoryService";
 import { createFinanceAccount, createFinanceTransaction, setFinanceAccountBalance, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceTransaction } from "./financeService";
 import { importFinanceCsv, previewFinanceCsv, revertFinanceImport } from "./financeImportService";
@@ -40,6 +40,17 @@ describe("finance foundation", () => {
     const transactions = await db.financeTransactions.toArray();
     expect(getNetWorth(accounts, transactions)).toBe(6000);
     expect(getMonthSummary(transactions, "2026-08")).toMatchObject({ income: 0, expenses: 0, remaining: 0 });
+  });
+
+  it("treats paid-in-full credit cards as spending sources instead of balance accounts", async () => {
+    const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    const card = await createFinanceAccount({ name: "Card", type: "credit", openingBalance: -500 });
+    await createFinanceTransaction({ date: "2026-08-08", amount: 75, type: "expense", merchant: "Dinner", accountId: card });
+    const accounts = await db.financeAccounts.toArray(); const transactions = await db.financeTransactions.toArray();
+    expect(getNetWorth(accounts, transactions)).toBe(1000);
+    expect(getMonthSummary(transactions, "2026-08")).toMatchObject({ expenses: 75 });
+    await saveManualNetWorthSnapshot(accounts, transactions, new Date(2026, 7, 8));
+    expect(await db.financeNetWorthSnapshots.toArray()).toEqual([expect.objectContaining({ netWorth: 1000, accounts: [expect.objectContaining({ accountId: checking })] })]);
   });
 
   it("updates and soft deletes transactions without corrupting balances", async () => {
@@ -123,6 +134,16 @@ describe("finance foundation", () => {
     expect(getMonthSummary(await db.financeTransactions.toArray(), "2026-08", categories)).toMatchObject({ income: 2000, expenses: 500, invested: 300, saved: 400, remaining: 800 });
     const review = calculateMonthReviewRows("2026-08", await db.financeBudgetAllocations.toArray(), categories, await db.financeTransactions.toArray());
     expect(review.find((item) => item.category.name === "HYSA")).toMatchObject({ actual: 400, available: 500, remaining: 100 });
+  });
+
+  it("aggregates all monthly plans and activity into an annual review", async () => {
+    await ensureFinanceCategories(); const categories = await db.financeCategories.toArray(); const dining = categories.find((item) => item.name === "Dining")!;
+    const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    await setBudgetAllocation("2026-01", dining.id!, 200); await setBudgetAllocation("2026-02", dining.id!, 300);
+    await createFinanceTransaction({ date: "2026-01-10", amount: 80, type: "expense", merchant: "Dinner", accountId: checking, categoryId: dining.id, category: dining.name });
+    await createFinanceTransaction({ date: "2026-02-10", amount: 120, type: "expense", merchant: "Dinner", accountId: checking, categoryId: dining.id, category: dining.name });
+    const annual = calculateYearReviewRows(2026, await db.financeBudgetAllocations.toArray(), categories, await db.financeTransactions.toArray());
+    expect(annual.find((item) => item.category.id === dining.id)).toMatchObject({ available: 500, actual: 200, remaining: 300, averageActual: 100 });
   });
 
   it("updates one monthly snapshot and preserves manual checkpoints with account balances", async () => {

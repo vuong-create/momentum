@@ -8,6 +8,10 @@ export function visibleFinanceTransactions(transactions: FinanceTransaction[]) {
   return transactions.filter((transaction) => !transaction.deletedAt);
 }
 
+export function isBalanceTrackedAccount(account: FinanceAccount) {
+  return account.type !== "credit";
+}
+
 export function transactionEffect(transaction: FinanceTransaction, accountId: number) {
   if (transaction.type === "transfer") {
     if (transaction.fromAccountId === accountId) return -transaction.amount;
@@ -41,7 +45,7 @@ export function getAccountBalances(accounts: FinanceAccount[], transactions: Fin
 }
 
 export function getNetWorth(accounts: FinanceAccount[], transactions: FinanceTransaction[]) {
-  return getAccountBalances(accounts, transactions).reduce((total, item) => total + item.balance, 0);
+  return getAccountBalances(accounts, transactions).filter(({ account }) => isBalanceTrackedAccount(account)).reduce((total, item) => total + item.balance, 0);
 }
 
 export function getMonthSummary(transactions: FinanceTransaction[], month: string, categories: FinanceCategory[] = []) {
@@ -70,12 +74,16 @@ export function getCategorySpending(transactions: FinanceTransaction[], month: s
   return [...totals.entries()].map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
 }
 
-export function getSixMonthCashFlow(transactions: FinanceTransaction[], now: Date, categories: FinanceCategory[] = []) {
-  return Array.from({ length: 6 }, (_, index) => {
-    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+export function getCashFlowRange(transactions: FinanceTransaction[], now: Date, count: number, categories: FinanceCategory[] = []) {
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (count - 1 - index), 1);
     const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     return { month, label: date.toLocaleDateString("en-US", { month: "short" }), ...getMonthSummary(transactions, month, categories) };
   });
+}
+
+export function getSixMonthCashFlow(transactions: FinanceTransaction[], now: Date, categories: FinanceCategory[] = []) {
+  return getCashFlowRange(transactions, now, 6, categories);
 }
 
 export function formatMoney(value: number, compact = false) {

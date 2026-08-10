@@ -1,10 +1,10 @@
 import { db, type FinanceAccount, type FinanceNetWorthSnapshot, type FinanceTransaction } from "../../../database/db";
-import { getAccountBalances } from "./financeCalculations";
+import { getAccountBalances, isBalanceTrackedAccount } from "./financeCalculations";
 
 function dateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
 function buildSnapshot(accounts: FinanceAccount[], transactions: FinanceTransaction[], date: string, source: FinanceNetWorthSnapshot["source"], snapshotKey: string, existing?: FinanceNetWorthSnapshot): FinanceNetWorthSnapshot {
   const timestamp = new Date().toISOString();
-  const rows = getAccountBalances(accounts, transactions).filter(({ account }) => account.id).map(({ account, balance }) => ({ accountId: account.id!, name: account.name, type: account.type, balance }));
+  const rows = getAccountBalances(accounts, transactions).filter(({ account }) => account.id && isBalanceTrackedAccount(account)).map(({ account, balance }) => ({ accountId: account.id!, name: account.name, type: account.type, balance }));
   const assets = rows.filter((item) => item.balance >= 0).reduce((total, item) => total + item.balance, 0);
   const liabilities = rows.filter((item) => item.balance < 0).reduce((total, item) => total + Math.abs(item.balance), 0);
   return { ...existing, snapshotKey, date, month: date.slice(0, 7), source, assets, liabilities, netWorth: assets - liabilities, accounts: rows, createdAt: existing?.createdAt ?? timestamp, updatedAt: timestamp, deletedAt: undefined };

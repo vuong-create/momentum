@@ -2020,7 +2020,10 @@ Current milestone status:
 * Month in Review, budget-versus-actual, savings-rate, net-worth, account-history, cash-flow, and category Reports implemented
 * Month in Review redesigned as a graphic, collapsible flow-and-category story; the broader Reports gallery uses coordinated editorial data visuals
 * Transaction quick entry includes searchable category selection while preserving merchant-based category memory
+* Transaction date and notes remain visible in quick entry; the ledger provides detailed multi-field filters, contextual totals, and denser rows
 * Accounts support auditable current-balance reconciliation without rewriting history or distorting monthly cash flow
+* Paid-in-full credit cards are spending sources rather than balance accounts, and Finance privacy mode blurs sensitive balance figures
+* Reports switch between monthly and annual perspectives with twelve-month aggregation
 * Local CSV transaction import includes preview, year confirmation, account/category mapping, row repair, duplicate protection, validation, toast undo, and a persistent latest-import receipt
 * Finance 3 will add goals, budget rollover, and the guided monthly close
 
