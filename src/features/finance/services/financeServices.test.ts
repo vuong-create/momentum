@@ -42,6 +42,15 @@ describe("finance foundation", () => {
     expect(getMonthSummary(transactions, "2026-08")).toMatchObject({ income: 0, expenses: 0, remaining: 0 });
   });
 
+  it("treats investment contributions as cash outflow while reporting them separately", async () => {
+    const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    await createFinanceTransaction({ date: "2026-08-08", amount: 300, type: "investment", merchant: "Vanguard", accountId: checking, category: "Vanguard Brokerage" });
+    const account = (await db.financeAccounts.get(checking))!;
+    const transactions = await db.financeTransactions.toArray();
+    expect(getAccountBalance(account, transactions)).toBe(700);
+    expect(getMonthSummary(transactions, "2026-08")).toMatchObject({ expenses: 0, invested: 300, remaining: -300 });
+  });
+
   it("treats paid-in-full credit cards as spending sources instead of balance accounts", async () => {
     const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
     const card = await createFinanceAccount({ name: "Card", type: "credit", openingBalance: -500 });

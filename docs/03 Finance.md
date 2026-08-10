@@ -1089,6 +1089,8 @@ Implemented:
 * Account reconciliation through explicit positive or negative balance-adjustment events
 * Paid-in-full credit cards treated as spending sources and excluded from balances and net worth
 * Persistent privacy mode that blurs account and net-worth figures throughout Finance
+* Investment contributions treated as negative cash outflow from the selected source account while remaining separate from ordinary expenses in budgets and reports
+* Investment account market value remains balance-driven; explicit source-to-brokerage transfers and holding valuation are future investment-account work
 * Month and full-year report scopes with annual plan, activity, cash-flow, and category aggregation
 * Local CSV transaction preview with year confirmation, account/category mapping, row-level repair, duplicate protection, skipped-row reporting, and reversible import batches with a persistent latest-import receipt
 
