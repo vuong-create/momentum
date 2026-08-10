@@ -23,7 +23,7 @@ export function transactionEffect(transaction: FinanceTransaction, accountId: nu
 }
 
 export function transactionSignedAmount(transaction: FinanceTransaction) {
-  if (transaction.type === "expense") return -transaction.amount;
+  if (transaction.type === "expense" || transaction.type === "investment") return -transaction.amount;
   if (transaction.type === "transfer") return 0;
   if (transaction.type === "adjustment") return transaction.adjustmentDirection === "decrease" ? -transaction.amount : transaction.amount;
   return transaction.amount;
