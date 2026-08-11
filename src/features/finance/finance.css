@@ -115,3 +115,17 @@
 .finance-page:has(.finance-modal-layer){animation:none}.finance-close-modal{max-height:calc(100vh - 32px);overflow:auto}
 @media(max-width:820px){.finance-composer-primary.is-investment{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.finance-composer-primary.is-investment{grid-template-columns:1fr}.finance-investment-report article{grid-template-columns:95px 1fr 65px}}
+
+/* Finance ledger — transaction type palette */
+.finance-transaction-table>article.type-expense{--ledger-rgb:201,143,138;--ledger-primary:#ddb4b0;--ledger-secondary:#b98f8b;--ledger-strength:.085}
+.finance-transaction-table>article.type-income{--ledger-rgb:146,190,160;--ledger-primary:#b8d8c1;--ledger-secondary:#90b19a;--ledger-strength:.09}
+.finance-transaction-table>article.type-transfer{--ledger-rgb:143,175,197;--ledger-primary:#b8cedd;--ledger-secondary:#8faebf;--ledger-strength:.085}
+.finance-transaction-table>article.type-investment{--ledger-rgb:166,155,196;--ledger-primary:#c9c0df;--ledger-secondary:#a39aba;--ledger-strength:.09}
+.finance-transaction-table>article.type-adjustment{--ledger-rgb:195,170,130;--ledger-primary:#d5c19f;--ledger-secondary:#ab987a;--ledger-strength:.075}
+.finance-transaction-table>article[class*="type-"]{color:var(--ledger-secondary);background:linear-gradient(90deg,rgba(var(--ledger-rgb),var(--ledger-strength)),rgba(var(--ledger-rgb),calc(var(--ledger-strength) * .58)));box-shadow:inset 2px 0 rgba(var(--ledger-rgb),.28);transition:background 150ms ease,color 150ms ease}
+.finance-transaction-table>article[class*="type-"]:hover{color:var(--ledger-primary);background:linear-gradient(90deg,rgba(var(--ledger-rgb),.14),rgba(var(--ledger-rgb),.085))}
+.finance-transaction-table>article[class*="type-"] time,.finance-transaction-table>article[class*="type-"] .finance-ledger-note{color:var(--ledger-secondary)}
+.finance-transaction-table>article[class*="type-"] strong,.finance-transaction-table>article[class*="type-"]>b,.finance-transaction-table>article[class*="type-"]>b.is-positive,.finance-transaction-table>article[class*="type-"]>b.is-negative{color:var(--ledger-primary)!important}
+.finance-transaction-table>article[class*="type-"] .finance-transaction-glyph{color:var(--ledger-primary);border-color:rgba(var(--ledger-rgb),.24);background:rgba(var(--ledger-rgb),.1)}
+.finance-transaction-table>article[class*="type-"].is-ledger-hidden{background:repeating-linear-gradient(-45deg,rgba(255,255,255,.011),rgba(255,255,255,.011) 5px,transparent 5px,transparent 10px),linear-gradient(90deg,rgba(var(--ledger-rgb),.05),rgba(var(--ledger-rgb),.025))}
+.finance-transaction-table>article[class*="type-"].is-ledger-hidden:hover{background:repeating-linear-gradient(-45deg,rgba(255,255,255,.014),rgba(255,255,255,.014) 5px,transparent 5px,transparent 10px),linear-gradient(90deg,rgba(var(--ledger-rgb),.09),rgba(var(--ledger-rgb),.05))}
