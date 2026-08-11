@@ -475,6 +475,49 @@ export interface FinanceBudgetAllocation {
   deletedAt?: string;
 }
 
+export type FinanceGoalType = "balance" | "contribution";
+export type FinanceGoalTimeframe = "monthly" | "yearly" | "custom";
+
+export interface FinanceGoal {
+  id?: number;
+  name: string;
+  goalType: FinanceGoalType;
+  targetAmount: number;
+  accountId: number;
+  timeframe: FinanceGoalTimeframe;
+  startDate: string;
+  deadline?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface FinanceRolloverDecision {
+  categoryId: number;
+  amount: number;
+}
+
+export interface FinanceMonthlyReview {
+  id?: number;
+  month: string;
+  nextMonth: string;
+  income: number;
+  spending: number;
+  invested: number;
+  saved: number;
+  savingsRate: number;
+  netWorth: number;
+  rolloverEarned: number;
+  rollovers: FinanceRolloverDecision[];
+  reflectionWentWell?: string;
+  reflectionChange?: string;
+  reflectionRemember?: string;
+  closedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  reopenedAt?: string;
+}
+
 export interface FinanceSnapshotAccount {
   accountId: number;
   name: string;
@@ -542,6 +585,8 @@ class MomentumDatabase extends Dexie {
   financeSubcategories!: Table<FinanceSubcategory>;
   financeBudgetMonths!: Table<FinanceBudgetMonth>;
   financeBudgetAllocations!: Table<FinanceBudgetAllocation>;
+  financeGoals!: Table<FinanceGoal>;
+  financeMonthlyReviews!: Table<FinanceMonthlyReview>;
   financeNetWorthSnapshots!: Table<FinanceNetWorthSnapshot>;
   financeImportBatches!: Table<FinanceImportBatch>;
 
@@ -919,6 +964,13 @@ class MomentumDatabase extends Dexie {
           }
           item.hiddenFromLedger = item.hiddenFromLedger ?? item.type === "adjustment";
         });
+    });
+
+    this.version(26).stores({
+      financeGoals:
+        "++id, goalType, accountId, timeframe, deadline, updatedAt, deletedAt",
+      financeMonthlyReviews:
+        "++id, &month, closedAt, updatedAt",
     });
   }
 }

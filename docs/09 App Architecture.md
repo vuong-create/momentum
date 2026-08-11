@@ -2028,7 +2028,13 @@ Current milestone status:
 * Ledger visibility hides reconciliation entries by default without removing their accounting effects; individual records can be hidden or restored
 * Overview category progress is driven by the same Budget rows and over-plan rules as the Budget screen
 * Local CSV transaction import includes preview, year confirmation, account/category mapping, row repair, duplicate protection, validation, and immediate toast undo without a persistent receipt
-* Finance 3 will add goals, budget rollover, and the guided monthly close
+* Ledger rows display transaction notes between category and account routing
+* Balance and contribution goals derive progress from linked accounts and ledger activity
+* Guided monthly close saves review metrics and reflections, creates the next base plan, and carries only selected positive expense balances
+* Closed months can be reopened safely until the following month is closed; negative rollover is never created
+* Mutating ledger or budget data for a closed month reopens it before the change, preventing stale historical reviews
+* Closed review context and rollover totals are preserved in Reports
+* Finance 3 completes the planned Version 1 Finance workflow
 
 ## Phase 9 — Polish
 
