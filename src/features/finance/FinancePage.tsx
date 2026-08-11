@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { db, type FinanceAccount, type FinanceNetWorthSnapshot, type FinanceTransaction } from "../../database/db";
+import { db, type FinanceAccount, type FinanceGoal, type FinanceNetWorthSnapshot, type FinanceTransaction } from "../../database/db";
 import useExperience from "../../experience/useExperience";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
 import useActivityUndo from "../activities/hooks/useActivityUndo";
@@ -11,24 +11,29 @@ import FinanceBudget from "./components/FinanceBudget";
 import FinanceBalanceModal from "./components/FinanceBalanceModal";
 import FinanceCategoryManager from "./components/FinanceCategoryManager";
 import FinanceImportModal from "./components/FinanceImportModal";
+import FinanceGoals from "./components/FinanceGoals";
+import FinanceMonthlyCloseModal from "./components/FinanceMonthlyCloseModal";
 import FinanceOverview from "./components/FinanceOverview";
 import FinanceReports from "./components/FinanceReports";
 import FinanceTransactions from "./components/FinanceTransactions";
 import TransactionComposer from "./components/TransactionComposer";
 import { formatMoney, getAccountBalance, getMonthSummary, visibleFinanceAccounts, visibleFinanceTransactions } from "./services/financeCalculations";
 import { calculateBudgetRows, copyPreviousBudget, setBudgetAllocation } from "./services/financeBudgetService";
+import { closeFinanceMonth, reopenFinanceMonth, visibleFinanceReviews } from "./services/financeCloseService";
 import { archiveFinanceCategory, createFinanceCategory, ensureFinanceCategories, moveFinanceCategory, renameFinanceCategory, restoreFinanceCategory, visibleFinanceCategories } from "./services/financeCategoryService";
 import { createFinanceAccount, createFinanceTransaction, restoreFinanceAccount, restoreFinanceTransaction, setFinanceAccountBalance, setFinanceTransactionLedgerVisibility, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceAccount, updateFinanceTransaction, type FinanceAccountInput, type FinanceTransactionInput } from "./services/financeService";
+import { createFinanceGoal, restoreFinanceGoal, softDeleteFinanceGoal, updateFinanceGoal, visibleFinanceGoals, type FinanceGoalInput } from "./services/financeGoalService";
 import { restoreNetWorthSnapshot, saveManualNetWorthSnapshot, softDeleteNetWorthSnapshot, upsertMonthlyNetWorthSnapshot, visibleNetWorthSnapshots } from "./services/financeSnapshotService";
 import { importFinanceCsv, revertFinanceImport, type FinanceCsvPreview, type FinanceImportOptions } from "./services/financeImportService";
 
 import "./finance.css";
 
-type FinanceView = "overview" | "transactions" | "budget" | "accounts" | "reports";
+type FinanceView = "overview" | "transactions" | "budget" | "goals" | "accounts" | "reports";
 const tabs: Array<{ id: FinanceView; label: string; mark: string }> = [
   { id: "overview", label: "Overview", mark: "◇" },
   { id: "transactions", label: "Transactions", mark: "≡" },
   { id: "budget", label: "Budget", mark: "▤" },
+  { id: "goals", label: "Goals", mark: "◎" },
   { id: "accounts", label: "Accounts", mark: "○" },
   { id: "reports", label: "Reports", mark: "↗" },
 ];
@@ -42,6 +47,7 @@ export default function FinancePage() {
   const [balanceAccount, setBalanceAccount] = useState<FinanceAccount | null>(null);
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [closingMonth, setClosingMonth] = useState<string | null>(null);
   const [balancesHidden, setBalancesHidden] = useState(() => localStorage.getItem("momentum.finance.hideBalances") === "true");
   const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
   const allAccounts = useLiveQuery(() => db.financeAccounts.toArray(), []) ?? [];
@@ -49,11 +55,14 @@ export default function FinancePage() {
   const allCategories = useLiveQuery(() => db.financeCategories.toArray(), []) ?? [];
   const budgetMonths = useLiveQuery(() => db.financeBudgetMonths.toArray(), []) ?? [];
   const budgetAllocations = useLiveQuery(() => db.financeBudgetAllocations.toArray(), []) ?? [];
+  const allGoals = useLiveQuery(() => db.financeGoals.toArray(), []) ?? [];
+  const allReviews = useLiveQuery(() => db.financeMonthlyReviews.toArray(), []) ?? [];
   const allSnapshots = useLiveQuery(() => db.financeNetWorthSnapshots.toArray(), []) ?? [];
   const accounts = visibleFinanceAccounts(allAccounts);
   const transactions = visibleFinanceTransactions(allTransactions);
   const categories = visibleFinanceCategories(allCategories);
   const snapshots = visibleNetWorthSnapshots(allSnapshots);
+  const goals = visibleFinanceGoals(allGoals); const reviews = visibleFinanceReviews(allReviews);
   const todayKey = dateKey(experience.now);
   const month = todayKey.slice(0, 7);
   const summary = getMonthSummary(transactions, month, categories);
@@ -65,6 +74,7 @@ export default function FinancePage() {
 
   function selectView(next: FinanceView) { setView(next); sessionStorage.setItem("momentum.finance.tab", next); window.scrollTo({ top: 0, behavior: "smooth" }); if (next !== "transactions") setEditingTransaction(null); }
   function toggleBalances() { setBalancesHidden((current) => { const next = !current; localStorage.setItem("momentum.finance.hideBalances", String(next)); return next; }); }
+  async function reopenForChange(months: string[]) { for (const affected of [...new Set(months)].sort((a, b) => b.localeCompare(a))) if (reviews.some((item) => item.month === affected)) await reopenFinanceMonth(affected); }
   async function saveAccount(input: FinanceAccountInput) {
     if (accountModal && accountModal !== "new" && accountModal.id) {
       const previous = { ...accountModal }; await updateFinanceAccount(accountModal.id, input); experience.playFeedback("task-updated");
@@ -74,6 +84,7 @@ export default function FinancePage() {
     undo.show({ message: `${input.name.trim()} added`, undo: () => softDeleteFinanceAccount(id) });
   }
   async function saveTransaction(input: FinanceTransactionInput) {
+    await reopenForChange([input.date.slice(0, 7), ...(editingTransaction ? [editingTransaction.date.slice(0, 7)] : [])]);
     if (editingTransaction?.id) {
       const previous = { ...editingTransaction }; await updateFinanceTransaction(editingTransaction.id, input); setEditingTransaction(null); experience.playFeedback("task-updated");
       undo.show({ message: "Transaction updated", undo: () => db.financeTransactions.put(previous) }); return;
@@ -81,7 +92,7 @@ export default function FinancePage() {
     const id = await createFinanceTransaction(input); experience.playFeedback(input.type === "income" ? "finance-income" : "finance-transaction");
     undo.show({ message: `${input.merchant.trim() || "Transaction"} recorded`, undo: () => softDeleteFinanceTransaction(id) });
   }
-  async function removeTransaction(item: FinanceTransaction) { if (!item.id) return; await softDeleteFinanceTransaction(item.id); experience.playFeedback("task-dismissed"); undo.show({ message: "Transaction removed", undo: () => restoreFinanceTransaction(item.id!) }); }
+  async function removeTransaction(item: FinanceTransaction) { if (!item.id) return; await reopenForChange([item.date.slice(0, 7)]); await softDeleteFinanceTransaction(item.id); experience.playFeedback("task-dismissed"); undo.show({ message: "Transaction removed", undo: () => restoreFinanceTransaction(item.id!) }); }
 
   return <div className={`finance-page ${balancesHidden ? "is-balances-hidden" : ""}`}>
     <header className="finance-page-header"><div><span className="text-label">Clarity · Intention · Growth</span><h1 className="font-pixel">Finance</h1><p>Your financial life, without the spreadsheet friction.</p></div><div className="finance-header-stats"><span><small>Spent this month</small><strong className="finance-balance-value">{formatMoney(summary.expenses, true)}</strong></span><span><small>Savings rate</small><strong className={`${summary.savingsRate >= 0 ? "is-positive" : "is-negative"} finance-balance-value`}>{summary.savingsRate.toFixed(0)}%</strong></span><span><small>Budget remaining</small><strong className={`${expenseBudgetRemaining >= 0 ? "is-positive" : "is-negative"} finance-balance-value`}>{formatMoney(expenseBudgetRemaining, true)}</strong></span></div></header>
@@ -90,14 +101,16 @@ export default function FinancePage() {
       {view === "transactions" && <TransactionComposer key={editingTransaction?.id ?? "new"} accounts={accounts} transactions={transactions} categories={categories} editing={editingTransaction} todayKey={todayKey} onSave={saveTransaction} onCancelEdit={() => setEditingTransaction(null)} />}
       {view === "overview" && <FinanceOverview accounts={accounts} transactions={transactions} categories={allCategories} budgetRows={currentBudgetRows} now={experience.now} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAddAccount={() => setAccountModal("new")} onOpenTransactions={() => selectView("transactions")} />}
       {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} onImport={() => setImportOpen(true)} onEdit={(item) => { setEditingTransaction(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} onDelete={removeTransaction} onSetVisibility={async (item, hidden) => { if (!item.id) return; await setFinanceTransactionLedgerVisibility(item.id, hidden); experience.playFeedback(hidden ? "task-dismissed" : "task-restored"); undo.show({ message: hidden ? "Transaction hidden from ledger" : "Transaction restored to ledger", undo: () => setFinanceTransactionLedgerVisibility(item.id!, !hidden) }); }} />}
-      {view === "budget" && <FinanceBudget now={experience.now} categories={categories} months={budgetMonths} allocations={budgetAllocations} transactions={transactions} onSetAllocation={async (budgetMonth, categoryId, amount) => { await setBudgetAllocation(budgetMonth, categoryId, amount); experience.playFeedback("task-updated"); }} onCopyPrevious={async (budgetMonth) => { const count = await copyPreviousBudget(budgetMonth); experience.playFeedback("task-restored"); return count; }} onManageCategories={() => setCategoryManagerOpen(true)} />}
+      {view === "budget" && <FinanceBudget now={experience.now} categories={categories} months={budgetMonths} allocations={budgetAllocations} transactions={transactions} reviews={reviews} onSetAllocation={async (budgetMonth, categoryId, amount) => { await reopenForChange([budgetMonth]); await setBudgetAllocation(budgetMonth, categoryId, amount); experience.playFeedback("task-updated"); }} onCopyPrevious={async (budgetMonth) => { await reopenForChange([budgetMonth]); const count = await copyPreviousBudget(budgetMonth); experience.playFeedback("task-restored"); return count; }} onManageCategories={() => setCategoryManagerOpen(true)} onCloseMonth={setClosingMonth} onReopenMonth={async (budgetMonth) => { await reopenFinanceMonth(budgetMonth); experience.playFeedback("task-restored"); }} />}
+      {view === "goals" && <FinanceGoals now={experience.now} accounts={accounts} transactions={transactions} goals={goals} onCreate={async (input: FinanceGoalInput) => { const id = await createFinanceGoal(input); experience.playFeedback("task-added"); undo.show({ message: `${input.name.trim()} goal created`, undo: () => softDeleteFinanceGoal(id) }); }} onUpdate={async (id, input) => { const previous = { ...allGoals.find((item) => item.id === id)! }; await updateFinanceGoal(id, input); experience.playFeedback("task-updated"); undo.show({ message: "Goal updated", undo: () => db.financeGoals.put(previous) }); }} onDelete={async (goal: FinanceGoal) => { await softDeleteFinanceGoal(goal.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Goal archived", undo: () => restoreFinanceGoal(goal.id!) }); }} />}
       {view === "accounts" && <FinanceAccounts accounts={accounts} transactions={transactions} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAdd={() => setAccountModal("new")} onEdit={setAccountModal} onAdjust={setBalanceAccount} />}
-      {view === "reports" && <FinanceReports now={experience.now} accounts={accounts} categories={allCategories} allocations={budgetAllocations} transactions={transactions} snapshots={snapshots} onSaveSnapshot={async () => { const id = await saveManualNetWorthSnapshot(accounts, transactions, experience.now); experience.playFeedback("finance-snapshot"); undo.show({ message: "Net worth snapshot saved", undo: () => softDeleteNetWorthSnapshot(id) }); }} onDeleteSnapshot={async (snapshot: FinanceNetWorthSnapshot) => { await softDeleteNetWorthSnapshot(snapshot.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Snapshot removed", undo: () => restoreNetWorthSnapshot(snapshot.id!) }); }} />}
+      {view === "reports" && <FinanceReports now={experience.now} accounts={accounts} categories={allCategories} allocations={budgetAllocations} transactions={transactions} snapshots={snapshots} reviews={reviews} onSaveSnapshot={async () => { const id = await saveManualNetWorthSnapshot(accounts, transactions, experience.now); experience.playFeedback("finance-snapshot"); undo.show({ message: "Net worth snapshot saved", undo: () => softDeleteNetWorthSnapshot(id) }); }} onDeleteSnapshot={async (snapshot: FinanceNetWorthSnapshot) => { await softDeleteNetWorthSnapshot(snapshot.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Snapshot removed", undo: () => restoreNetWorthSnapshot(snapshot.id!) }); }} />}
     </main>
     {accountModal && <FinanceAccountModal account={accountModal === "new" ? null : accountModal} onClose={() => setAccountModal(null)} onSave={saveAccount} onDelete={accountModal !== "new" && accountModal.id ? async () => { await softDeleteFinanceAccount(accountModal.id!); experience.playFeedback("task-dismissed"); undo.show({ message: `${accountModal.name} removed`, undo: () => restoreFinanceAccount(accountModal.id!) }); } : undefined} />}
-    {balanceAccount?.id && <FinanceBalanceModal account={balanceAccount} currentBalance={getAccountBalance(balanceAccount, transactions)} todayKey={todayKey} onClose={() => setBalanceAccount(null)} onSave={async (targetBalance, date, notes) => { const result = await setFinanceAccountBalance(balanceAccount.id!, targetBalance, date, notes); experience.playFeedback("finance-snapshot"); undo.show({ message: `${balanceAccount.name} balance adjusted`, undo: () => softDeleteFinanceTransaction(result.id) }); }} />}
+    {balanceAccount?.id && <FinanceBalanceModal account={balanceAccount} currentBalance={getAccountBalance(balanceAccount, transactions)} todayKey={todayKey} onClose={() => setBalanceAccount(null)} onSave={async (targetBalance, date, notes) => { await reopenForChange([date.slice(0, 7)]); const result = await setFinanceAccountBalance(balanceAccount.id!, targetBalance, date, notes); experience.playFeedback("finance-snapshot"); undo.show({ message: `${balanceAccount.name} balance adjusted`, undo: () => softDeleteFinanceTransaction(result.id) }); }} />}
     {categoryManagerOpen && <FinanceCategoryManager categories={allCategories} onClose={() => setCategoryManagerOpen(false)} onAddCategory={async (name, flowType) => { await createFinanceCategory(name, flowType); experience.playFeedback("task-added"); }} onRenameCategory={renameFinanceCategory} onMoveCategory={moveFinanceCategory} onArchiveCategory={archiveFinanceCategory} onRestoreCategory={restoreFinanceCategory} />}
     {importOpen && <FinanceImportModal accounts={accounts} categories={categories} onClose={() => setImportOpen(false)} onImport={async (preview: FinanceCsvPreview, options: FinanceImportOptions) => { const result = await importFinanceCsv(preview, categories, options); experience.playFeedback("finance-income"); undo.show({ message: `${result.importedCount} transactions imported`, undo: () => revertFinanceImport(result.batchId) }); }} />}
+    {closingMonth && <FinanceMonthlyCloseModal month={closingMonth} allocations={budgetAllocations} categories={categories} transactions={transactions} onClose={() => setClosingMonth(null)} onConfirm={async (rollovers, reflections) => { await closeFinanceMonth({ month: closingMonth, accounts, transactions, categories, budgetMonths, allocations: budgetAllocations, rollovers, reflections }); experience.playFeedback("finance-snapshot"); undo.show({ message: `${closingMonth} closed`, undo: () => reopenFinanceMonth(closingMonth) }); }} />}
     <ActivityUndoToast notice={undo.notice} onDismiss={undo.dismiss} onUndo={undo.undo} />
   </div>;
 }

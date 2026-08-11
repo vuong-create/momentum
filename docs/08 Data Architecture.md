@@ -793,7 +793,7 @@ Primary records:
 * Net worth snapshots
 * Monthly reviews
 
-Current Finance 2.4 implementation:
+Current Finance 3 implementation:
 
 * `financeAccounts` stores the account identity, type, and opening balance.
 * `financeTransactions` stores expenses, income, transfers, and investments.
@@ -802,6 +802,8 @@ Current Finance 2.4 implementation:
 * Account and transaction deletion is soft and recoverable. Accounts with active transaction history cannot be removed.
 * `financeCategories` provides stable one-level identifiers grouped by financial flow. Legacy Finance 1 and Finance 2 category/subcategory labels migrate without replacing transaction records.
 * `financeBudgetMonths` preserves monthly setup metadata and `financeBudgetAllocations` stores the planned amount per month and category.
+* `financeGoals` stores a target and linked account while goal progress remains derived from account balances or qualifying ledger contributions.
+* `financeMonthlyReviews` stores closed-month metrics, optional reflections, and the exact category rollover decisions used to prepare the following month.
 * Actual expense, income, investment, and saving values are never duplicated; each is derived from the matching transaction flow and category.
 * `financeNetWorthSnapshots` stores dated assets, liabilities, net worth, and an embedded balance for every balance-tracked account. The current month's automatic snapshot is updated as the ledger changes; manual snapshots preserve deliberate points in time. Legacy snapshots are interpreted without credit-card balances at read time.
 * Balance corrections are explicit `adjustment` transactions with an increase/decrease direction. They affect account balance and net worth but are excluded from income, spending, investment, saving, and budget calculations. They default to hidden from the standard ledger.
@@ -981,9 +983,9 @@ available = baseAmount + rolloverAmount
 Actual spending comes from Transactions.
 
 Current persistent tables use one `FinanceBudgetMonth` per `YYYY-MM` month and
-one `FinanceBudgetAllocation` per month/category pair. `rolloverAmount`
-exists in the schema so Finance 3 can add deliberate rollover rules without a
-budget migration; it remains zero in Finance 2.
+one `FinanceBudgetAllocation` per month/category pair. `rolloverAmount` stays
+separate from `baseAmount`, allowing a close to carry positive unused expense
+budget forward without permanently inflating the recurring monthly plan.
 
 ---
 
@@ -1100,10 +1102,13 @@ targetAmount
 
 accountId
 
-timeframeType
+timeframe
+startDate
 deadline
 
-active
+createdAt
+updatedAt
+deletedAt
 ```
 
 Goal types:
@@ -1117,7 +1122,9 @@ Timeframes:
 * Yearly
 * Custom deadline
 
-Progress should derive automatically from related account/transaction data when possible.
+Balance progress derives from the linked account. Contribution progress derives
+from transfers or investment contributions entering the linked savings,
+investment, or retirement account during the active period.
 
 ---
 
@@ -1153,23 +1160,31 @@ FinanceMonthlyReview
 
 id
 month
-year
+nextMonth
 
 income
 spending
 savingsRate
 invested
+saved
 rolloverEarned
-netWorthChange
+netWorth
+
+rollovers[]
 
 reflectionWentWell
 reflectionChange
 reflectionRemember
 
 closedAt
+reopenedAt
+createdAt
+updatedAt
 ```
 
-Much of the numerical data should be automatically generated.
+All numerical data is automatically generated. The review stores only the
+optional written context and the close decisions that cannot be re-derived
+after a later budget changes.
 
 ---
 

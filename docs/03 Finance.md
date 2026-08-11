@@ -1,7 +1,7 @@
 # Momentum — Finance Pillar
 
-**Status:** 🟢 Finance 2.2 Import, Reconciliation, and Report Atelier Implemented
-**Next Step:** Finance 3 — Goals, Rollover, and Monthly Close
+**Status:** 🟢 Finance 3 Goals, Rollover, and Monthly Close Implemented
+**Next Step:** Momentum Data Safety — Versioned Backup and Restore
 
 ---
 
@@ -1098,7 +1098,35 @@ Implemented:
 * Local CSV transaction preview with year confirmation, account/category mapping, row-level repair, duplicate protection, skipped-row reporting, and immediate reversible import undo without a persistent receipt
 
 Finance 2 intentionally stores snapshots of historical balances while keeping
-the live account balance transaction-derived. Budget rollover, savings goals,
-and the guided monthly close remain Finance 3 work.
+the live account balance transaction-derived.
 
 **Finance 2.4 Investment Routing and Ledger Visibility: IMPLEMENTED**
+
+---
+
+# 36. Current Implementation — Finance 3
+
+Finance 3 completes the planned Version 1 financial workflow.
+
+Implemented:
+
+* Dedicated Goals view with balance and contribution targets
+* Monthly, yearly, and custom-deadline goal timeframes
+* Balance-goal progress derived from the linked account balance
+* Contribution-goal progress derived from transfers and investment contributions into the linked account
+* Pace projection for active contribution goals without a second manual progress ledger
+* Four-step centered Monthly Close covering review checks, rollover choices, optional reflections, and confirmation
+* Close readiness surfaces uncategorized expenses, unplanned categories, and planned categories beyond budget without blocking closure
+* Deliberate positive rollover selection for expense categories
+* Accumulated positive rollover preserved independently from the next month’s base plan
+* Overspending resets without negative rollover
+* Closing creates the next month’s base plan, saves a monthly review, and preserves a month-end net-worth snapshot
+* Closed-month reflections and rollover totals appear in Reports
+* Safe reopening clears generated rollover and is blocked when the following month has already been closed
+* Editing closed-month transactions, reconciliation, or budget plans reopens the month first so saved review metrics never become stale
+* Transaction ledger displays Notes between Category and Account for faster scanning
+
+Rollover cash-out remains a later enhancement because it creates a real account
+transfer and should be designed together with the backup and audit contract.
+
+**Finance 3 Version 1 Workflow: IMPLEMENTED**

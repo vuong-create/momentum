@@ -6,6 +6,8 @@ import { db } from "../../../database/db";
 import { getAccountBalance, getInvestmentContributionBreakdown, getMonthSummary, getNetWorth, isTransactionHiddenFromLedger } from "./financeCalculations";
 import { calculateBudgetRows, calculateMonthReviewRows, calculateYearReviewRows, copyPreviousBudget, setBudgetAllocation } from "./financeBudgetService";
 import { ensureFinanceCategories, renameFinanceCategory, visibleFinanceCategories } from "./financeCategoryService";
+import { closeFinanceMonth, getFinanceCloseReadiness, reopenFinanceMonth, visibleFinanceReviews } from "./financeCloseService";
+import { createFinanceGoal, getFinanceGoalProgress, softDeleteFinanceGoal, visibleFinanceGoals } from "./financeGoalService";
 import { createFinanceAccount, createFinanceTransaction, setFinanceAccountBalance, setFinanceTransactionLedgerVisibility, softDeleteFinanceAccount, softDeleteFinanceTransaction, updateFinanceTransaction } from "./financeService";
 import { importFinanceCsv, previewFinanceCsv, revertFinanceImport } from "./financeImportService";
 import { saveManualNetWorthSnapshot, upsertMonthlyNetWorthSnapshot, visibleNetWorthSnapshots } from "./financeSnapshotService";
@@ -147,6 +149,38 @@ describe("finance foundation", () => {
 
     const row = calculateBudgetRows("2026-08", await db.financeBudgetAllocations.toArray(), categories, await db.financeTransactions.toArray()).find((item) => item.category.id === volleyball.id);
     expect(row).toMatchObject({ actual: 140, available: 100, remaining: -40, percentage: 140 });
+  });
+
+  it("closes a month with selected positive rollover and safely reopens it", async () => {
+    await ensureFinanceCategories(); const categories = await db.financeCategories.toArray(); const category = (name: string) => categories.find((item) => item.name === name)!;
+    const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    await setBudgetAllocation("2026-08", category("Rent").id!, 800); await setBudgetAllocation("2026-08", category("Groceries").id!, 300);
+    await createFinanceTransaction({ date: "2026-08-08", amount: 800, type: "expense", merchant: "Rent", accountId: checking, categoryId: category("Rent").id, category: "Rent" });
+    await createFinanceTransaction({ date: "2026-08-09", amount: 200, type: "expense", merchant: "Aldi", accountId: checking, categoryId: category("Groceries").id, category: "Groceries" });
+    await createFinanceTransaction({ date: "2026-08-10", amount: 50, type: "expense", merchant: "Cafe", accountId: checking });
+    const accounts = await db.financeAccounts.toArray(); const transactions = await db.financeTransactions.toArray(); const allocations = await db.financeBudgetAllocations.toArray();
+    expect(getFinanceCloseReadiness("2026-08", allocations, categories, transactions)).toMatchObject({ uncategorized: 1, overBudget: 0, unplanned: 0, positiveRollover: 100, rolloverCandidates: [expect.objectContaining({ categoryName: "Groceries", amount: 100 })] });
+    await closeFinanceMonth({ month: "2026-08", accounts, transactions, categories, budgetMonths: [], allocations, rollovers: [{ categoryId: category("Groceries").id!, amount: 100 }], reflections: { wentWell: "Cooked at home." } });
+    expect(visibleFinanceReviews(await db.financeMonthlyReviews.toArray())).toEqual([expect.objectContaining({ month: "2026-08", nextMonth: "2026-09", spending: 1050, rolloverEarned: 100, reflectionWentWell: "Cooked at home." })]);
+    expect(await db.financeBudgetAllocations.where("[month+categoryId]").equals(["2026-09", category("Rent").id!]).first()).toMatchObject({ baseAmount: 800, rolloverAmount: 0 });
+    expect(await db.financeBudgetAllocations.where("[month+categoryId]").equals(["2026-09", category("Groceries").id!]).first()).toMatchObject({ baseAmount: 300, rolloverAmount: 100 });
+    expect(getFinanceCloseReadiness("2026-09", await db.financeBudgetAllocations.toArray(), categories, transactions).rolloverCandidates).toContainEqual(expect.objectContaining({ categoryName: "Groceries", amount: 400 }));
+    expect(await db.financeNetWorthSnapshots.where("snapshotKey").equals("monthly:2026-08").first()).toMatchObject({ netWorth: -50 });
+    await expect(closeFinanceMonth({ month: "2026-08", accounts, transactions, categories, budgetMonths: [], allocations: await db.financeBudgetAllocations.toArray(), rollovers: [], reflections: {} })).rejects.toThrow(/already closed/i);
+    await reopenFinanceMonth("2026-08");
+    expect(visibleFinanceReviews(await db.financeMonthlyReviews.toArray())).toEqual([]);
+    expect(await db.financeBudgetAllocations.where("[month+categoryId]").equals(["2026-09", category("Groceries").id!]).first()).toMatchObject({ rolloverAmount: 0 });
+  });
+
+  it("derives balance and contribution goal progress from accounts and transactions", async () => {
+    const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 }); const hysa = await createFinanceAccount({ name: "HYSA", type: "savings", openingBalance: 100 });
+    await createFinanceTransaction({ date: "2026-08-08", amount: 250, type: "transfer", merchant: "Save", fromAccountId: checking, toAccountId: hysa });
+    const balanceId = await createFinanceGoal({ name: "Emergency fund", goalType: "balance", targetAmount: 1000, accountId: hysa, timeframe: "custom", startDate: "2026-08-01", deadline: "2026-12-31" });
+    const contributionId = await createFinanceGoal({ name: "Save this year", goalType: "contribution", targetAmount: 600, accountId: hysa, timeframe: "yearly", startDate: "2026-08-01" });
+    const accounts = await db.financeAccounts.toArray(); const transactions = await db.financeTransactions.toArray(); const goals = visibleFinanceGoals(await db.financeGoals.toArray());
+    expect(getFinanceGoalProgress(goals.find((item) => item.id === balanceId)!, accounts, transactions, new Date("2026-08-10T12:00:00"))).toMatchObject({ current: 350, remaining: 650, percentage: 35 });
+    expect(getFinanceGoalProgress(goals.find((item) => item.id === contributionId)!, accounts, transactions, new Date("2026-08-10T12:00:00"))).toMatchObject({ current: 250, remaining: 350, periodStart: "2026-01-01", periodEnd: "2026-12-31" });
+    await softDeleteFinanceGoal(balanceId); expect(visibleFinanceGoals(await db.financeGoals.toArray()).map((item) => item.id)).toEqual([contributionId]);
   });
 
   it("separates expenses, investment contributions, income, and HYSA saving in review calculations", async () => {
