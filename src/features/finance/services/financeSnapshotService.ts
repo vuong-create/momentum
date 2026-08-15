@@ -10,11 +10,24 @@ function buildSnapshot(accounts: FinanceAccount[], transactions: FinanceTransact
   return { ...existing, snapshotKey, date, month: date.slice(0, 7), source, assets, liabilities, netWorth: assets - liabilities, accounts: rows, createdAt: existing?.createdAt ?? timestamp, updatedAt: timestamp, deletedAt: undefined };
 }
 
+function hasSameFinancialPosition(
+  existing: FinanceNetWorthSnapshot,
+  candidate: FinanceNetWorthSnapshot,
+) {
+  return !existing.deletedAt &&
+    existing.assets === candidate.assets &&
+    existing.liabilities === candidate.liabilities &&
+    existing.netWorth === candidate.netWorth &&
+    JSON.stringify(existing.accounts) === JSON.stringify(candidate.accounts);
+}
+
 export async function upsertMonthlyNetWorthSnapshot(accounts: FinanceAccount[], transactions: FinanceTransaction[], now: Date) {
   if (!accounts.length) return;
   const month = dateKey(now).slice(0, 7); const key = `monthly:${month}`;
   const existing = await db.financeNetWorthSnapshots.where("snapshotKey").equals(key).first();
-  await db.financeNetWorthSnapshots.put(buildSnapshot(accounts, transactions, dateKey(now), "monthly", key, existing));
+  const candidate = buildSnapshot(accounts, transactions, dateKey(now), "monthly", key, existing);
+  if (existing && hasSameFinancialPosition(existing, candidate)) return existing.id;
+  return db.financeNetWorthSnapshots.put(candidate);
 }
 
 export async function saveManualNetWorthSnapshot(accounts: FinanceAccount[], transactions: FinanceTransaction[], now: Date) {

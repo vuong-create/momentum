@@ -2054,6 +2054,9 @@ Current milestone status:
 * Later backup improvements: automatic schedules, additional backup migrations, media packaging, and human-readable pillar exports
 * Focus Mode Version 1 implemented as a task-attached workspace with recoverable Pomodoro timing, break cycles, local procedural soundscapes, session history, and optional Planner completion
 * Sound & Feedback System Version 2 implemented with an approved asset library, semantic cue registry, pillar motifs, volume/category preferences, playback priority and cooldown protection, trigger cleanup, and a Settings sound gallery
+* Daily Driver resilience implemented with route-level feature loading, an app recovery boundary, read-only data health reporting, and end-to-end Planner/preset/XP/backup regression coverage
+* Pillar routes ship as independent production chunks so one feature's weight does not delay every screen
+* Data health checks never mutate live records and require explicit approval before any future repair workflow
 
 ---
 

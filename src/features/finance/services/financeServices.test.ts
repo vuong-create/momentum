@@ -222,6 +222,17 @@ describe("finance foundation", () => {
     expect(snapshots.find((item) => item.source === "monthly")).toMatchObject({ date: "2026-08-09", netWorth: 1200, accounts: [expect.objectContaining({ name: "Checking", balance: 1200 })] });
   });
 
+  it("does not rewrite a monthly snapshot when Finance is only viewed", async () => {
+    await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    const accounts = await db.financeAccounts.toArray();
+    await upsertMonthlyNetWorthSnapshot(accounts, [], new Date(2026, 7, 8));
+    const before = await db.financeNetWorthSnapshots.toArray();
+
+    await upsertMonthlyNetWorthSnapshot(accounts, [], new Date(2026, 7, 15));
+
+    expect(await db.financeNetWorthSnapshots.toArray()).toEqual(before);
+  });
+
   it("previews, imports, deduplicates, and reverts transaction CSV batches", async () => {
     await ensureFinanceCategories(); const categories = await db.financeCategories.toArray();
     const csv = [
