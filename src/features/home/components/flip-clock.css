@@ -1,7 +1,5 @@
 .flip-clock {
   position: relative;
-  top: -18px;
-  left: 60px;
 }
 
 .flip-clock-digits {
@@ -13,8 +11,8 @@
 
 .flip-digit {
   position: relative;
-  width: 64px;
-  height: 92px;
+  width: 48px;
+  height: 68px;
   display: block;
   overflow: hidden;
 
@@ -48,9 +46,9 @@
   overflow: hidden;
 
   font-family: var(--font-ui);
-  font-size: 68px;
+  font-size: 50px;
   font-weight: 460;
-  line-height: 92px;
+  line-height: 68px;
   text-align: center;
   letter-spacing: -0.07em;
 
@@ -62,7 +60,7 @@
   position: absolute;
   left: -2px;
   width: 100%;
-  height: 92px;
+  height: 68px;
 }
 
 .flip-digit-top {
@@ -159,18 +157,18 @@
 }
 
 .flip-clock-colon {
-  width: 14px;
-  height: 58px;
+  width: 10px;
+  height: 44px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 15px;
-  margin-inline: 2px;
+  gap: 11px;
+  margin-inline: 1px;
 }
 
 .flip-clock-colon i {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   display: block;
   margin: 0 auto;
 
@@ -182,11 +180,11 @@
 }
 
 .flip-clock-period {
-  padding-bottom: 9px;
+  padding-bottom: 7px;
 
   color: var(--text-secondary);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 9px;
   font-weight: 520;
   letter-spacing: 0.08em;
 }
@@ -219,19 +217,25 @@
 
 @media (max-width: 900px) {
   .flip-digit {
-    width: 52px;
-    height: 76px;
+    width: 44px;
+    height: 62px;
   }
 
   .flip-digit-static,
   .flip-digit-flap {
     height: 50%;
-    font-size: 55px;
-    line-height: 76px;
+    font-size: 46px;
+    line-height: 62px;
   }
 
   .flip-digit-static > span,
   .flip-digit-flap > span {
-    height: 76px;
+    height: 62px;
+  }
+}
+
+@media (max-width: 620px) {
+  .flip-clock-digits {
+    gap: 6px;
   }
 }

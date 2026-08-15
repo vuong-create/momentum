@@ -644,17 +644,14 @@ Organization can happen later if desired.
 
 The homepage should be one of the most aesthetically enjoyable areas of Momentum.
 
-Overall inspiration:
+Home uses a calm, premium command-center hierarchy. Date, time, and global
+progression share one compact command strip; none may collide or dominate the
+page. The greeting and daily quote are ambient supporting content rather than a
+hero section.
 
-* Cozy Asian café
-* Anime-inspired environment
-* Warm city atmosphere
-* Cartoon diner influence
-* Calm rather than neon-heavy
-
-The aesthetic should frame the interface rather than interfere with usability.
-
-The Weekly Plan and Today sections must remain highly readable.
+The Today list is the visual and functional centerpiece. XP may use slightly
+more expressive RPG styling, but it remains a compact expandable summary until
+the user asks for its full breakdown.
 
 ---
 
@@ -858,13 +855,12 @@ The Weekly Plan remains the functional centerpiece.
 Final conceptual hierarchy:
 
 ```text id="dvgmx6"
-MOMENTUM                         Level XX
+DATE             FLIP CLOCK             LEVEL XX ━━━━━
 
-Good Morning.
+Good morning.    “Daily quote…”
 
-────────────────────────────────
-
-TODAY — THURSDAY
+TODAY / TO DO
+[ Add something for today… ]
 
 ✓ Chinese Tutor
 ○ Pull
@@ -873,32 +869,22 @@ TODAY — THURSDAY
 
 ────────────────────────────────
 
-THIS WEEK
+WEEKLY PROGRESS
 
-MON  TUE  WED  THU  FRI  SAT  SUN
+SUN  MON  TUE  WED  THU  FRI  SAT
 
 ...
 
-+ Add
-
 ────────────────────────────────
 
-YOUR MOMENTUM
-
-Finance
-Chinese
-Athletics
-Cooking
-Happiness
-
-────────────────────────────────
-
-WHAT'S ON YOUR MIND?
+THOUGHTS
 
 [ Write anything...              ]
-
-[ Save Entry ]
 ```
+
+Home does not include a separate Daily Momentum sidebar. Pillar analytics and
+detailed progression belong in their dedicated views or the expandable XP
+breakdown.
 
 ---
 

@@ -368,73 +368,35 @@ export default function HomeDashboard() {
   return (
     <div className="living-home">
       <header className="living-home-header">
-        <div className="living-home-intro">
+        <section className="living-home-date-copy" aria-label="Today's date">
           <span className="living-home-label">
             Today
           </span>
 
-          <div className="living-home-date-clock">
-            <div className="living-home-date-copy">
-              <h1 className="font-pixel">
-                {new Intl.DateTimeFormat(
-                  "en-US",
-                  {
-                    month: "long",
-                    day: "numeric",
-                  }
-                ).format(today)}
-              </h1>
+          <h1 className="font-pixel">
+            {new Intl.DateTimeFormat(
+              "en-US",
+              {
+                month: "long",
+                day: "numeric",
+              }
+            ).format(today)}
+          </h1>
 
-              <p className="living-home-weekday">
-                {new Intl.DateTimeFormat(
-                  "en-US",
-                  {
-                    weekday: "long",
-                  }
-                ).format(today)}
-              </p>
-            </div>
+          <p className="living-home-weekday">
+            {new Intl.DateTimeFormat(
+              "en-US",
+              {
+                weekday: "long",
+              }
+            ).format(today)}
+          </p>
+        </section>
 
-            <FlipClock />
-          </div>
-
-          {experience.greeting && (
-            <span className="living-home-greeting">
-              {experience.greeting}
-            </span>
-          )}
-
-          <div className="daily-quote">
-            <blockquote className="font-quote">
-              “{quote.text}”
-            </blockquote>
-
-            <div className="daily-quote-footer">
-              <cite className="font-quote">
-                — {quote.author}
-              </cite>
-
-              <button
-                type="button"
-                className={[
-                  "daily-quote-save",
-                  quoteSaved
-                    ? "daily-quote-save-active"
-                    : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                onClick={() =>
-                  toggleQuote(quote)
-                }
-              >
-                {quoteSaved
-                  ? "♥ Saved"
-                  : "♡ Save"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <section className="living-home-time" aria-label="Current time">
+          <span className="living-home-label">Now</span>
+          <FlipClock />
+        </section>
 
         <MomentumXPCard
           summary={xpSummary}
@@ -442,6 +404,41 @@ export default function HomeDashboard() {
           onOpen={() => setXPBreakdownOpen(true)}
         />
       </header>
+
+      <section className="living-home-atmosphere" aria-label="Daily reflection">
+        {experience.greeting && (
+          <span className="living-home-greeting">
+            {experience.greeting}
+          </span>
+        )}
+
+        <div className="daily-quote">
+          <blockquote className="font-quote">
+            “{quote.text}”
+          </blockquote>
+
+          <div className="daily-quote-footer">
+            <cite className="font-quote">
+              — {quote.author}
+            </cite>
+
+            <button
+              type="button"
+              className={[
+                "daily-quote-save",
+                quoteSaved
+                  ? "daily-quote-save-active"
+                  : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              onClick={() => toggleQuote(quote)}
+            >
+              {quoteSaved ? "♥ Saved" : "♡ Save"}
+            </button>
+          </div>
+        </div>
+      </section>
 
       <main className="living-home-main">
         <HomeTodo
