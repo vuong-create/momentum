@@ -15,28 +15,16 @@
 
 .living-home-header {
   display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    minmax(360px, 430px);
-  gap: clamp(38px, 6vw, 84px);
-  align-items: start;
+  grid-template-columns: minmax(190px, 0.72fr) auto minmax(330px, 1.2fr);
+  gap: clamp(22px, 3vw, 44px);
+  align-items: end;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
 }
 
 .living-home-label {
   display: block;
   margin-bottom: 12px;
-}
-
-.living-home-intro {
-  min-width: 0;
-}
-
-.living-home-date-clock {
-  display: grid;
-  grid-template-columns: auto auto;
-  align-items: start;
-  justify-content: start;
-  column-gap: clamp(34px, 5vw, 72px);
 }
 
 .living-home-date-copy {
@@ -45,88 +33,49 @@
 
 .living-home-date-copy h1 {
   margin: 0;
-  font-size: clamp(42px, 5vw, 68px);
+  font-size: clamp(34px, 4vw, 52px);
   font-weight: 400;
   line-height: 0.98;
   letter-spacing: 0.015em;
 }
 
 .living-home-weekday {
-  margin: 10px 0 0;
-  font-size: clamp(15px, 1.5vw, 19px);
-  letter-spacing: 0.025em;
+  margin: 9px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 430;
+  letter-spacing: 0.015em;
 }
 
-/* Clock capsule */
+.living-home-time {
+  min-width: 232px;
+}
 
-.living-home-clock {
-  flex: 0 0 auto;
-  min-width: 146px;
-  min-height: 68px;
+.living-home-time .living-home-label {
+  margin-bottom: 8px;
+}
+
+.living-home-atmosphere {
+  min-height: 56px;
   display: grid;
-  place-items: center;
-  padding: 0 20px;
-  transform: translateY(10px);
-
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-
-  color: var(--text-primary);
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.105),
-      rgba(255, 255, 255, 0.032)
-    );
-
-  backdrop-filter:
-    blur(var(--glass-blur));
-  -webkit-backdrop-filter:
-    blur(var(--glass-blur));
-
-  box-shadow:
-    var(--shadow-inner-highlight),
-    0 18px 50px rgba(0, 0, 0, 0.28);
-
-  font-size: clamp(18px, 2vw, 25px);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.025em;
-
-  transition:
-    transform var(--duration-normal)
-      var(--ease-standard),
-    border-color var(--duration-normal)
-      var(--ease-standard),
-    background var(--duration-normal)
-      var(--ease-standard);
-}
-
-.living-home-clock:hover {
-  transform:
-    translateY(7px)
-    scale(1.012);
-
-  border-color:
-    rgba(255, 255, 255, 0.18);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.135),
-      rgba(255, 255, 255, 0.045)
-    );
+  grid-template-columns: minmax(150px, 0.34fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+  padding: 15px 2px 0;
 }
 
 .living-home-greeting {
-  display: block;
-  margin-top: 27px;
+  color: var(--text-muted);
+  font-size: 10px;
 }
 
-/* Quote */
-
 .daily-quote {
-  max-width: 520px;
-  margin-top: 17px;
+  min-width: 0;
+  max-width: none;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 12px;
   animation:
     daily-quote-arrive
     600ms
@@ -136,29 +85,29 @@
 
 .daily-quote blockquote {
   margin: 0;
-
-  color:
-    rgba(255, 255, 255, 0.72);
-
-  font-size:
-    clamp(16px, 1.45vw, 20px);
-
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.57);
+  font-size: clamp(13px, 1.15vw, 16px);
   font-style: italic;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.35;
   letter-spacing: 0;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .daily-quote-footer {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 8px;
+  flex: 0 0 auto;
+  margin-top: 0;
 }
 
 .daily-quote cite {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 9px;
   font-style: normal;
   letter-spacing: 0.01em;
 }
@@ -188,40 +137,40 @@
   color: var(--text-secondary);
 }
 
-/* Momentum XP panel */
+/* Compact Momentum level strip */
 
 .momentum-level-display {
   position: relative;
   width: 100%;
-  min-height: 188px;
+  min-height: 104px;
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-columns: 60px minmax(0, 1fr);
   align-items: center;
-  gap: 18px;
-  padding: 21px;
+  gap: 15px;
+  padding: 15px 17px;
   text-align: left;
   border: 1px solid rgba(171, 151, 255, 0.24);
-  border-radius: var(--radius-lg);
+  border-radius: 18px;
   color: var(--text-primary);
   background:
     radial-gradient(
-      circle at 9% 34%,
-      rgba(142, 107, 255, 0.15),
-      transparent 38%
+      circle at 8% 50%,
+      rgba(142, 107, 255, 0.11),
+      transparent 34%
     ),
-    radial-gradient(circle at 100% 0%, rgba(77, 180, 255, 0.11), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(77, 180, 255, 0.065), transparent 45%),
     linear-gradient(
       150deg,
-      rgba(29, 27, 38, 0.96),
-      rgba(12, 12, 17, 0.98) 58%,
-      rgba(18, 22, 29, 0.97)
+      rgba(24, 23, 30, 0.92),
+      rgba(12, 12, 16, 0.96) 58%,
+      rgba(16, 18, 22, 0.94)
     );
   backdrop-filter: blur(var(--glass-blur-strong));
   -webkit-backdrop-filter: blur(var(--glass-blur-strong));
   box-shadow:
     var(--shadow-inner-highlight),
-    0 24px 60px rgba(0, 0, 0, 0.34),
-    0 0 34px rgba(126, 95, 255, 0.06);
+    0 15px 38px rgba(0, 0, 0, 0.25),
+    0 0 24px rgba(126, 95, 255, 0.045);
   overflow: hidden;
   transition:
     transform var(--duration-normal) var(--ease-standard),
@@ -236,10 +185,10 @@
 }
 
 .momentum-level-aura {
-  width: 180px;
-  height: 180px;
-  left: -43px;
-  top: 4px;
+  width: 120px;
+  height: 120px;
+  left: -30px;
+  top: -8px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(145, 112, 255, 0.15), transparent 68%);
   filter: blur(4px);
@@ -251,18 +200,18 @@
   background:
     linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-size: 20px 20px;
   mask-image: linear-gradient(90deg, transparent, black 32%, black 80%, transparent);
-  opacity: 0.62;
+  opacity: 0.35;
 }
 
 .momentum-level-display:hover {
-  transform: translateY(-4px) scale(1.006);
+  transform: translateY(-2px);
   border-color: rgba(180, 162, 255, 0.46);
   box-shadow:
     var(--shadow-inner-highlight),
-    0 28px 72px rgba(0, 0, 0, 0.42),
-    0 0 45px rgba(126, 95, 255, 0.15);
+    0 20px 48px rgba(0, 0, 0, 0.34),
+    0 0 32px rgba(126, 95, 255, 0.11);
 }
 
 .momentum-level-crest,
@@ -272,15 +221,15 @@
 }
 
 .momentum-level-crest {
-  width: 92px;
-  height: 92px;
+  width: 60px;
+  height: 60px;
   display: grid;
   place-items: center;
 }
 
 .momentum-level-ring {
-  width: 86px;
-  height: 86px;
+  width: 58px;
+  height: 58px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -293,12 +242,12 @@
       rgba(255, 255, 255, 0.08) var(--momentum-xp-angle),
       rgba(255, 255, 255, 0.08) 360deg
     );
-  box-shadow: 0 0 26px rgba(119, 113, 255, 0.28);
+  box-shadow: 0 0 18px rgba(119, 113, 255, 0.22);
 }
 
 .momentum-level-core {
-  width: 70px;
-  height: 70px;
+  width: 48px;
+  height: 48px;
   display: grid;
   align-content: center;
   justify-items: center;
@@ -312,14 +261,14 @@
 
 .momentum-level-core small {
   color: rgba(193, 183, 255, 0.72);
-  font-size: 7px;
+  font-size: 6px;
   font-weight: 650;
   letter-spacing: 0.2em;
 }
 
 .momentum-level-core strong {
   margin-top: 1px;
-  font-size: 30px;
+  font-size: 22px;
   font-weight: 360;
   line-height: 1;
 }
@@ -327,7 +276,7 @@
 .momentum-level-body {
   min-width: 0;
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
 .momentum-level-heading {
@@ -338,8 +287,9 @@
 }
 
 .momentum-level-heading > span:first-child {
-  display: grid;
-  gap: 3px;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
 }
 
 .momentum-level-heading small {
@@ -351,7 +301,7 @@
 }
 
 .momentum-level-heading strong {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 520;
 }
 
@@ -381,10 +331,10 @@
 
 .momentum-level-bar {
   position: relative;
-  height: 18px;
+  height: 10px;
   overflow: hidden;
   border: 1px solid rgba(183, 168, 255, 0.16);
-  border-radius: 6px;
+  border-radius: 5px;
   background: rgba(0, 0, 0, 0.48);
   box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.72);
 }
@@ -428,7 +378,7 @@
   justify-content: space-between;
   gap: 10px;
   color: var(--text-faint);
-  font-size: 7px;
+  font-size: 6px;
 }
 
 .momentum-level-footer > span:last-child {
@@ -448,8 +398,8 @@
 }
 
 .momentum-level-paths i {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
   display: grid;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--pillar-color) 48%, transparent);
@@ -470,12 +420,7 @@
 
 .living-home-main {
   display: block;
-  margin-top: 34px;
-  padding-top: 27px;
-
-  border-top:
-    1px solid
-    rgba(255, 255, 255, 0.065);
+  margin-top: 20px;
 }
 
 /* Thoughts */
@@ -895,44 +840,42 @@
 
 @media (max-width: 900px) {
   .living-home-header {
-    grid-template-columns: 1fr;
-    gap: 25px;
+    grid-template-columns: minmax(170px, 0.7fr) auto;
+    gap: 20px 28px;
   }
 
   .momentum-level-display {
-    max-width: 480px;
+    grid-column: 1 / -1;
   }
 
-  .living-home-main {
+  .living-home-atmosphere {
     grid-template-columns: 1fr;
+    gap: 7px;
+    padding-top: 14px;
+  }
+
+  .daily-quote {
+    justify-content: flex-start;
+  }
+
+  .daily-quote blockquote {
+    text-align: left;
   }
 }
 
 @media (max-width: 620px) {
+  .living-home-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .living-home-time {
+    min-width: 0;
+  }
+
   .momentum-level-display {
-    min-height: 176px;
-    grid-template-columns: 74px minmax(0, 1fr);
-    gap: 13px;
-    padding: 17px;
-  }
-
-  .momentum-level-crest {
-    width: 74px;
-    height: 74px;
-  }
-
-  .momentum-level-ring {
-    width: 72px;
-    height: 72px;
-  }
-
-  .momentum-level-core {
-    width: 58px;
-    height: 58px;
-  }
-
-  .momentum-level-core strong {
-    font-size: 25px;
+    grid-column: auto;
+    min-height: 98px;
   }
 
   .momentum-level-total,
@@ -940,20 +883,16 @@
     display: none;
   }
 
-  .living-home-date-clock {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 14px;
+  .daily-quote {
+    display: block;
   }
 
-  .living-home-clock {
-    min-width: 132px;
-    min-height: 58px;
-    transform: none;
+  .daily-quote blockquote {
+    white-space: normal;
   }
 
-  .living-home-clock:hover {
-    transform: translateY(-2px);
+  .daily-quote-footer {
+    margin-top: 5px;
   }
 
   .home-week-heading {
@@ -965,22 +904,6 @@
     flex-direction: column;
     gap: 2px;
   }
-}
-
-/* Approved Home visual direction */
-
-.living-home-date-clock {
-  align-items: center;
-  gap: clamp(48px, 7vw, 110px);
-}
-
-.living-home-weekday {
-  margin-top: 14px;
-  color: var(--text-secondary);
-  font-family: var(--font-ui);
-  font-size: 16px;
-  font-weight: 430;
-  letter-spacing: 0.01em;
 }
 
 /* Make signature Pixel headings clearer */
