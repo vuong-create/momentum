@@ -1,7 +1,7 @@
 import { db, type CookingMealLog, type PlannedActivity } from "../../../database/db";
 import { createPlannedActivity, completePlannedActivity, reopenPlannedActivity, softDeletePlannedActivity } from "../../activities/services/activityService";
 import { recordXPEvent } from "../../xp/XPService";
-import { getQuickMealActivityKind, getRecipeActivityKind, type QuickMealType } from "../cookingCatalog";
+import { getQuickMealActivityKind, getRecipeActivityKind, isCookingMealActivityKind, type QuickMealType } from "../cookingCatalog";
 
 export async function scheduleRecipeMeal(recipeId: number, scheduledDate: string, servings?: number) {
   const recipe = await db.cookingRecipes.get(recipeId);
@@ -28,7 +28,7 @@ export async function scheduleQuickMeal(type: QuickMealType, label: string, sche
 
 export async function completeCookingPlan(activityId: number) {
   const activity = await db.plannedActivities.get(activityId);
-  if (!activity || activity.deletedAt || activity.pillar !== "cooking") throw new Error("Cooking plan not found.");
+  if (!activity || activity.deletedAt || activity.pillar !== "cooking" || !isCookingMealActivityKind(activity.activityKind)) throw new Error("Cooking meal plan not found.");
   const completion = await completePlannedActivity(activityId);
   const existing = await db.cookingMealLogs.where("plannedActivityId").equals(activityId).first();
   if (!existing) {
@@ -89,7 +89,7 @@ export async function softDeleteCookingMealLog(id: number) {
 }
 
 export function visibleCookingPlans(activities: PlannedActivity[]) {
-  return activities.filter((activity) => activity.pillar === "cooking" && !activity.deletedAt && activity.status !== "dismissed" && activity.status !== "cancelled");
+  return activities.filter((activity) => activity.pillar === "cooking" && isCookingMealActivityKind(activity.activityKind) && !activity.deletedAt && activity.status !== "dismissed" && activity.status !== "cancelled");
 }
 
 export function visibleCookingMealLogs(logs: CookingMealLog[]) {

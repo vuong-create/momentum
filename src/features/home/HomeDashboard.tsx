@@ -314,12 +314,13 @@ export default function HomeDashboard() {
   }, [thought]);
 
   async function addTodayActivity(
-    title: string
+    input: { title: string; pillar?: PlannedActivity["pillar"]; activityKind?: string }
   ) {
     await createPlannedActivity({
-      title,
+      title: input.title,
       scheduledDate: todayKey,
-      pillar: "core",
+      pillar: input.pillar ?? "core",
+      activityKind: input.activityKind,
       difficulty: "medium",
     });
   }

@@ -80,6 +80,7 @@ export interface PlannedActivity {
   recurrenceDate?: string;
   recurrenceKey?: string;
   recurrenceOverride?: boolean;
+  dayPresetId?: number;
 }
 
 export interface ActivityTemplate {
@@ -106,6 +107,7 @@ export interface DayPresetItem {
   scheduledTime?: string;
   important?: boolean;
   notes?: string;
+  activityKind?: string;
 }
 
 export interface DayPreset {

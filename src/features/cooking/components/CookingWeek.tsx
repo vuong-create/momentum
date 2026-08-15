@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 
 import type { CookingMealLog, CookingRecipe, PlannedActivity } from "../../../database/db";
 import { getActivityStatus } from "../../activities/services/activityLifecycle";
-import { quickMealOptions } from "../cookingCatalog";
+import { getCookingMealSlotLabel, quickMealOptions } from "../cookingCatalog";
 
 type CookingWeekProps = {
   now: Date;
@@ -14,6 +14,7 @@ type CookingWeekProps = {
   onComplete: (activity: PlannedActivity) => Promise<void>;
   onRemove: (activity: PlannedActivity) => Promise<void>;
   onOpenRecipes: () => void;
+  unclassifiedCount?: number;
 };
 
 function dateKey(date: Date) {
@@ -31,7 +32,7 @@ function getWeek(now: Date) {
   });
 }
 
-export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRecipe, onPlanQuick, onComplete, onRemove, onOpenRecipes }: CookingWeekProps) {
+export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRecipe, onPlanQuick, onComplete, onRemove, onOpenRecipes, unclassifiedCount = 0 }: CookingWeekProps) {
   const week = useMemo(() => getWeek(now), [now]);
   const todayKey = dateKey(now);
   const [date, setDate] = useState(todayKey);
@@ -73,6 +74,12 @@ export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRe
         </form>
       </section>
 
+      {unclassifiedCount > 0 && (
+        <p className="cooking-unclassified-note">
+          {unclassifiedCount} older Cooking {unclassifiedCount === 1 ? "task needs" : "tasks need"} a Meal or Prep / kitchen label. They remain unchanged and can be classified from Planner → All Tasks.
+        </p>
+      )}
+
       <section className="cooking-week-grid" aria-label="This week's meals">
         {week.map((day) => {
           const dayPlans = plans.filter((plan) => plan.scheduledDate === day.key);
@@ -85,7 +92,7 @@ export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRe
                   const complete = getActivityStatus(plan) === "completed";
                   return <div key={plan.id} className={complete ? "is-complete" : ""}>
                     <span className="cooking-meal-mark" aria-hidden="true">{complete ? "✓" : "火"}</span>
-                    <span><strong>{plan.title}</strong><small>{complete ? "Cooked" : plan.notes ?? "Dinner"}</small></span>
+                    <span><strong>{plan.title}</strong><small>{complete ? "Cooked" : getCookingMealSlotLabel(plan.activityKind) ?? plan.notes ?? "Meal"}</small></span>
                     {!complete && <button type="button" onClick={() => onComplete(plan)}>Cooked</button>}
                     <button type="button" className="cooking-remove-plan" onClick={() => onRemove(plan)} aria-label={`Remove ${plan.title}`}>×</button>
                   </div>;

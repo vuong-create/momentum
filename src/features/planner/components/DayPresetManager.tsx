@@ -12,6 +12,13 @@ import {
   duplicateDayPreset,
   saveDayPreset,
 } from "../services/dayPresetService";
+import CookingIdentityPicker from "../../cooking/components/CookingIdentityPicker";
+import {
+  getCookingActivityIdentity,
+  getCookingTaskActivityKind,
+  getCustomMealActivityKind,
+  parseCookingMealSlot,
+} from "../../cooking/cookingCatalog";
 
 type DayPresetManagerProps = {
   open: boolean;
@@ -147,7 +154,10 @@ export default function DayPresetManager({
             </div>
 
             <div className="day-preset-items">
-              {draft.items.map((item, index) => (
+              {draft.items.map((item, index) => {
+                const cookingIdentity = getCookingActivityIdentity(item.activityKind);
+                const mealSlot = parseCookingMealSlot(item.activityKind) ?? "dinner";
+                return (
                 <article key={item.id}>
                   <div className="day-preset-item-order">
                     <button type="button" disabled={index === 0} onClick={() => moveItem(index, -1)} aria-label={`Move ${item.title || "activity"} up`}>↑</button>
@@ -155,7 +165,15 @@ export default function DayPresetManager({
                   </div>
                   <div className="day-preset-item-fields">
                     <input className="day-preset-item-title" value={item.title} onChange={(event) => updateItem(item.id, { title: event.target.value })} placeholder="Activity title" aria-label="Activity title" />
-                    <select value={item.pillar} onChange={(event) => updateItem(item.id, { pillar: event.target.value as Pillar })} aria-label="Pillar">
+                    <select value={item.pillar} onChange={(event) => {
+                      const nextPillar = event.target.value as Pillar;
+                      updateItem(item.id, {
+                        pillar: nextPillar,
+                        activityKind: nextPillar === "cooking"
+                          ? getCustomMealActivityKind("dinner")
+                          : undefined,
+                      });
+                    }} aria-label="Pillar">
                       {pillars.map((pillar) => <option key={pillar.value} value={pillar.value}>{pillar.label}</option>)}
                     </select>
                     <input type="time" value={item.scheduledTime ?? ""} onChange={(event) => updateItem(item.id, { scheduledTime: event.target.value })} aria-label="Preferred time" />
@@ -166,10 +184,28 @@ export default function DayPresetManager({
                     </select>
                     <button type="button" className={item.important ? "is-selected" : ""} onClick={() => updateItem(item.id, { important: !item.important })}>{item.important ? "★ Important" : "☆ Important"}</button>
                     <input value={item.notes ?? ""} onChange={(event) => updateItem(item.id, { notes: event.target.value })} placeholder="Optional note" aria-label="Optional note" />
+                    {item.pillar === "cooking" && (
+                      <div className="day-preset-cooking-identity">
+                        <CookingIdentityPicker
+                          compact
+                          identity={cookingIdentity}
+                          mealSlot={mealSlot}
+                          showUnclassifiedNote
+                          onIdentityChange={(identity) => updateItem(item.id, {
+                            activityKind: identity === "meal"
+                              ? getCustomMealActivityKind(mealSlot)
+                              : getCookingTaskActivityKind(),
+                          })}
+                          onMealSlotChange={(slot) => updateItem(item.id, {
+                            activityKind: getCustomMealActivityKind(slot),
+                          })}
+                        />
+                      </div>
+                    )}
                   </div>
                   <button type="button" className="day-preset-item-remove" onClick={() => setDraft((current) => ({ ...current, items: current.items.filter((candidate) => candidate.id !== item.id) }))} aria-label={`Remove ${item.title || "activity"}`}>×</button>
                 </article>
-              ))}
+              );})}
             </div>
 
             <button type="button" className="day-preset-add-item" onClick={() => setDraft((current) => ({ ...current, items: [...current.items, newItem()] }))}>+ Add activity</button>

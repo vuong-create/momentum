@@ -273,6 +273,79 @@
   border-color: rgba(222, 194, 138, 0.2);
 }
 
+.day-preset-cooking-identity {
+  grid-column: 1 / -1;
+  padding: 0.65rem;
+  border: 1px solid rgba(242, 167, 102, 0.12);
+  border-radius: 0.75rem;
+  background: rgba(242, 129, 62, 0.025);
+}
+
+/* Task ledger */
+.task-ledger-launcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin: 1rem 0 2.5rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.task-ledger-launcher > div { display: grid; gap: 0.3rem; }
+.task-ledger-launcher strong { color: rgba(255, 255, 255, 0.82); font-size: 0.84rem; font-weight: 500; }
+.task-ledger-launcher small { color: rgba(255, 255, 255, 0.34); font-size: 0.67rem; }
+.task-ledger-launcher > button {
+  min-width: 8rem; min-height: 2.5rem; border: 1px solid rgba(255,255,255,.1); border-radius: .75rem;
+  background: rgba(255,255,255,.035); color: rgba(255,255,255,.75); cursor: pointer;
+}
+.task-ledger-launcher > button:hover { border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.065); color: #fff; }
+.task-ledger-launcher > button span { margin-left: .45rem; }
+
+.task-ledger-layer { position: fixed; inset: 0; z-index: 115; display: grid; place-items: center; padding: 2rem; }
+.task-ledger-backdrop { position: absolute; inset: 0; border: 0; background: rgba(0,0,0,.72); backdrop-filter: blur(14px); }
+.task-ledger {
+  position: relative; width: min(1180px, 96vw); max-height: min(850px, 92vh); overflow: auto;
+  border: 1px solid rgba(255,255,255,.13); border-radius: 1.45rem;
+  background: linear-gradient(145deg, rgba(25,25,27,.99), rgba(10,10,11,.99));
+  box-shadow: 0 38px 120px rgba(0,0,0,.7), inset 0 1px rgba(255,255,255,.06);
+}
+.task-ledger > header { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; gap: 2rem; padding: 1.5rem 1.65rem 1.15rem; background: rgba(18,18,20,.93); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255,255,255,.065); }
+.task-ledger > header h2 { margin: .35rem 0 .3rem; color: rgba(255,255,255,.92); font-size: 1.65rem; font-weight: 400; }
+.task-ledger > header p { margin: 0; color: rgba(255,255,255,.4); font-size: .75rem; }
+.task-ledger > header > button { width: 2.25rem; height: 2.25rem; border: 1px solid rgba(255,255,255,.1); border-radius: 50%; background: rgba(255,255,255,.035); color: rgba(255,255,255,.6); font-size: 1.2rem; cursor: pointer; }
+.task-ledger-summary { display: flex; align-items: center; gap: .75rem; padding: 1rem 1.65rem; border-bottom: 1px solid rgba(255,255,255,.055); }
+.task-ledger-summary > span { min-width: 8.5rem; color: rgba(255,255,255,.38); font-size: .68rem; }
+.task-ledger-summary strong { display: block; margin-bottom: .12rem; color: rgba(255,255,255,.84); font-size: 1rem; font-weight: 500; }
+.task-ledger-summary button, .task-ledger-filters button { margin-left: auto; min-height: 2.15rem; padding: 0 .8rem; border: 1px solid rgba(255,255,255,.1); border-radius: .65rem; background: rgba(255,255,255,.035); color: rgba(255,255,255,.62); cursor: pointer; }
+.task-ledger-summary button.is-selected { color: #fff; border-color: rgba(255,255,255,.2); }
+.task-ledger-filters { display: grid; grid-template-columns: 1.6fr repeat(4, 1fr); gap: .55rem; padding: .85rem 1.65rem; border-bottom: 1px solid rgba(255,255,255,.055); background: rgba(255,255,255,.015); }
+.task-ledger-filters input, .task-ledger-filters select { min-width: 0; height: 2.25rem; padding: 0 .65rem; border: 1px solid rgba(255,255,255,.09); border-radius: .6rem; background: #111214; color: rgba(255,255,255,.72); font: inherit; font-size: .7rem; }
+.task-ledger-filters button { margin-left: 0; }
+.task-ledger-table { padding: .4rem .7rem 1rem; }
+.task-ledger-row { width: 100%; display: grid; grid-template-columns: 110px minmax(220px, 2fr) 130px 100px 60px 90px; align-items: center; gap: .75rem; padding: .72rem .85rem; border: 0; border-bottom: 1px solid rgba(255,255,255,.045); background: transparent; color: rgba(255,255,255,.48); text-align: left; font: inherit; font-size: .7rem; }
+button.task-ledger-row { cursor: pointer; }
+button.task-ledger-row:hover { border-radius: .65rem; background: rgba(255,255,255,.035); color: rgba(255,255,255,.7); }
+.task-ledger-head { position: sticky; top: 109px; z-index: 1; padding-block: .55rem; background: rgba(14,14,16,.96); color: rgba(255,255,255,.3); font-size: .61rem; letter-spacing: .08em; text-transform: uppercase; }
+.task-ledger-row strong { display: block; overflow: hidden; color: rgba(255,255,255,.82); font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.task-ledger-row small { display: block; margin-top: .2rem; overflow: hidden; color: rgba(255,255,255,.3); font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; text-transform: capitalize; }
+.task-ledger-row .is-voided { opacity: .35; text-decoration: line-through; }
+.task-ledger-status { width: fit-content; padding: .25rem .48rem; border: 1px solid rgba(255,255,255,.09); border-radius: 999px; color: rgba(255,255,255,.5); font-size: .6rem; text-transform: capitalize; }
+.task-ledger-status.is-completed { border-color: rgba(124,203,151,.24); color: #9bc9aa; }
+.task-ledger-status.is-reopened { border-color: rgba(226,184,106,.25); color: #d7b97d; }
+.task-ledger-empty { padding: 4rem 1rem; color: rgba(255,255,255,.35); text-align: center; font-size: .76rem; }
+.task-ledger-more { display: block; margin: 0 auto 1.25rem; min-height: 2.35rem; padding: 0 1rem; border: 1px solid rgba(255,255,255,.1); border-radius: .7rem; background: rgba(255,255,255,.035); color: rgba(255,255,255,.65); cursor: pointer; }
+
+@media (max-width: 850px) {
+  .task-ledger-layer { padding: .6rem; }
+  .task-ledger { width: 100%; max-height: 96vh; }
+  .task-ledger-filters { grid-template-columns: 1fr 1fr; }
+  .task-ledger-row { grid-template-columns: 86px minmax(150px, 2fr) 95px 75px; }
+  .task-ledger-row > :nth-child(4), .task-ledger-row > :nth-child(5) { display: none; }
+}
+
 .day-preset-add-item {
   min-height: 32px;
   margin-top: 9px;

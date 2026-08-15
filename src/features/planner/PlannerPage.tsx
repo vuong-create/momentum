@@ -40,6 +40,7 @@ import PlannerDayPanel from "./components/PlannerDayPanel";
 import PlannerTemplates from "./components/PlannerTemplates";
 import PlannerMonthOverview from "./components/PlannerMonthOverview";
 import DayPresetManager from "./components/DayPresetManager";
+import TaskLedger from "./components/TaskLedger";
 
 import "./planner.css";
 
@@ -319,6 +320,8 @@ export default function PlannerPage() {
         activeWeekStartKey={planner.weekStartKey}
         onOpenDay={openMonthDay}
       />
+
+      <TaskLedger onOpenActivity={(activityId) => openActivityDetails(activityId)} />
 
       {!selectedActivityId && (
         <PlannerDayPanel

@@ -1,0 +1,44 @@
+.cooking-identity-picker {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.cooking-identity-picker p {
+  margin: 0;
+  color: rgba(255, 223, 190, 0.72);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.cooking-identity-kind,
+.cooking-identity-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.cooking-identity-picker button {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.58);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: 150ms ease;
+}
+
+.cooking-identity-picker button:hover,
+.cooking-identity-picker button.is-selected {
+  border-color: rgba(242, 167, 102, 0.44);
+  background: rgba(242, 129, 62, 0.11);
+  color: rgba(255, 238, 221, 0.95);
+}
+
+.cooking-identity-picker.is-compact button {
+  min-height: 1.8rem;
+  padding-inline: 0.58rem;
+  font-size: 0.67rem;
+}

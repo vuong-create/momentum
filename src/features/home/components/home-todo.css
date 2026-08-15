@@ -67,7 +67,7 @@
   min-height: 48px;
   display: grid;
   grid-template-columns:
-    20px
+    34px
     minmax(0, 1fr);
   gap: 10px;
   align-items: center;
@@ -113,10 +113,18 @@
     both;
 }
 
-.home-todo-input-strip > span {
-  color: var(--color-text-muted);
-  font-size: 19px;
-  font-weight: 300;
+.home-todo-input-strip .pillar-quick-select-trigger.is-icon-only {
+  width: 31px;
+  height: 31px;
+  min-height: 31px;
+}
+
+.home-todo-cooking-identity {
+  margin: -2px 0 12px 44px;
+  padding: 8px 10px;
+  border: 1px solid rgba(242, 167, 102, 0.12);
+  border-radius: 11px;
+  background: rgba(242, 129, 62, 0.025);
 }
 
 .home-todo-input-strip input {

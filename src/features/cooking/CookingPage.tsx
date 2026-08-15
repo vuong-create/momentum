@@ -12,7 +12,7 @@ import CookingDecide from "./components/CookingDecide";
 import CookingGroceries from "./components/CookingGroceries";
 import CookingRecipes from "./components/CookingRecipes";
 import CookingWeek from "./components/CookingWeek";
-import type { QuickMealType } from "./cookingCatalog";
+import { getCookingActivityIdentity, type QuickMealType } from "./cookingCatalog";
 import {
   completeCookingPlan,
   logCookedRecipe,
@@ -75,6 +75,13 @@ export default function CookingPage() {
   const recipes = visibleCookingRecipes(allRecipes);
   const groceries = visibleGroceryItems(allGroceries);
   const plans = visibleCookingPlans(allPlans);
+  const unclassifiedCookingCount = allPlans.filter((plan) =>
+    plan.pillar === "cooking" &&
+    !plan.deletedAt &&
+    plan.status !== "dismissed" &&
+    plan.status !== "cancelled" &&
+    getCookingActivityIdentity(plan.activityKind) === "unclassified"
+  ).length;
   const todayKey = toDateKey(experience.now);
   const cookingXP = getXPBreakdown(xpEvents).contributions.find(({ pillar }) => pillar === "cooking")!;
   const currentWeekPrefix = useMemo(() => {
@@ -174,7 +181,7 @@ export default function CookingPage() {
       <nav className="cooking-tabs" aria-label="Cooking sections">{tabs.map((tab) => <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}{tab.id === "groceries" && groceries.filter((item) => !item.checked).length > 0 && <i>{groceries.filter((item) => !item.checked).length}</i>}</button>)}</nav>
 
       <main className="cooking-content">
-        {view === "week" && <CookingWeek now={experience.now} recipes={recipes} plans={weekPlans} recentMeals={recentMeals} onPlanRecipe={(id, date) => { const recipe = recipes.find((item) => item.id === id)!; return handlePlanRecipe(recipe, date); }} onPlanQuick={async (type: QuickMealType, label, date) => { const id = await scheduleQuickMeal(type, label, date); experience.playFeedback("meal-planned"); undo.show({ message: `${label} added to Planner`, undo: () => softDeletePlannedActivity(id) }); }} onComplete={handleCompletePlan} onRemove={handleRemovePlan} onOpenRecipes={() => selectView("recipes")} />}
+        {view === "week" && <CookingWeek now={experience.now} recipes={recipes} plans={weekPlans} recentMeals={recentMeals} unclassifiedCount={unclassifiedCookingCount} onPlanRecipe={(id, date) => { const recipe = recipes.find((item) => item.id === id)!; return handlePlanRecipe(recipe, date); }} onPlanQuick={async (type: QuickMealType, label, date) => { const id = await scheduleQuickMeal(type, label, date); experience.playFeedback("meal-planned"); undo.show({ message: `${label} added to Planner`, undo: () => softDeletePlannedActivity(id) }); }} onComplete={handleCompletePlan} onRemove={handleRemovePlan} onOpenRecipes={() => selectView("recipes")} />}
         {view === "recipes" && <CookingRecipes recipes={recipes} todayKey={todayKey} onCreate={handleCreateRecipe} onUpdate={handleUpdateRecipe} onDelete={handleDeleteRecipe} onToggleFavorite={async (recipe) => { await toggleRecipeFavorite(recipe.id!); experience.playFeedback("task-updated"); }} onPlan={handlePlanRecipe} onCookToday={handleCookToday} onAddGroceries={async (recipe, servings) => {
           const before = await db.groceryItems.toArray();
           await addRecipeIngredientsToGroceries({ recipeId: recipe.id!, recipeName: recipe.name, ingredients: recipe.ingredients, defaultServings: recipe.defaultServings, servings });

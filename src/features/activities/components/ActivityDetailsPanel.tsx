@@ -26,6 +26,15 @@ import {
   getChineseActivityKind,
   parseChineseActivityKind,
 } from "../../chinese/activityCatalog";
+import CookingIdentityPicker from "../../cooking/components/CookingIdentityPicker";
+import {
+  getCookingActivityIdentity,
+  getCookingTaskActivityKind,
+  getCustomMealActivityKind,
+  parseCookingMealSlot,
+  type CookingActivityIdentity,
+  type CookingMealSlot,
+} from "../../cooking/cookingCatalog";
 import {
   getActivityDisplayStatus,
   resolveActivityScheduledDate,
@@ -132,6 +141,10 @@ function ActivityDetailsForm({
   const [chineseType, setChineseType] = useState<ChineseActivityType>(
     parseChineseActivityKind(activity.activityKind) ?? "anki"
   );
+  const originalCookingIdentity = getCookingActivityIdentity(activity.activityKind);
+  const originalMealSlot = parseCookingMealSlot(activity.activityKind) ?? "dinner";
+  const [cookingIdentity, setCookingIdentity] = useState<CookingActivityIdentity>(originalCookingIdentity);
+  const [mealSlot, setMealSlot] = useState<CookingMealSlot>(originalMealSlot);
   const [important, setImportant] = useState(
     activity.important ?? false
   );
@@ -198,6 +211,15 @@ function ActivityDetailsForm({
       const chineseDefinition = pillar === "chinese"
         ? getChineseActivityDefinition(chineseType)
         : null;
+      const cookingActivityKind = pillar === "cooking"
+        ? cookingIdentity === "unclassified"
+          ? activity.activityKind
+          : cookingIdentity === "task"
+            ? getCookingTaskActivityKind()
+            : originalCookingIdentity === "meal" && mealSlot === originalMealSlot
+              ? activity.activityKind
+              : getCustomMealActivityKind(mealSlot)
+        : undefined;
       const patch: ActivityDetailsPatch = {
         title,
         scheduledDate: scheduledDate || undefined,
@@ -208,7 +230,7 @@ function ActivityDetailsForm({
         pillar,
         activityKind: chineseDefinition
           ? getChineseActivityKind(chineseType)
-          : undefined,
+          : cookingActivityKind,
         difficulty: chineseDefinition?.difficulty ?? activity.difficulty,
         xpReward: chineseDefinition?.xp ?? activity.xpReward,
         important,
@@ -449,6 +471,20 @@ function ActivityDetailsForm({
               ))}
             </div>
             <small>Completes automatically when logged from Chinese.</small>
+          </fieldset>
+        )}
+
+        {pillar === "cooking" && (
+          <fieldset className="activity-fieldset activity-cooking-kind-fieldset">
+            <legend>Cooking activity</legend>
+            <CookingIdentityPicker
+              identity={cookingIdentity}
+              mealSlot={mealSlot}
+              showUnclassifiedNote
+              onIdentityChange={setCookingIdentity}
+              onMealSlotChange={setMealSlot}
+            />
+            <small>Only meals feed the Cooking meal plan and future grocery workflow.</small>
           </fieldset>
         )}
 

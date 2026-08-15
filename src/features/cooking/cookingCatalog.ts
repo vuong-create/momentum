@@ -21,6 +21,16 @@ export const quickMealOptions = [
 
 export type QuickMealType = typeof quickMealOptions[number]["id"];
 
+export const cookingMealSlots = [
+  { id: "breakfast", label: "Breakfast" },
+  { id: "lunch", label: "Lunch" },
+  { id: "dinner", label: "Dinner" },
+  { id: "snack", label: "Snack" },
+] as const;
+
+export type CookingMealSlot = typeof cookingMealSlots[number]["id"];
+export type CookingActivityIdentity = "meal" | "task" | "unclassified";
+
 export function getRecipeActivityKind(recipeId: number) {
   return `cooking:recipe:${recipeId}`;
 }
@@ -33,6 +43,43 @@ export function parseRecipeActivityKind(value?: string) {
 
 export function getQuickMealActivityKind(type: QuickMealType) {
   return `cooking:quick:${type}`;
+}
+
+export function getCustomMealActivityKind(slot: CookingMealSlot) {
+  return `cooking:meal:${slot}`;
+}
+
+export function getCookingTaskActivityKind() {
+  return "cooking:task";
+}
+
+export function parseCookingMealSlot(value?: string): CookingMealSlot | undefined {
+  if (!value?.startsWith("cooking:meal:")) return undefined;
+  const slot = value.slice("cooking:meal:".length);
+  return cookingMealSlots.some((option) => option.id === slot)
+    ? slot as CookingMealSlot
+    : undefined;
+}
+
+export function getCookingActivityIdentity(value?: string): CookingActivityIdentity {
+  if (
+    parseRecipeActivityKind(value) ||
+    value?.startsWith("cooking:quick:") ||
+    parseCookingMealSlot(value)
+  ) return "meal";
+  if (value === getCookingTaskActivityKind()) return "task";
+  return "unclassified";
+}
+
+export function isCookingMealActivityKind(value?: string) {
+  return getCookingActivityIdentity(value) === "meal";
+}
+
+export function getCookingMealSlotLabel(value?: string) {
+  const slot = parseCookingMealSlot(value);
+  return slot
+    ? cookingMealSlots.find((option) => option.id === slot)?.label
+    : undefined;
 }
 
 export function inferGroceryCategory(name: string): GroceryCategory {

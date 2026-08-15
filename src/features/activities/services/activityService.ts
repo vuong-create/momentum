@@ -74,6 +74,7 @@ export async function createPlannedActivity(
     important: input.important ?? false,
     notes: input.notes?.trim() || undefined,
     sortOrder: Date.now(),
+    dayPresetId: input.dayPresetId,
   });
 }
 

@@ -22,6 +22,13 @@ import {
   getChineseActivityDefinition,
   getChineseActivityKind,
 } from "../../chinese/activityCatalog";
+import CookingIdentityPicker from "../../cooking/components/CookingIdentityPicker";
+import {
+  getCookingTaskActivityKind,
+  getCustomMealActivityKind,
+  type CookingActivityIdentity,
+  type CookingMealSlot,
+} from "../../cooking/cookingCatalog";
 import type {
   CreateActivityInput,
   PlannerDay,
@@ -55,6 +62,8 @@ export default function PlannerComposer({
   const [scheduledTime, setScheduledTime] = useState("");
   const [chineseType, setChineseType] =
     useState<ChineseActivityType>("anki");
+  const [cookingIdentity, setCookingIdentity] = useState<Exclude<CookingActivityIdentity, "unclassified">>("meal");
+  const [mealSlot, setMealSlot] = useState<CookingMealSlot>("dinner");
   const [important, setImportant] = useState(false);
   const [recurrence, setRecurrence] = useState<RecurrencePattern>();
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
@@ -92,7 +101,11 @@ export default function PlannerComposer({
         pillar,
         activityKind: chineseDefinition
           ? getChineseActivityKind(chineseType)
-          : undefined,
+          : pillar === "cooking"
+            ? cookingIdentity === "meal"
+              ? getCustomMealActivityKind(mealSlot)
+              : getCookingTaskActivityKind()
+            : undefined,
         difficulty: chineseDefinition?.difficulty,
         scheduledTime,
         important,
@@ -233,6 +246,19 @@ export default function PlannerComposer({
             ))}
           </div>
           <small>Logging this action from Chinese will complete the plan automatically.</small>
+        </fieldset>
+      )}
+
+      {pillar === "cooking" && (
+        <fieldset className="planner-composer-chinese-types planner-composer-cooking-types">
+          <legend>Cooking activity</legend>
+          <CookingIdentityPicker
+            identity={cookingIdentity}
+            mealSlot={mealSlot}
+            onIdentityChange={setCookingIdentity}
+            onMealSlotChange={setMealSlot}
+          />
+          <small>Meals appear in Cooking plans; prep tasks remain regular Cooking activities.</small>
         </fieldset>
       )}
 
