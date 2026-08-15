@@ -2603,6 +2603,12 @@ Backup Version 1 includes Focus sessions automatically. A tested migration
 upgrades Schema 26 backup files by adding an empty `focusSessions` collection,
 so backups created immediately before Focus Mode remain restorable.
 
+Schema Version 28 expands `appSettings` with `soundVolume`,
+`interfaceSoundsEnabled`, `actionSoundsEnabled`,
+`celebrationSoundsEnabled`, and `soundscapeVolume`. Defaults are applied during
+the database upgrade and when reading older settings records. Backup Version 1
+migrates Schema 26 and 27 packages into this settings contract before restore.
+
 ---
 
 # 92. Data Safety

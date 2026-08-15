@@ -1,294 +1,132 @@
-export type FeedbackCue =
-  | "task-added"
-  | "task-completed"
-  | "task-reopened"
-  | "task-updated"
-  | "task-dismissed"
-  | "task-restored"
-  | "chinese-logged"
-  | "workout-started"
-  | "set-completed"
-  | "workout-completed"
-  | "personal-record"
-  | "volleyball-logged"
-  | "meal-planned"
-  | "meal-cooked"
-  | "grocery-checked"
-  | "finance-account-added"
-  | "finance-transaction"
-  | "finance-income"
-  | "finance-snapshot"
-  | "focus-phase"
-  | "navigation";
+import athleticsUrl from "../../assets/sounds/04-athletics-grounded-rise.wav?url";
+import chineseUrl from "../../assets/sounds/03-chinese-porcelain.wav?url";
+import completeUrl from "../../assets/sounds/01-complete-a-glass-lift.wav?url";
+import cookingUrl from "../../assets/sounds/05-cooking-wood-ceramic.wav?url";
+import financeUrl from "../../assets/sounds/06-finance-crisp-confirm.wav?url";
+import focusUrl from "../../assets/sounds/08-focus-breath-bell.wav?url";
+import levelUpUrl from "../../assets/sounds/09-level-up-prism.wav?url";
+import libraryUrl from "../../assets/sounds/07-library-paper-bell.wav?url";
 
-type Tone = {
-  frequency: number;
-  endFrequency?: number;
-  delay?: number;
-  duration: number;
+export type SoundCategory = "interface" | "action" | "celebration";
+
+export type FeedbackCue =
+  | "navigation" | "task-added" | "task-completed" | "task-reopened"
+  | "task-updated" | "task-dismissed" | "task-restored"
+  | "chinese-logged" | "workout-started" | "set-completed"
+  | "workout-completed" | "personal-record" | "volleyball-logged"
+  | "meal-planned" | "meal-cooked" | "grocery-checked"
+  | "finance-account-added" | "finance-transaction" | "finance-income"
+  | "finance-snapshot" | "library-saved" | "library-removed"
+  | "focus-phase" | "level-up";
+
+export type SoundPreferences = {
   volume: number;
-  type: OscillatorType;
+  interfaceEnabled: boolean;
+  actionEnabled: boolean;
+  celebrationEnabled: boolean;
 };
 
+export type CueDefinition = {
+  category: SoundCategory;
+  cooldownMs: number;
+  gain: number;
+  priority: 1 | 2 | 3;
+  assetUrl?: string;
+  micro?: "tick" | "rise" | "fall" | "restore";
+};
+
+const micro = (kind: CueDefinition["micro"], category: SoundCategory = "action"): CueDefinition => ({
+  category, cooldownMs: category === "interface" ? 100 : 55, gain: 0.34, priority: 1, micro: kind,
+});
+
+export const cueRegistry: Record<FeedbackCue, CueDefinition> = {
+  navigation: micro("tick", "interface"),
+  "task-added": micro("rise"),
+  "task-completed": { category: "action", cooldownMs: 90, gain: 0.58, priority: 2, assetUrl: completeUrl },
+  "task-reopened": micro("fall"),
+  "task-updated": micro("tick"),
+  "task-dismissed": micro("fall"),
+  "task-restored": micro("restore"),
+  "chinese-logged": { category: "action", cooldownMs: 110, gain: 0.5, priority: 2, assetUrl: chineseUrl },
+  "workout-started": { category: "action", cooldownMs: 150, gain: 0.48, priority: 2, assetUrl: athleticsUrl },
+  "set-completed": { category: "action", cooldownMs: 100, gain: 0.38, priority: 2, assetUrl: athleticsUrl },
+  "workout-completed": { category: "celebration", cooldownMs: 300, gain: 0.55, priority: 3, assetUrl: athleticsUrl },
+  "personal-record": { category: "celebration", cooldownMs: 500, gain: 0.62, priority: 3, assetUrl: levelUpUrl },
+  "volleyball-logged": { category: "action", cooldownMs: 150, gain: 0.46, priority: 2, assetUrl: athleticsUrl },
+  "meal-planned": micro("rise"),
+  "meal-cooked": { category: "action", cooldownMs: 130, gain: 0.5, priority: 2, assetUrl: cookingUrl },
+  "grocery-checked": micro("tick"),
+  "finance-account-added": { category: "action", cooldownMs: 130, gain: 0.46, priority: 2, assetUrl: financeUrl },
+  "finance-transaction": { category: "action", cooldownMs: 100, gain: 0.44, priority: 2, assetUrl: financeUrl },
+  "finance-income": { category: "action", cooldownMs: 130, gain: 0.5, priority: 2, assetUrl: financeUrl },
+  "finance-snapshot": { category: "celebration", cooldownMs: 250, gain: 0.52, priority: 3, assetUrl: financeUrl },
+  "library-saved": { category: "action", cooldownMs: 120, gain: 0.46, priority: 2, assetUrl: libraryUrl },
+  "library-removed": micro("fall"),
+  "focus-phase": { category: "action", cooldownMs: 500, gain: 0.5, priority: 2, assetUrl: focusUrl },
+  "level-up": { category: "celebration", cooldownMs: 1200, gain: 0.66, priority: 3, assetUrl: levelUpUrl },
+};
+
+const lastPlayed = new Map<FeedbackCue, number>();
+const activeAudio = new Set<HTMLAudioElement>();
 let audioContext: AudioContext | null = null;
 
-function getAudioContext() {
-  if (audioContext) return audioContext;
-  if (typeof window === "undefined") return null;
-
-  const AudioContextClass =
-    window.AudioContext ||
-    (
-      window as typeof window & {
-        webkitAudioContext?: typeof AudioContext;
-      }
-    ).webkitAudioContext;
-
-  if (!AudioContextClass) return null;
-
-  audioContext = new AudioContextClass();
-
-  return audioContext;
+function categoryEnabled(category: SoundCategory, preferences: SoundPreferences) {
+  if (category === "interface") return preferences.interfaceEnabled;
+  if (category === "celebration") return preferences.celebrationEnabled;
+  return preferences.actionEnabled;
 }
 
-function playTone(context: AudioContext, tone: Tone) {
-  const start = context.currentTime + (tone.delay ?? 0);
+function playMicro(kind: NonNullable<CueDefinition["micro"]>, volume: number) {
+  const AudioContextClass = window.AudioContext ||
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextClass) return;
+  audioContext ??= new AudioContextClass();
+  const context = audioContext;
   const oscillator = context.createOscillator();
   const gain = context.createGain();
-
-  oscillator.type = tone.type;
-  oscillator.frequency.setValueAtTime(tone.frequency, start);
-
-  if (tone.endFrequency) {
-    oscillator.frequency.exponentialRampToValueAtTime(
-      tone.endFrequency,
-      start + tone.duration
-    );
-  }
-
+  const start = context.currentTime;
+  const frequencies = {
+    tick: [330, 355], rise: [410, 535], fall: [430, 320], restore: [350, 500],
+  }[kind];
+  oscillator.type = kind === "tick" ? "sine" : "triangle";
+  oscillator.frequency.setValueAtTime(frequencies[0], start);
+  oscillator.frequency.exponentialRampToValueAtTime(frequencies[1], start + 0.09);
   gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(
-    tone.volume,
-    start + 0.012
-  );
-  gain.gain.exponentialRampToValueAtTime(
-    0.0001,
-    start + tone.duration
-  );
-
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume * 0.035), start + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.11);
   oscillator.connect(gain);
   gain.connect(context.destination);
   oscillator.start(start);
-  oscillator.stop(start + tone.duration + 0.02);
+  oscillator.stop(start + 0.13);
+  if (context.state === "suspended") void context.resume().catch(() => undefined);
 }
 
-function getCueTones(cue: FeedbackCue): Tone[] {
-  if (cue === "focus-phase") {
-    return [
-      { frequency: 392, endFrequency: 523.25, duration: 0.18, volume: 0.012, type: "sine" },
-      { frequency: 659.25, delay: 0.11, duration: 0.24, volume: 0.014, type: "sine" },
-    ];
-  }
-
-  if (cue === "navigation") {
-    return [
-      {
-        frequency: 305,
-        endFrequency: 352,
-        duration: 0.075,
-        volume: 0.008,
-        type: "sine",
-      },
-    ];
-  }
-
-  if (cue === "chinese-logged") {
-    return [
-      {
-        frequency: 523.25,
-        endFrequency: 587.33,
-        duration: 0.12,
-        volume: 0.014,
-        type: "sine",
-      },
-      {
-        frequency: 783.99,
-        endFrequency: 880,
-        delay: 0.065,
-        duration: 0.17,
-        volume: 0.018,
-        type: "triangle",
-      },
-    ];
-  }
-
-  if (cue === "workout-started") {
-    return [
-      { frequency: 196, endFrequency: 246.94, duration: 0.13, volume: 0.014, type: "triangle" },
-      { frequency: 293.66, delay: 0.055, duration: 0.12, volume: 0.01, type: "sine" },
-    ];
-  }
-
-  if (cue === "set-completed") {
-    return [
-      { frequency: 220, endFrequency: 329.63, duration: 0.09, volume: 0.013, type: "triangle" },
-    ];
-  }
-
-  if (cue === "volleyball-logged") {
-    return [
-      { frequency: 246.94, endFrequency: 392, duration: 0.14, volume: 0.014, type: "sine" },
-      { frequency: 523.25, delay: 0.07, duration: 0.12, volume: 0.012, type: "triangle" },
-    ];
-  }
-
-  if (cue === "personal-record") {
-    return [
-      { frequency: 261.63, endFrequency: 392, duration: 0.15, volume: 0.016, type: "triangle" },
-      { frequency: 523.25, delay: 0.07, duration: 0.18, volume: 0.018, type: "sine" },
-      { frequency: 783.99, delay: 0.14, duration: 0.22, volume: 0.019, type: "sine" },
-    ];
-  }
-
-  if (cue === "workout-completed") {
-    return [
-      { frequency: 246.94, endFrequency: 369.99, duration: 0.15, volume: 0.016, type: "triangle" },
-      { frequency: 493.88, delay: 0.075, duration: 0.2, volume: 0.017, type: "sine" },
-    ];
-  }
-
-  if (cue === "meal-planned") {
-    return [
-      { frequency: 293.66, endFrequency: 392, duration: 0.12, volume: 0.012, type: "sine" },
-      { frequency: 493.88, delay: 0.055, duration: 0.13, volume: 0.011, type: "triangle" },
-    ];
-  }
-
-  if (cue === "meal-cooked") {
-    return [
-      { frequency: 329.63, endFrequency: 440, duration: 0.15, volume: 0.015, type: "triangle" },
-      { frequency: 659.25, delay: 0.07, duration: 0.18, volume: 0.016, type: "sine" },
-    ];
-  }
-
-  if (cue === "grocery-checked") {
-    return [
-      { frequency: 410, endFrequency: 520, duration: 0.085, volume: 0.01, type: "sine" },
-    ];
-  }
-
-  if (cue === "finance-account-added") {
-    return [
-      { frequency: 246.94, endFrequency: 329.63, duration: 0.13, volume: 0.011, type: "sine" },
-      { frequency: 493.88, delay: 0.065, duration: 0.14, volume: 0.01, type: "triangle" },
-    ];
-  }
-
-  if (cue === "finance-income") {
-    return [
-      { frequency: 293.66, endFrequency: 440, duration: 0.14, volume: 0.012, type: "triangle" },
-      { frequency: 659.25, delay: 0.075, duration: 0.18, volume: 0.013, type: "sine" },
-    ];
-  }
-
-  if (cue === "finance-transaction") {
-    return [{ frequency: 390, endFrequency: 480, duration: 0.09, volume: 0.009, type: "sine" }];
-  }
-
-  if (cue === "finance-snapshot") {
-    return [
-      { frequency: 261.63, endFrequency: 392, duration: 0.14, volume: 0.011, type: "sine" },
-      { frequency: 587.33, delay: 0.075, duration: 0.18, volume: 0.012, type: "triangle" },
-    ];
-  }
-
-  if (cue === "task-added" || cue === "task-updated") {
-    return [
-      {
-        frequency: 430,
-        endFrequency: 560,
-        duration: 0.11,
-        volume: 0.016,
-        type: "triangle",
-      },
-    ];
-  }
-
-  if (cue === "task-reopened") {
-    return [
-      {
-        frequency: 520,
-        endFrequency: 390,
-        duration: 0.14,
-        volume: 0.012,
-        type: "sine",
-      },
-    ];
-  }
-
-  if (cue === "task-dismissed") {
-    return [
-      {
-        frequency: 410,
-        endFrequency: 315,
-        duration: 0.16,
-        volume: 0.011,
-        type: "sine",
-      },
-    ];
-  }
-
-  if (cue === "task-restored") {
-    return [
-      {
-        frequency: 390,
-        endFrequency: 545,
-        duration: 0.16,
-        volume: 0.015,
-        type: "triangle",
-      },
-    ];
-  }
-
-  return [
-    {
-      frequency: 660,
-      endFrequency: 760,
-      duration: 0.13,
-      volume: 0.018,
-      type: "triangle",
-    },
-    {
-      frequency: 990,
-      endFrequency: 1180,
-      delay: 0.075,
-      duration: 0.19,
-      volume: 0.024,
-      type: "sine",
-    },
-  ];
-}
-
-function scheduleCue(context: AudioContext, cue: FeedbackCue) {
-  getCueTones(cue).forEach((tone) => playTone(context, tone));
-}
-
-export function playFeedbackSound(cue: FeedbackCue) {
+export function playFeedbackSound(
+  cue: FeedbackCue,
+  preferences: SoundPreferences,
+  options: { preview?: boolean } = {},
+) {
+  if (typeof window === "undefined") return;
+  const definition = cueRegistry[cue];
+  if (!definition || (!options.preview && !categoryEnabled(definition.category, preferences))) return;
+  const now = performance.now();
+  if (!options.preview && now - (lastPlayed.get(cue) ?? -Infinity) < definition.cooldownMs) return;
+  if (!options.preview && activeAudio.size >= 4 && definition.priority < 3) return;
+  lastPlayed.set(cue, now);
+  const volume = Math.max(0, Math.min(1, preferences.volume)) * definition.gain;
   try {
-    const context = getAudioContext();
-
-    if (!context) return;
-
-    if (context.state === "suspended") {
-      void context
-        .resume()
-        .then(() => scheduleCue(context, cue))
-        .catch(() => undefined);
+    if (definition.micro) {
+      playMicro(definition.micro, volume);
       return;
     }
-
-    scheduleCue(context, cue);
+    const audio = new Audio(definition.assetUrl);
+    audio.volume = volume;
+    activeAudio.add(audio);
+    const clean = () => activeAudio.delete(audio);
+    audio.addEventListener("ended", clean, { once: true });
+    audio.addEventListener("error", clean, { once: true });
+    void audio.play().catch(clean);
   } catch {
-    // Feedback is intentionally optional and must never block an action.
+    // Feedback is optional and must never block the action it follows.
   }
 }

@@ -166,6 +166,8 @@
   font-size: 8px;
 }
 
+.settings-sound-controls{display:grid;gap:14px;margin-top:18px}.settings-volume-control{display:grid;gap:10px;padding:14px;border:1px solid var(--color-border-subtle);border-radius:var(--radius-md);background:rgba(0,0,0,.14)}.settings-volume-control>span{display:flex;justify-content:space-between}.settings-volume-control strong{color:var(--color-text-secondary);font-size:9px;font-weight:500}.settings-volume-control small{color:var(--color-text-disabled);font-family:var(--font-mono);font-size:8px}.settings-volume-control input{width:100%;height:3px;accent-color:#e8e8e5}.settings-sound-categories{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.settings-sound-categories button{position:relative;display:grid;min-height:65px;align-content:center;justify-items:start;padding:11px 13px;border-color:var(--color-border-subtle);color:var(--color-text-disabled);background:rgba(255,255,255,.02);text-align:left}.settings-sound-categories button>span{font-size:9px}.settings-sound-categories button>small{margin-top:4px;font-size:7px;line-height:1.4}.settings-sound-categories button>i{position:absolute;top:10px;right:10px;width:5px;height:5px;border-radius:50%;background:var(--color-text-disabled)}.settings-sound-categories button.is-enabled{color:var(--color-text-secondary);border-color:rgba(255,255,255,.15)}.settings-sound-categories button.is-enabled>i{background:var(--color-success);box-shadow:0 0 7px rgba(53,199,111,.4)}.settings-sound-gallery{margin-top:18px;padding-top:18px;border-top:1px solid var(--color-border-subtle)}.settings-sound-gallery>div:first-child{display:flex;align-items:center;justify-content:space-between}.settings-sound-gallery>div:first-child strong{color:var(--color-text-muted);font-size:8px;font-weight:450}.settings-sound-gallery>div:last-child{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:11px}.settings-sound-gallery button{display:flex;min-height:31px;align-items:center;gap:7px;padding:0 9px;border-color:var(--color-border-subtle);color:var(--color-text-muted);background:rgba(255,255,255,.022);font-size:7px}.settings-sound-gallery button span{color:var(--color-text-disabled);font-size:6px}
+
 .settings-ambience-panel {
   min-height: 100%;
 }
@@ -524,4 +526,6 @@
   .settings-restore-counts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .settings-sound-categories,.settings-sound-gallery>div:last-child{grid-template-columns:repeat(2,1fr)}
 }

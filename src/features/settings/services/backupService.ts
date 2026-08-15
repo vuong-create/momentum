@@ -62,24 +62,33 @@ function currentTableNames(database: Dexie) {
 function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
   if (!isRecord(value) || value.format !== MOMENTUM_BACKUP_FORMAT) return value;
   if (!isRecord(value.manifest) || !isRecord(value.data)) return value;
-
-  const isPreFocusBackup =
-    value.backupVersion === MOMENTUM_BACKUP_VERSION &&
-    value.manifest.schemaVersion === 26 &&
-    database.verno === 27 &&
-    !("focusSessions" in value.data);
-
-  if (!isPreFocusBackup) return value;
+  if (value.backupVersion !== MOMENTUM_BACKUP_VERSION) return value;
+  const sourceVersion = value.manifest.schemaVersion;
+  if (sourceVersion !== 26 && sourceVersion !== 27) return value;
+  if (database.verno !== 28) return value;
 
   const migrated = structuredClone(value);
   if (!isRecord(migrated) || !isRecord(migrated.manifest) || !isRecord(migrated.data)) {
     return value;
   }
-  migrated.data.focusSessions = [];
-  if (isRecord(migrated.manifest.tableCounts)) {
-    migrated.manifest.tableCounts.focusSessions = 0;
+  if (sourceVersion === 26 && !("focusSessions" in migrated.data)) {
+    migrated.data.focusSessions = [];
+    if (isRecord(migrated.manifest.tableCounts)) {
+      migrated.manifest.tableCounts.focusSessions = 0;
+    }
   }
-  migrated.manifest.schemaVersion = 27;
+  const settings = migrated.data.appSettings;
+  if (Array.isArray(settings)) {
+    for (const item of settings) {
+      if (!isRecord(item)) continue;
+      item.soundVolume ??= 0.6;
+      item.interfaceSoundsEnabled ??= true;
+      item.actionSoundsEnabled ??= true;
+      item.celebrationSoundsEnabled ??= true;
+      item.soundscapeVolume ??= 0.35;
+    }
+  }
+  migrated.manifest.schemaVersion = 28;
   return migrated;
 }
 

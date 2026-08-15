@@ -26,7 +26,7 @@ export function stopFocusSoundscape() {
   gain = null;
 }
 
-export function playFocusSoundscape(soundscape: FocusSoundscape) {
+export function playFocusSoundscape(soundscape: FocusSoundscape, volume = 0.35) {
   stopFocusSoundscape();
   if (soundscape === "silent") return;
   try {
@@ -48,7 +48,8 @@ export function playFocusSoundscape(soundscape: FocusSoundscape) {
     const filter = audio.createBiquadFilter();
     filter.type = soundscape === "rain" ? "highpass" : "lowpass";
     filter.frequency.value = soundscape === "rain" ? 900 : 520;
-    gain.gain.value = soundscape === "rain" ? 0.035 : 0.045;
+    const normalizedVolume = Math.max(0, Math.min(1, volume));
+    gain.gain.value = (soundscape === "rain" ? 0.035 : 0.045) * (normalizedVolume / 0.35);
     source.buffer = buffer;
     source.loop = true;
     source.connect(filter);

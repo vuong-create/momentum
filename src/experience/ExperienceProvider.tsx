@@ -50,7 +50,7 @@ export default function ExperienceProvider({
     () => db.appSettings.get(SETTINGS_ID),
     []
   );
-  const settings = storedSettings ?? defaultAppSettings;
+  const settings = { ...defaultAppSettings, ...storedSettings };
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -82,16 +82,27 @@ export default function ExperienceProvider({
     await updateAppSettings({ animationsEnabled: enabled });
   }, []);
 
+  const updateSoundPreferences = useCallback(async (patch: Parameters<typeof updateAppSettings>[0]) => {
+    await updateAppSettings(patch);
+  }, []);
+
+  const soundPreferences = useMemo(() => ({
+    volume: settings.soundVolume,
+    interfaceEnabled: settings.interfaceSoundsEnabled,
+    actionEnabled: settings.actionSoundsEnabled,
+    celebrationEnabled: settings.celebrationSoundsEnabled,
+  }), [settings.actionSoundsEnabled, settings.celebrationSoundsEnabled, settings.interfaceSoundsEnabled, settings.soundVolume]);
+
   const playFeedback = useCallback(
     (cue: FeedbackCue) => {
-      if (settings.soundsEnabled) playFeedbackSound(cue);
+      if (settings.soundsEnabled) playFeedbackSound(cue, soundPreferences);
     },
-    [settings.soundsEnabled]
+    [settings.soundsEnabled, soundPreferences]
   );
 
   const previewFeedback = useCallback((cue: FeedbackCue) => {
-    playFeedbackSound(cue);
-  }, []);
+    playFeedbackSound(cue, soundPreferences, { preview: true });
+  }, [soundPreferences]);
 
   const value = useMemo<ExperienceContextValue>(() => {
     const period = getTimePeriod(now);
@@ -106,9 +117,15 @@ export default function ExperienceProvider({
       reducedMotion,
       soundsEnabled: settings.soundsEnabled,
       animationsEnabled: settings.animationsEnabled,
+      soundVolume: settings.soundVolume,
+      interfaceSoundsEnabled: settings.interfaceSoundsEnabled,
+      actionSoundsEnabled: settings.actionSoundsEnabled,
+      celebrationSoundsEnabled: settings.celebrationSoundsEnabled,
+      soundscapeVolume: settings.soundscapeVolume,
       motionEnabled: settings.animationsEnabled && !reducedMotion,
       setSoundsEnabled,
       setAnimationsEnabled,
+      updateSoundPreferences,
       playFeedback,
       previewFeedback,
     };
@@ -119,6 +136,12 @@ export default function ExperienceProvider({
     reducedMotion,
     setAnimationsEnabled,
     setSoundsEnabled,
+    updateSoundPreferences,
+    settings.actionSoundsEnabled,
+    settings.celebrationSoundsEnabled,
+    settings.interfaceSoundsEnabled,
+    settings.soundVolume,
+    settings.soundscapeVolume,
     settings.animationsEnabled,
     settings.soundsEnabled,
   ]);
