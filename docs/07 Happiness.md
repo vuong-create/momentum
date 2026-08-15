@@ -64,13 +64,14 @@ The system prioritizes meaningful memories over graphs and statistics.
 
 # 3. Navigation
 
-Library contains five lightweight sections:
+Library contains six lightweight sections:
 
 1. Write
 2. Journal
 3. Books
-4. Look Back
-5. Quotes
+4. Wish List
+5. Look Back
+6. Quotes
 
 ---
 
@@ -900,6 +901,7 @@ Implemented in the first Journal milestone:
 * Saved Momentum quotes, personal quotes, and favorites
 * Personal Library with reading states and a physical bookshelf view
 * Optional book reflection link into Journal
+* Wish List for considered items, optional links and notes, and acquired history
 
 Photo attachments, memory galleries, and media compression remain intentionally
 deferred; Apple Photos already covers that role well enough for now.
@@ -907,7 +909,7 @@ deferred; Apple Photos already covers that role well enough for now.
 Implemented in the Library evolution milestone:
 
 * Library becomes the visible pillar name while `/journal` remains the stable route
-* Write, Journal, Books, Look Back, and Quotes remain focused subsections
+* Write, Journal, Books, Wish List, Look Back, and Quotes remain focused subsections
 * Optional Reflection, Gratitude, Memory, Growth, Ideas, and Books categories
 * Category badges, filtering, and editing
 * Prompt gallery with category filtering and generated writing templates

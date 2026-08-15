@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
   homePillars,
@@ -28,14 +29,20 @@ export default function PillarQuickSelect({
   label,
 }: PillarQuickSelectProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
   const theme = pillarThemes[value as PillarKey];
 
   useEffect(() => {
     if (!open) return;
 
     function handlePointerDown(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (
+        !rootRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) setOpen(false);
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -47,6 +54,35 @@ export default function PillarQuickSelect({
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    function positionMenu() {
+      const trigger = rootRef.current?.getBoundingClientRect();
+      if (!trigger) return;
+      const menuWidth = 174;
+      const estimatedMenuHeight = 230;
+      const spaceBelow = window.innerHeight - trigger.bottom;
+      setMenuPosition({
+        left: Math.min(
+          Math.max(8, trigger.left),
+          window.innerWidth - menuWidth - 8
+        ),
+        top: spaceBelow >= estimatedMenuHeight + 8
+          ? trigger.bottom + 6
+          : Math.max(8, trigger.top - estimatedMenuHeight - 6),
+      });
+    }
+
+    positionMenu();
+    window.addEventListener("resize", positionMenu);
+    window.addEventListener("scroll", positionMenu, true);
+    return () => {
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu, true);
     };
   }, [open]);
 
@@ -65,8 +101,14 @@ export default function PillarQuickSelect({
         {!iconOnly && <small>⌄</small>}
       </button>
 
-      {open && (
-        <div className="pillar-quick-select-menu" role="listbox" aria-label="Choose pillar">
+      {open && createPortal(
+        <div
+          ref={menuRef}
+          className="pillar-quick-select-menu pillar-quick-select-floating-menu"
+          role="listbox"
+          aria-label="Choose pillar"
+          style={menuPosition}
+        >
           {selectablePillars.map((pillar) => {
             const option = pillarThemes[pillar];
             return (
@@ -87,7 +129,8 @@ export default function PillarQuickSelect({
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

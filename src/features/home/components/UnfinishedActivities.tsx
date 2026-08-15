@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   pillarThemes,
@@ -73,7 +73,9 @@ export default function UnfinishedActivities({
   onChangePillar,
   onOpenDetails,
 }: UnfinishedActivitiesProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(
+    () => sessionStorage.getItem("momentum.home.unfinished.expanded") === "true"
+  );
   const [reschedulingId, setReschedulingId] = useState<number | null>(
     null
   );
@@ -84,6 +86,10 @@ export default function UnfinishedActivities({
     () => getNextWeekDates(todayKey),
     [todayKey]
   );
+
+  useEffect(() => {
+    sessionStorage.setItem("momentum.home.unfinished.expanded", String(expanded));
+  }, [expanded]);
 
   async function runAction(
     activity: PlannedActivity,

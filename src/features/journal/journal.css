@@ -460,6 +460,47 @@
 .journal-spine-tones button.is-selected { box-shadow: 0 0 0 1px rgba(255,255,255,.72); }
 .journal-book-linked { margin: 0; color: #869b8a; font-size: 8px; }
 
+/* Wish List */
+
+.journal-wishlist { display: grid; gap: 28px; }
+.journal-wishlist-header { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--color-border-subtle); }
+.journal-wishlist-header h2 { margin: 7px 0 5px; font-size: 29px; font-weight: 400; }
+.journal-wishlist-header p { max-width: 590px; margin: 0; color: var(--color-text-muted); font-size: 10px; line-height: 1.5; }
+.journal-wishlist-header > button { min-height: 32px; padding: 0 13px; border: 1px solid var(--color-border-default); border-radius: var(--radius-pill); color: var(--color-text-secondary); background: rgba(255,255,255,.03); font-size: 8px; white-space: nowrap; }
+.journal-wishlist-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.journal-wishlist-grid > article { overflow: hidden; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); background: linear-gradient(140deg, rgba(255,255,255,.045), rgba(255,255,255,.015)); transition: transform 180ms var(--ease-standard), border-color 180ms var(--ease-standard); }
+.journal-wishlist-grid > article:hover { transform: translateY(-1px); border-color: var(--color-border-default); }
+.journal-wishlist-open { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; width: 100%; min-height: 92px; align-items: start; padding: 18px 18px 14px; border: 0; color: var(--color-text-secondary); background: transparent; text-align: left; }
+.journal-wishlist-mark { display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid rgba(206,192,164,.19); border-radius: 8px; color: #c4b796; background: rgba(196,183,150,.055); font-size: 14px; }
+.journal-wishlist-open > span:nth-child(2) { display: grid; gap: 7px; }
+.journal-wishlist-open strong { color: var(--color-text-primary); font-size: 12px; font-weight: 500; }
+.journal-wishlist-open small { display: -webkit-box; overflow: hidden; color: var(--color-text-muted); font-size: 9px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: pre-wrap; }
+.journal-wishlist-open b { color: var(--color-text-disabled); font-size: 8px; font-weight: 400; letter-spacing: .1em; }
+.journal-wishlist-grid article > footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 38px; padding: 0 18px; border-top: 1px solid var(--color-border-subtle); }
+.journal-wishlist-grid article > footer a,
+.journal-wishlist-grid article > footer span { overflow: hidden; color: var(--color-text-disabled); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.journal-wishlist-grid article > footer a:hover { color: var(--color-text-secondary); }
+.journal-wishlist-grid article > footer button { flex: 0 0 auto; padding: 4px 0; border: 0; color: #9eaa99; background: transparent; font-size: 8px; }
+.journal-wishlist-empty { display: grid; min-height: 230px; place-content: center; gap: 7px; border: 1px dashed var(--color-border-subtle); border-radius: var(--radius-lg); color: var(--color-text-muted); background: rgba(255,255,255,.01); text-align: center; }
+.journal-wishlist-empty > span { color: #b4a98d; font-size: 24px; }
+.journal-wishlist-empty strong { color: var(--color-text-secondary); font-size: 11px; font-weight: 500; }
+.journal-wishlist-empty small { color: var(--color-text-disabled); font-size: 8px; }
+.journal-wishlist-acquired { border-top: 1px solid var(--color-border-subtle); }
+.journal-wishlist-acquired > button { display: flex; width: 100%; min-height: 46px; align-items: center; justify-content: space-between; padding: 0; border: 0; color: var(--color-text-muted); background: transparent; font-size: 9px; text-align: left; }
+.journal-wishlist-acquired > button b { font-size: 13px; font-weight: 300; }
+.journal-wishlist-acquired > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; padding-bottom: 12px; }
+.journal-wishlist-acquired article { display: flex; align-items: center; border-bottom: 1px solid var(--color-border-subtle); }
+.journal-wishlist-acquired article > button:first-child { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; flex: 1; gap: 10px; min-height: 44px; align-items: center; padding: 0; border: 0; color: var(--color-text-muted); background: transparent; text-align: left; }
+.journal-wishlist-acquired article > button:first-child span { color: #849789; }
+.journal-wishlist-acquired article > button:first-child strong { overflow: hidden; font-size: 9px; font-weight: 450; text-overflow: ellipsis; white-space: nowrap; }
+.journal-wishlist-acquired article > button:first-child small { color: var(--color-text-disabled); font-size: 7px; }
+.journal-wishlist-acquired article > button:last-child { flex: 0 0 auto; padding: 5px; border: 0; color: var(--color-text-disabled); background: transparent; font-size: 7px; }
+.journal-wishlist-status { display: flex; gap: 7px; margin: 0; padding: 0; border: 0; }
+.journal-wishlist-status legend { width: 100%; margin-bottom: 8px; color: var(--color-text-muted); font-size: 8px; letter-spacing: .06em; text-transform: uppercase; }
+.journal-wishlist-status button { min-height: 30px; padding: 0 11px; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-pill); color: var(--color-text-muted); background: transparent; font-size: 8px; }
+.journal-wishlist-status button.is-selected { color: var(--color-text-primary); border-color: var(--color-border-strong); background: rgba(255,255,255,.07); }
+.journal-wishlist-error { margin: -6px 0 0; color: #d09b91; font-size: 8px; }
+
 @media (max-width: 1050px) {
   .journal-today-layout { grid-template-columns: 1fr; }
   .journal-today-margin { grid-template-columns: 1fr 1fr; }
@@ -494,7 +535,8 @@
   .journal-notebook footer span { width: 100%; }
   .journal-notebook footer button { margin-left: auto; }
   .journal-history-list > header,
-  .journal-library-header { align-items: start; flex-direction: column; }
+  .journal-library-header,
+  .journal-wishlist-header { align-items: start; flex-direction: column; }
   .journal-history-list > header input { width: 100%; }
   .journal-random-memory { grid-template-columns: 1fr; }
   .journal-random-memory > button { grid-column: 1; }
@@ -506,6 +548,8 @@
   .journal-entry-modal > footer { padding-right: 18px; padding-left: 18px; }
   .journal-book-fields { grid-template-columns: 1fr; }
   .journal-book-status { flex-wrap: wrap; }
+  .journal-wishlist-grid,
+  .journal-wishlist-acquired > div { grid-template-columns: 1fr; }
   .journal-entry-modal > footer > span { display: none; }
 }
 
