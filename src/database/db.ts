@@ -378,6 +378,21 @@ export interface LibraryBook {
   deletedAt?: string;
 }
 
+export type LibraryWishlistStatus = "considering" | "acquired";
+
+export interface LibraryWishlistItem {
+  id?: number;
+  name: string;
+  url?: string;
+  notes?: string;
+  status: LibraryWishlistStatus;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  acquiredAt?: string;
+  deletedAt?: string;
+}
+
 export type GroceryCategory =
   | "produce"
   | "meat-seafood"
@@ -657,6 +672,7 @@ class MomentumDatabase extends Dexie {
   activityTemplates!: Table<ActivityTemplate>;
   recurrenceRules!: Table<RecurrenceRule>;
   libraryBooks!: Table<LibraryBook>;
+  libraryWishlistItems!: Table<LibraryWishlistItem>;
   chineseEntries!: Table<ChineseEntry>;
   chineseActivities!: Table<ChineseActivity>;
   chineseMediaResources!: Table<ChineseMediaResource>;
@@ -1090,6 +1106,11 @@ class MomentumDatabase extends Dexie {
         "++id, &level, achievedAt",
       progressionState:
         "&id",
+    });
+
+    this.version(30).stores({
+      libraryWishlistItems:
+        "++id, name, status, sortOrder, updatedAt, deletedAt",
     });
   }
 }

@@ -1,5 +1,5 @@
 .home-unfinished {
-  margin-bottom: 18px;
+  margin-bottom: 10px;
   overflow: visible;
   border: 1px solid rgba(241, 183, 74, 0.16);
   border-radius: var(--radius-md);
@@ -13,12 +13,12 @@
 
 .home-unfinished-heading {
   width: 100%;
-  min-height: 58px;
+  min-height: 46px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 11px;
-  padding: 10px 13px;
+  padding: 7px 12px;
   border: 0;
   border-radius: 0;
   background: transparent;

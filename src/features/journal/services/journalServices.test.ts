@@ -24,6 +24,15 @@ import {
   updateLibraryBook,
   visibleLibraryBooks,
 } from "./libraryService";
+import {
+  createWishlistItem,
+  normalizeWishlistUrl,
+  restoreWishlistItem,
+  setWishlistItemStatus,
+  softDeleteWishlistItem,
+  updateWishlistItem,
+  visibleWishlistItems,
+} from "./wishlistService";
 
 beforeEach(async () => {
   await db.transaction("rw", db.tables, async () => {
@@ -37,6 +46,43 @@ afterAll(async () => {
 });
 
 describe("journal services", () => {
+  it("keeps Wish List links optional and tracks acquired items", async () => {
+    const linkedId = await createWishlistItem({
+      name: "  Reading lamp  ",
+      url: "example.com/lamp",
+      notes: "  Warm light  ",
+      status: "considering",
+    });
+    const unlinkedId = await createWishlistItem({
+      name: "Ceramic mug",
+      status: "considering",
+    });
+
+    expect(await db.libraryWishlistItems.get(linkedId)).toMatchObject({
+      name: "Reading lamp",
+      url: "https://example.com/lamp",
+      notes: "Warm light",
+      status: "considering",
+    });
+    expect((await db.libraryWishlistItems.get(unlinkedId))?.url).toBeUndefined();
+
+    await setWishlistItemStatus(linkedId, "acquired");
+    expect(await db.libraryWishlistItems.get(linkedId)).toMatchObject({ status: "acquired" });
+    expect((await db.libraryWishlistItems.get(linkedId))?.acquiredAt).toBeTruthy();
+
+    await updateWishlistItem(unlinkedId, {
+      name: "Ceramic cup",
+      url: "https://shop.example/cup",
+      status: "considering",
+    });
+    await softDeleteWishlistItem(unlinkedId);
+    expect(visibleWishlistItems(await db.libraryWishlistItems.toArray())).toHaveLength(1);
+    await restoreWishlistItem(unlinkedId);
+    expect(visibleWishlistItems(await db.libraryWishlistItems.toArray())).toHaveLength(2);
+    expect(normalizeWishlistUrl(undefined)).toBeUndefined();
+    expect(() => normalizeWishlistUrl("javascript:alert(1)")).toThrow("http or https");
+  });
+
   it("creates, edits, deletes, and restores one journal entry", async () => {
     const id = await createJournalEntry({
       title: "  A good day  ",

@@ -343,7 +343,7 @@ export default function HomeTodo({
         />
 
         {incompleteToday.length > 0 && (
-          <div className="home-todo-group">
+          <div className="home-todo-group home-todo-today-list">
             {incompleteToday.map((activity) => (
               <HomeTodoItem
                 key={activity.id}
