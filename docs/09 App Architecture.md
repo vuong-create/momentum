@@ -1578,6 +1578,8 @@ Possibly:
 
 later.
 
+Version 1 now implements `Export backup` and `Restore from a backup` in Settings. Human-readable pillar exports and automatic backup scheduling remain separate later milestones.
+
 ---
 
 # 63. Backup Manifest
@@ -1608,6 +1610,8 @@ Restore flow:
 8. Rebuild derived data
 
 Restore should never happen from one accidental click.
+
+Version 1 enforces this flow in the application. A selected file is fully validated and summarized before the restore control appears, explicit acknowledgement is required, and a safety backup download is triggered before the database replacement transaction starts. Local preferences are applied only after the IndexedDB transaction succeeds.
 
 ---
 
@@ -2042,7 +2046,8 @@ Current milestone status:
 * Sounds
 * Visual identity
 * Performance
-* Backup/restore improvements
+* Backup/restore Version 1 implemented: complete local JSON export, verified preview, safety backup, transactional restore, and reload flow
+* Later backup improvements: automatic schedules, backup migrations, media packaging, and human-readable pillar exports
 
 ---
 

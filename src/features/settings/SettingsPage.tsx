@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import useExperience from "../../experience/useExperience";
+import DataBackupPanel from "./components/DataBackupPanel";
 
 import "./settings.css";
 
@@ -159,6 +160,8 @@ export default function SettingsPage() {
             </p>
           )}
         </aside>
+
+        <DataBackupPanel />
       </div>
     </section>
   );

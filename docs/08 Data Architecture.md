@@ -2575,6 +2575,25 @@ Eventually Momentum may create periodic local backups.
 
 The architecture should leave room for this.
 
+## Version 1 implementation — August 2026
+
+Momentum now provides a manual, local-first backup and restore flow in Settings.
+
+The Version 1 JSON package includes:
+
+* Every current IndexedDB table
+* Database schema version and backup format version
+* Creation date and per-table record counts
+* The finance balance-visibility preference
+* The planner pillar preference
+* Any unsaved journal draft
+
+Transient interface state such as open tabs, selected weeks, scroll positions, and expanded panels is intentionally excluded.
+
+Restore uses strict format, schema, table, preference, and record-count validation before mutation. The existing database is captured and downloaded as a safety backup, then all IndexedDB tables are replaced inside one transaction. The app must reload after a successful restore so all derived views rebuild from the restored source data.
+
+The initial contract accepts the current schema version only. Supporting older backup schemas requires an explicit, tested backup migration rather than permissive best-effort importing.
+
 ---
 
 # 92. Data Safety
