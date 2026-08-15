@@ -232,6 +232,16 @@ days from the original date rather than storing a second display value. Undo
 restores the complete pre-move snapshot so reversing a move does not create a
 false reschedule in the history.
 
+## Task Ledger Is a Read Model
+
+The Planner's **All Tasks** ledger is derived from existing records rather than stored as a second task table:
+
+* `plannedActivities` provides the current task and scheduling state
+* `activityEvents` preserves completion and reopen history
+* `xpEvents` provides awarded or voided XP
+
+This keeps edits, reopen actions, and XP corrections consistent everywhere. A reopened task remains present in completed history with a reopened status and voided XP. New tasks applied from a day preset may store `dayPresetId` as provenance; preset items also preserve `activityKind` so Cooking meal identity survives reuse.
+
 ---
 
 # 8. Planned Activity Status

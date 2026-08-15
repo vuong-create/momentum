@@ -19,6 +19,13 @@ import {
 } from "../services/plannerService";
 import type { CreateActivityInput, PlannerActivity, PlannerDay } from "../types";
 import PlannerTask from "./PlannerTask";
+import CookingIdentityPicker from "../../cooking/components/CookingIdentityPicker";
+import {
+  getCookingTaskActivityKind,
+  getCustomMealActivityKind,
+  type CookingActivityIdentity,
+  type CookingMealSlot,
+} from "../../cooking/cookingCatalog";
 
 type PlannerDayPanelProps = {
   day: PlannerDay | null;
@@ -146,6 +153,8 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
   );
   const [scheduledTime, setScheduledTime] = useState("");
   const [important, setImportant] = useState(false);
+  const [cookingIdentity, setCookingIdentity] = useState<Exclude<CookingActivityIdentity, "unclassified">>("meal");
+  const [mealSlot, setMealSlot] = useState<CookingMealSlot>("dinner");
   const [showAddOptions, setShowAddOptions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showUnfinishedOnly, setShowUnfinishedOnly] = useState(
@@ -206,7 +215,18 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
     if (!title.trim() || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await onAdd({ title: title.trim(), scheduledDate: activeDateKey, pillar, scheduledTime, important });
+      await onAdd({
+        title: title.trim(),
+        scheduledDate: activeDateKey,
+        pillar,
+        scheduledTime,
+        important,
+        activityKind: pillar === "cooking"
+          ? cookingIdentity === "meal"
+            ? getCustomMealActivityKind(mealSlot)
+            : getCookingTaskActivityKind()
+          : undefined,
+      });
       localStorage.setItem("momentum.planner.pillar", pillar);
       setTitle("");
       setScheduledTime("");
@@ -266,6 +286,15 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
               <input type="time" value={scheduledTime} onChange={(event) => setScheduledTime(event.target.value)} aria-label="Time" />
               <button type="button" className={important ? "is-selected" : ""} onClick={() => setImportant((current) => !current)}>{important ? "★ Important" : "☆ Important"}</button>
             </div>
+          )}
+          {pillar === "cooking" && (
+            <CookingIdentityPicker
+              compact
+              identity={cookingIdentity}
+              mealSlot={mealSlot}
+              onIdentityChange={setCookingIdentity}
+              onMealSlotChange={setMealSlot}
+            />
           )}
         </form>
 

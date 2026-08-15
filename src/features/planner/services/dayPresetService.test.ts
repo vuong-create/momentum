@@ -28,7 +28,7 @@ describe("day preset service", () => {
     const id = await saveDayPreset({
       name: "Normal Work Day",
       items: [
-        { id: "dinner", title: "Plan dinner", pillar: "cooking", difficulty: "easy" },
+        { id: "dinner", title: "Plan dinner", pillar: "cooking", difficulty: "easy", activityKind: "cooking:meal:dinner" },
         { id: "read", title: "Read 10 pages", pillar: "happiness", difficulty: "medium" },
       ],
     });
@@ -41,6 +41,7 @@ describe("day preset service", () => {
       ["Plan dinner", "cooking", "2026-08-17"],
       ["Read 10 pages", "happiness", "2026-08-17"],
     ]);
+    expect(activities[0]).toMatchObject({ activityKind: "cooking:meal:dinner", dayPresetId: id });
   });
 
   it("skips matching activities and can undo the created batch", async () => {

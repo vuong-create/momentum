@@ -22,6 +22,14 @@ import {
 } from "../../activities/services/activityService";
 import { resolveActivityScheduledDate } from "../../activities/services/activityLifecycle";
 import { toDateKey } from "../../planner/services/plannerService";
+import PillarQuickSelect from "../../activities/components/PillarQuickSelect";
+import CookingIdentityPicker from "../../cooking/components/CookingIdentityPicker";
+import {
+  getCookingTaskActivityKind,
+  getCustomMealActivityKind,
+  type CookingActivityIdentity,
+  type CookingMealSlot,
+} from "../../cooking/cookingCatalog";
 
 import HomeTodoItem from "./HomeTodoItem";
 import TaskBrainstormModal from "./TaskBrainstormModal";
@@ -31,7 +39,7 @@ type HomeTodoProps = {
   todayActivities: PlannedActivity[];
   overdueActivities: PlannedActivity[];
 
-  onAdd: (title: string) => Promise<void>;
+  onAdd: (input: { title: string; pillar?: Pillar; activityKind?: string }) => Promise<void>;
 
   onToggle: (
     activity: PlannedActivity
@@ -71,6 +79,9 @@ export default function HomeTodo({
   const activityUndo = useActivityUndo();
   const [newTask, setNewTask] = useState("");
   const [adding, setAdding] = useState(false);
+  const [newTaskPillar, setNewTaskPillar] = useState<Pillar>("core");
+  const [cookingIdentity, setCookingIdentity] = useState<Exclude<CookingActivityIdentity, "unclassified">>("meal");
+  const [mealSlot, setMealSlot] = useState<CookingMealSlot>("dinner");
   const [showAddedFeedback, setShowAddedFeedback] = useState(false);
   const [brainstormOpen, setBrainstormOpen] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<
@@ -139,7 +150,15 @@ export default function HomeTodo({
     setAdding(true);
 
     try {
-      await onAdd(title);
+      await onAdd({
+        title,
+        pillar: newTaskPillar,
+        activityKind: newTaskPillar === "cooking"
+          ? cookingIdentity === "meal"
+            ? getCustomMealActivityKind(mealSlot)
+            : getCookingTaskActivityKind()
+          : undefined,
+      });
       setNewTask("");
       experience.playFeedback("task-added");
 
@@ -158,7 +177,7 @@ export default function HomeTodo({
 
   async function addBrainstormTasks(tasks: string[]) {
     for (const task of tasks) {
-      await onAdd(task);
+      await onAdd({ title: task, pillar: "core" });
     }
     experience.playFeedback("task-added");
   }
@@ -263,7 +282,12 @@ export default function HomeTodo({
           .filter(Boolean)
           .join(" ")}
       >
-        <span aria-hidden="true">+</span>
+        <PillarQuickSelect
+          value={newTaskPillar}
+          iconOnly
+          label="Choose pillar for new task"
+          onChange={setNewTaskPillar}
+        />
 
         <input
           value={newTask}
@@ -285,6 +309,18 @@ export default function HomeTodo({
           disabled={adding}
         />
       </div>
+
+      {newTaskPillar === "cooking" && (
+        <div className="home-todo-cooking-identity">
+          <CookingIdentityPicker
+            compact
+            identity={cookingIdentity}
+            mealSlot={mealSlot}
+            onIdentityChange={setCookingIdentity}
+            onMealSlotChange={setMealSlot}
+          />
+        </div>
+      )}
 
       <div className="home-todo-content">
         <UnfinishedActivities

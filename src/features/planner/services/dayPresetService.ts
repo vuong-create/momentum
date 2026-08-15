@@ -105,6 +105,8 @@ export async function applyDayPreset(
       scheduledTime: item.scheduledTime,
       important: item.important,
       notes: item.notes,
+      activityKind: item.activityKind,
+      dayPresetId: preset.id,
     });
     createdIds.push(id);
     existingKeys.add(key);
@@ -134,6 +136,7 @@ export async function createDayPresetFromActivities(
         scheduledTime: activity.scheduledTime,
         important: activity.important,
         notes: activity.notes,
+        activityKind: activity.activityKind,
       })),
   });
   return db.dayPresets.get(id);

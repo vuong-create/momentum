@@ -17,6 +17,7 @@ export interface CreateActivityInput {
   notes?: string;
   recurrence?: RecurrencePattern;
   saveAsTemplate?: boolean;
+  dayPresetId?: number;
 }
 
 export type ActivityDetailsPatch = Partial<

@@ -141,6 +141,17 @@ Cooking includes quick options:
 
 These can be added directly to the meal plan without creating fake recipe entries.
 
+## Cooking Activity Identity
+
+Not every Cooking activity is a meal. New Cooking Planner activities explicitly choose one of two identities:
+
+* **Meal** — optionally labeled Breakfast, Lunch, Dinner, or Snack
+* **Prep / kitchen task** — preparation, cleanup, shopping prep, and other supporting work
+
+Recipe-linked meals and quick meal options are also recognized as meals. Only meal activities appear in the weekly meal plan and cooked-meal history. Both identities still contribute Cooking XP when completed through the normal activity lifecycle.
+
+Existing Cooking activities without an identity are never guessed or rewritten. They remain **unclassified** until the user chooses an identity from activity details. This prevents titles such as “Prep vegetables” from being treated as dinner and protects future grocery generation from unreliable title inference.
+
 ---
 
 # 8. Meals Database

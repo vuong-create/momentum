@@ -22,6 +22,7 @@ import {
   updateCookingRecipe,
   visibleCookingRecipes,
 } from "./recipeService";
+import { createPlannedActivity } from "../../activities/services/activityService";
 
 beforeEach(async () => {
   await db.transaction("rw", db.tables, async () => {
@@ -111,5 +112,16 @@ describe("cooking services", () => {
     expect(result.xpAwarded).toBe(10);
     expect((await db.cookingMealLogs.get(result.logId))?.recipeId).toBe(recipeId);
     expect(getXPBreakdown(await db.xpEvents.toArray()).totalXP).toBe(10);
+  });
+
+  it("keeps prep and legacy Cooking tasks out of meal history", async () => {
+    const prepId = await createPlannedActivity({
+      title: "Prep vegetables",
+      scheduledDate: "2026-08-09",
+      pillar: "cooking",
+      activityKind: "cooking:task",
+    });
+    await expect(completeCookingPlan(prepId)).rejects.toThrow("Cooking meal plan not found");
+    expect(await db.cookingMealLogs.count()).toBe(0);
   });
 });

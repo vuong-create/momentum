@@ -35,6 +35,7 @@
 .cooking-week-hero button,.cooking-primary-button,.cooking-card-plan button { padding: 0 15px; border: 1px solid rgba(226,157,90,.28); border-radius: 11px; color: #f3e5d6; background: linear-gradient(180deg,rgba(210,132,65,.28),rgba(151,84,35,.19)); font-size: 10px; }
 .cooking-week-hero button:disabled { opacity: .35; }
 .cooking-week-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 8px; }
+.cooking-unclassified-note { margin: -4px 0 12px; padding: 11px 13px; border: 1px solid rgba(242,167,102,.14); border-radius: 12px; color: rgba(255,222,190,.58); background: rgba(242,129,62,.035); font-size: 10px; line-height: 1.55; }
 .cooking-day-card { min-height: 240px; padding: 16px 13px; border: 1px solid rgba(255,255,255,.07); border-radius: 17px; background: rgba(255,255,255,.018); }
 .cooking-day-card.is-today { border-color: rgba(224,153,82,.24); background: radial-gradient(circle at 50% 0,rgba(220,142,67,.1),transparent 55%),rgba(255,255,255,.02); box-shadow: 0 0 32px rgba(173,96,34,.06); }
 .cooking-day-card > header { position: relative; display: grid; gap: 3px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.055); }
