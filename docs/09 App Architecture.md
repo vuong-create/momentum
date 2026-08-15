@@ -2049,6 +2049,7 @@ Current milestone status:
 * Backup/restore Version 1 implemented: complete local JSON export, verified preview, safety backup, transactional restore, and reload flow
 * Later backup improvements: automatic schedules, additional backup migrations, media packaging, and human-readable pillar exports
 * Focus Mode Version 1 implemented as a task-attached workspace with recoverable Pomodoro timing, break cycles, local procedural soundscapes, session history, and optional Planner completion
+* Sound & Feedback System Version 2 implemented with an approved asset library, semantic cue registry, pillar motifs, volume/category preferences, playback priority and cooldown protection, trigger cleanup, and a Settings sound gallery
 
 ---
 

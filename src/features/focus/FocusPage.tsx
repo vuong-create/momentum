@@ -113,12 +113,12 @@ export default function FocusPage() {
 
   useEffect(() => {
     if (session?.status === "active" && experience.soundsEnabled) {
-      playFocusSoundscape(soundscape);
+      playFocusSoundscape(soundscape, experience.soundscapeVolume);
     } else {
       stopFocusSoundscape();
     }
     return stopFocusSoundscape;
-  }, [experience.soundsEnabled, session?.status, soundscape]);
+  }, [experience.soundsEnabled, experience.soundscapeVolume, session?.status, soundscape]);
 
   useEffect(() => {
     function keyboardControls(event: KeyboardEvent) {

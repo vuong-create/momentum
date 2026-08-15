@@ -36,8 +36,17 @@ function PreferenceToggle({
 export default function SettingsPage() {
   const experience = useExperience();
   const [updating, setUpdating] = useState<
-    "sound" | "motion" | null
+    "sound" | "motion" | "sound-preferences" | null
   >(null);
+
+  async function updateSoundPreferences(patch: Parameters<typeof experience.updateSoundPreferences>[0]) {
+    setUpdating("sound-preferences");
+    try {
+      await experience.updateSoundPreferences(patch);
+    } finally {
+      setUpdating(null);
+    }
+  }
 
   async function updateSound(enabled: boolean) {
     setUpdating("sound");
@@ -114,20 +123,65 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="settings-feedback-preview">
-            <div>
-              <span>Completion cue</span>
-              <small>A restrained two-note confirmation.</small>
+          <div className="settings-sound-controls">
+            <label className="settings-volume-control">
+              <span><strong>Master volume</strong><small>{Math.round(experience.soundVolume * 100)}%</small></span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={Math.round(experience.soundVolume * 100)}
+                disabled={!experience.soundsEnabled}
+                onChange={(event) => updateSoundPreferences({ soundVolume: Number(event.target.value) / 100 })}
+              />
+            </label>
+            <label className="settings-volume-control">
+              <span><strong>Focus soundscape</strong><small>{Math.round(experience.soundscapeVolume * 100)}%</small></span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={Math.round(experience.soundscapeVolume * 100)}
+                disabled={!experience.soundsEnabled}
+                onChange={(event) => updateSoundPreferences({ soundscapeVolume: Number(event.target.value) / 100 })}
+              />
+            </label>
+
+            <div className="settings-sound-categories">
+              {[
+                ["Interface", "Navigation and quiet UI movement.", "interfaceSoundsEnabled"],
+                ["Actions", "Saves, logs, completions, and restores.", "actionSoundsEnabled"],
+                ["Celebrations", "Records, milestones, and level-ups.", "celebrationSoundsEnabled"],
+              ].map(([label, description, key]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={experience[key as "interfaceSoundsEnabled" | "actionSoundsEnabled" | "celebrationSoundsEnabled"] ? "is-enabled" : ""}
+                  disabled={!experience.soundsEnabled || updating === "sound-preferences"}
+                  onClick={() => updateSoundPreferences({
+                    [key]: !experience[key as "interfaceSoundsEnabled" | "actionSoundsEnabled" | "celebrationSoundsEnabled"],
+                  })}
+                >
+                  <span>{label}</span><small>{description}</small><i />
+                </button>
+              ))}
             </div>
-            <button
-              type="button"
-              disabled={!experience.soundsEnabled}
-              onClick={() =>
-                experience.previewFeedback("task-completed")
-              }
-            >
-              Preview
-            </button>
+          </div>
+
+          <div className="settings-sound-gallery">
+            <div><span className="text-label">Sound gallery</span><strong>Approved Momentum motifs</strong></div>
+            <div>
+              {[
+                ["Complete", "task-completed"], ["Chinese", "chinese-logged"],
+                ["Athletics", "workout-completed"], ["Cooking", "meal-cooked"],
+                ["Finance", "finance-transaction"], ["Library", "library-saved"],
+                ["Focus", "focus-phase"], ["Level up", "level-up"],
+              ].map(([label, cue]) => (
+                <button key={cue} type="button" disabled={!experience.soundsEnabled} onClick={() => experience.previewFeedback(cue as Parameters<typeof experience.previewFeedback>[0])}>
+                  <span>▶</span>{label}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 

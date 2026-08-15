@@ -156,8 +156,28 @@ describe("backup service", () => {
 
     const migrated = validateMomentumBackup(legacy, db);
 
-    expect(migrated.manifest.schemaVersion).toBe(27);
+    expect(migrated.manifest.schemaVersion).toBe(28);
     expect(migrated.data.focusSessions).toEqual([]);
     expect(migrated.manifest.tableCounts.focusSessions).toBe(0);
+  });
+
+  it("migrates schema 27 sound preferences into Sound v2", async () => {
+    await db.appSettings.put({
+      id: "preferences", soundsEnabled: true, animationsEnabled: true,
+      soundVolume: 0.6, interfaceSoundsEnabled: true, actionSoundsEnabled: true,
+      celebrationSoundsEnabled: true, soundscapeVolume: 0.35, updatedAt: "",
+    });
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+    const legacy = structuredClone(backup);
+    legacy.manifest.schemaVersion = 27;
+    const settings = legacy.data.appSettings[0] as Record<string, unknown>;
+    delete settings.soundVolume;
+    delete settings.interfaceSoundsEnabled;
+
+    const migrated = validateMomentumBackup(legacy, db);
+    expect(migrated.manifest.schemaVersion).toBe(28);
+    expect(migrated.data.appSettings[0]).toEqual(expect.objectContaining({
+      soundVolume: 0.6, interfaceSoundsEnabled: true,
+    }));
   });
 });

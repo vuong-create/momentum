@@ -718,6 +718,17 @@ Global Settings should allow sounds to be disabled.
 
 Momentum should never require sound.
 
+Sound & Feedback System Version 2 uses a restrained micro-console language:
+quiet synthesized interface ticks, an approved Glass Lift completion signature,
+and original pillar motifs for Chinese, Athletics, Cooking, Finance, Library,
+Focus, and major progression. Sounds are divided into Interface, Actions, and
+Celebrations so routine interaction never competes with meaningful moments.
+
+Settings provides master volume, separate Focus soundscape volume, category
+toggles, and a complete preview gallery. The audio engine applies per-cue gain,
+priority, cooldowns, and a simultaneous-playback limit to prevent fatigue and
+overlapping feedback.
+
 ---
 
 # 29. Data Persistence

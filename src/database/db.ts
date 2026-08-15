@@ -556,6 +556,11 @@ export interface AppSettings {
   id: "preferences";
   soundsEnabled: boolean;
   animationsEnabled: boolean;
+  soundVolume: number;
+  interfaceSoundsEnabled: boolean;
+  actionSoundsEnabled: boolean;
+  celebrationSoundsEnabled: boolean;
+  soundscapeVolume: number;
   updatedAt: string;
 }
 
@@ -999,6 +1004,18 @@ class MomentumDatabase extends Dexie {
     this.version(27).stores({
       focusSessions:
         "++id, activityId, status, phase, startedAt, endedAt, updatedAt",
+    });
+
+    this.version(28).stores({
+      appSettings: "&id",
+    }).upgrade(async (transaction) => {
+      await transaction.table("appSettings").toCollection().modify((settings) => {
+        settings.soundVolume = settings.soundVolume ?? 0.6;
+        settings.interfaceSoundsEnabled = settings.interfaceSoundsEnabled ?? true;
+        settings.actionSoundsEnabled = settings.actionSoundsEnabled ?? true;
+        settings.celebrationSoundsEnabled = settings.celebrationSoundsEnabled ?? true;
+        settings.soundscapeVolume = settings.soundscapeVolume ?? 0.35;
+      });
     });
   }
 }

@@ -72,7 +72,7 @@ export default function JournalPage() {
 
   async function saveNewEntry(input: JournalEntryInput) {
     await createJournalEntry(input);
-    experience.playFeedback("task-added");
+    experience.playFeedback("library-saved");
   }
 
   async function saveEntry(entry: JournalEntry, patch: Partial<Pick<JournalEntry, "title" | "text" | "entryDate" | "category" | "promptId">> & { text: string; entryDate: string }) {
@@ -85,49 +85,49 @@ export default function JournalPage() {
       promptId: entry.promptId,
     };
     await updateJournalEntry(entry.id, patch);
-    experience.playFeedback("task-updated");
+    experience.playFeedback("library-saved");
     undo.show({ message: "Journal entry updated", undo: () => updateJournalEntry(entry.id!, previous) });
   }
 
   async function deleteEntry(entry: JournalEntry) {
     if (!entry.id) return;
     await softDeleteJournalEntry(entry.id);
-    experience.playFeedback("task-dismissed");
+    experience.playFeedback("library-removed");
     undo.show({ message: "Journal entry removed", undo: () => restoreJournalEntry(entry.id!) });
   }
 
   async function addQuote(input: { text: string; author?: string; source?: string }) {
     await createPersonalQuote(input);
-    experience.playFeedback("task-added");
+    experience.playFeedback("library-saved");
   }
 
   async function favoriteQuote(quote: SavedQuote) {
     if (!quote.id) return;
     await toggleQuoteFavorite(quote.id);
-    experience.playFeedback("task-updated");
+    experience.playFeedback("library-saved");
   }
 
   async function deleteQuote(quote: SavedQuote) {
     if (!quote.id) return;
     await softDeleteQuote(quote.id);
-    experience.playFeedback("task-dismissed");
+    experience.playFeedback("library-removed");
     undo.show({ message: "Quote removed", undo: () => restoreQuote(quote.id!) });
   }
 
   async function saveBook(book: LibraryBook | null, input: LibraryBookInput) {
     if (book?.id) {
       await updateLibraryBook(book.id, input);
-      experience.playFeedback("task-updated");
+      experience.playFeedback("library-saved");
       return;
     }
     await createLibraryBook(input);
-    experience.playFeedback("task-added");
+    experience.playFeedback("library-saved");
   }
 
   async function deleteBook(book: LibraryBook) {
     if (!book.id) return;
     await softDeleteLibraryBook(book.id);
-    experience.playFeedback("task-dismissed");
+    experience.playFeedback("library-removed");
     undo.show({ message: "Book removed from Library", undo: () => restoreLibraryBook(book.id!) });
   }
 
@@ -150,7 +150,7 @@ export default function JournalPage() {
       linkedJournalEntryId: entryId,
       spineTone: book.spineTone,
     });
-    experience.playFeedback("task-added");
+    experience.playFeedback("library-saved");
     undo.show({
       message: "Book reflection saved to Journal",
       undo: async () => {
@@ -194,7 +194,7 @@ export default function JournalPage() {
       </nav>
 
       <main className="journal-content">
-        {view === "today" && <JournalToday now={experience.now} savedQuotes={allQuotes} onSave={saveNewEntry} onToggleQuote={async (quote) => { await toggleBuiltInQuote(quote); experience.playFeedback("task-updated"); }} />}
+        {view === "today" && <JournalToday now={experience.now} savedQuotes={allQuotes} onSave={saveNewEntry} onToggleQuote={async (quote) => { await toggleBuiltInQuote(quote); experience.playFeedback("library-saved"); }} />}
         {view === "journal" && <JournalHistory entries={entries} onOpen={setSelectedEntry} />}
         {view === "library" && <JournalLibrary books={books} onSave={saveBook} onDelete={deleteBook} onJournalize={journalizeBook} />}
         {view === "look-back" && <JournalLookBack entries={entries} now={experience.now} onOpen={setSelectedEntry} />}
