@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { pillarThemes } from "../../../app/theme";
 import type { Pillar, XPEvent } from "../../../database/db";
 import { getXPBreakdown } from "../XPService";
+import MomentumJourney from "./MomentumJourney";
 
 import "./xp-breakdown-modal.css";
 
@@ -45,6 +46,7 @@ export default function XPBreakdownModal({
   onClose,
 }: XPBreakdownModalProps) {
   const [selectedPillar, setSelectedPillar] = useState<Pillar | "all">("all");
+  const [view, setView] = useState<"progress" | "journey">("progress");
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const summary = useMemo(() => getXPBreakdown(events), [events]);
 
@@ -119,7 +121,12 @@ export default function XPBreakdownModal({
           </button>
         </header>
 
-        <div className="xp-global-card">
+        <nav className="xp-breakdown-tabs" aria-label="Momentum progression views">
+          <button type="button" className={view === "progress" ? "is-selected" : ""} onClick={() => setView("progress")}>Progress</button>
+          <button type="button" className={view === "journey" ? "is-selected" : ""} onClick={() => setView("journey")}>Journey</button>
+        </nav>
+
+        {view === "progress" ? <><div className="xp-global-card">
           <div className="xp-global-level">
             <span>Global level</span>
             <strong>{globalProgression.level}</strong>
@@ -243,7 +250,7 @@ export default function XPBreakdownModal({
               })
             )}
           </div>
-        </section>
+        </section></> : <MomentumJourney />}
       </section>
     </div>,
     target

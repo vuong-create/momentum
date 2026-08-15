@@ -32,6 +32,12 @@ import SegmentedProgress from "../../components/SegmentedProgress";
 
 import { getXPBreakdown } from "../xp/XPService";
 import XPBreakdownModal from "../xp/components/XPBreakdownModal";
+import ProgressionCelebration from "../xp/components/ProgressionCelebration";
+import {
+  acknowledgeProgressionHomeExperience,
+  prepareProgressionHomeExperience,
+  type ProgressionHomeExperience,
+} from "../xp/progressionService";
 
 import {
   getDailyQuote,
@@ -106,6 +112,9 @@ export default function HomeDashboard() {
 
   const [xpBreakdownOpen, setXPBreakdownOpen] =
     useState(false);
+  const [progressionExperience, setProgressionExperience] =
+    useState<ProgressionHomeExperience | null>(null);
+  const progressionPreparing = useRef(false);
 
   const [
     thoughtStatus,
@@ -155,6 +164,32 @@ export default function HomeDashboard() {
     () => getXPBreakdown(xpEvents),
     [xpEvents]
   );
+
+  useEffect(() => {
+    if (progressionPreparing.current || progressionExperience) return;
+    progressionPreparing.current = true;
+    void prepareProgressionHomeExperience(new Date(`${todayKey}T12:00:00`))
+      .then((next) => {
+        if (next.weeklyResult || next.levelUp) {
+          setProgressionExperience(next);
+          experience.playFeedback(
+            next.levelUp || next.weeklyResult?.perfectWeek
+              ? "level-up"
+              : "task-completed",
+          );
+        }
+      })
+      .finally(() => {
+        progressionPreparing.current = false;
+      });
+  }, [experience, progressionExperience, todayKey, xpSummary.globalProgression.level]);
+
+  function closeProgressionExperience() {
+    if (!progressionExperience) return;
+    void acknowledgeProgressionHomeExperience(progressionExperience).then(() => {
+      setProgressionExperience(null);
+    });
+  }
 
   const todayActivities = useMemo(
     () =>
@@ -612,6 +647,10 @@ export default function HomeDashboard() {
         events={xpEvents}
         open={xpBreakdownOpen}
         onClose={() => setXPBreakdownOpen(false)}
+      />
+      <ProgressionCelebration
+        experience={progressionExperience}
+        onContinue={closeProgressionExperience}
       />
     </div>
   );

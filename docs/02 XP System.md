@@ -1330,3 +1330,22 @@ The goal is to use Momentum to become more consistent with the things that matte
 * [x] XP foundation ready for pillar integration
 
 **Momentum XP System Design: COMPLETE**
+
+---
+
+# 65. Progression Version 2 Implementation
+
+Momentum now settles completed Sunday–Saturday weeks using the highest earned
+75%, 90%, or Perfect Week tier. Awards use one deduplicated Momentum-only XP
+event per week and reconcile safely when the source week changes. Empty weeks
+do not create results.
+
+Home presents each unreviewed result once and recognizes real global level
+changes with the approved celebration sound. The progression breakdown now
+separates current **Progress** from the historical **Journey**, including weekly
+results, Perfect Weeks, and permanent snapshots at Levels 5, 10, 25, 50, 75,
+and 100.
+
+Progression records live in dedicated tables so the planned final XP reset can
+clear XP, weekly results, milestone snapshots, and recognition state without
+deleting the underlying life data.

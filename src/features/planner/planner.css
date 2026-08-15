@@ -3,6 +3,372 @@
   animation: momentum-rise-in var(--duration-slow) var(--ease-out) both;
 }
 
+/* Day presets */
+
+.planner-day-presets {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin: 0 28px 13px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.planner-day-presets > div:first-child small {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.planner-day-preset-actions {
+  display: flex;
+  min-width: 0;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.planner-day-preset-actions button {
+  min-height: 30px;
+  flex: 0 0 auto;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 8px;
+}
+
+.planner-day-preset-actions button:hover {
+  border-color: var(--color-border-default);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.planner-day-preset-actions button small {
+  margin-left: 7px;
+  color: var(--color-text-disabled);
+  font-size: 6px;
+}
+
+.planner-day-preset-actions .planner-day-preset-manage {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.planner-day-preset-actions .planner-day-preset-save-day {
+  color: var(--color-text-muted);
+  background: transparent;
+}
+
+.day-preset-manager-layer {
+  position: fixed;
+  z-index: 110;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.day-preset-manager-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(14px);
+}
+
+.day-preset-manager {
+  position: relative;
+  width: min(980px, 100%);
+  max-height: min(820px, calc(100vh - 48px));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-xl);
+  background: rgba(13, 13, 13, 0.98);
+  box-shadow: var(--shadow-inner-highlight), 0 42px 110px rgba(0, 0, 0, 0.72);
+}
+
+.day-preset-manager > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 28px 31px 22px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.day-preset-manager > header h2 {
+  margin: 7px 0 6px;
+  font-size: 31px;
+  font-weight: 400;
+}
+
+.day-preset-manager > header p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 9px;
+}
+
+.day-preset-manager > header > button {
+  width: 32px;
+  height: 32px;
+  padding: 0 0 2px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 50%;
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 19px;
+}
+
+.day-preset-manager-body {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  min-height: 520px;
+  max-height: calc(100vh - 180px);
+}
+
+.day-preset-manager nav {
+  padding: 16px 12px;
+  overflow-y: auto;
+  border-right: 1px solid var(--color-border-subtle);
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.day-preset-manager nav button {
+  width: 100%;
+  min-height: 45px;
+  display: grid;
+  align-content: center;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--color-text-muted);
+  background: transparent;
+  text-align: left;
+  font-size: 8px;
+}
+
+.day-preset-manager nav button.is-selected {
+  border-color: var(--color-border-default);
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.day-preset-manager nav strong,
+.day-preset-manager nav small {
+  display: block;
+}
+
+.day-preset-manager nav strong {
+  font-size: 9px;
+  font-weight: 480;
+}
+
+.day-preset-manager nav small {
+  margin-top: 3px;
+  color: var(--color-text-disabled);
+  font-size: 6px;
+}
+
+.day-preset-editor {
+  padding: 22px 25px;
+  overflow-y: auto;
+}
+
+.day-preset-name,
+.day-preset-name span {
+  display: block;
+}
+
+.day-preset-name span,
+.day-preset-items-heading span {
+  color: var(--color-text-muted);
+  font-size: 7px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.day-preset-name input {
+  width: 100%;
+  height: 42px;
+  margin-top: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  color: var(--color-text-primary);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+}
+
+.day-preset-items-heading {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0 9px;
+}
+
+.day-preset-items-heading small {
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.day-preset-items {
+  display: grid;
+  gap: 7px;
+}
+
+.day-preset-items article {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 24px;
+  gap: 9px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.day-preset-item-order {
+  display: grid;
+  gap: 3px;
+}
+
+.day-preset-item-order button,
+.day-preset-item-remove {
+  padding: 0;
+  border: 0;
+  color: var(--color-text-disabled);
+  background: transparent;
+  font-size: 9px;
+}
+
+.day-preset-item-fields {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.4fr) 95px 92px 85px 88px minmax(110px, 1fr);
+  gap: 6px;
+}
+
+.day-preset-item-fields input,
+.day-preset-item-fields select,
+.day-preset-item-fields button {
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 7px;
+}
+
+.day-preset-item-fields .day-preset-item-title {
+  color: var(--color-text-primary);
+  font-size: 9px;
+}
+
+.day-preset-item-fields button.is-selected {
+  color: #dec28a;
+  border-color: rgba(222, 194, 138, 0.2);
+}
+
+.day-preset-add-item {
+  min-height: 32px;
+  margin-top: 9px;
+  padding: 0 11px;
+  border: 1px dashed var(--color-border-default);
+  border-radius: 9px;
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 8px;
+}
+
+.day-preset-error {
+  margin: 10px 0 0;
+  color: #c98c82;
+  font-size: 8px;
+}
+
+.day-preset-editor > footer {
+  display: flex;
+  gap: 7px;
+  margin-top: 19px;
+  padding-top: 15px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.day-preset-editor > footer button {
+  min-height: 33px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 9px;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 8px;
+}
+
+.day-preset-editor > footer .is-danger {
+  color: #a56d67;
+}
+
+.day-preset-editor > footer .day-preset-save {
+  margin-left: auto;
+  color: #101010;
+  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 900px) {
+  .day-preset-manager-body {
+    grid-template-columns: 150px minmax(0, 1fr);
+  }
+
+  .day-preset-item-fields {
+    grid-template-columns: minmax(140px, 1fr) 90px 85px;
+  }
+}
+
+@media (max-width: 620px) {
+  .planner-day-presets {
+    grid-template-columns: 1fr;
+    margin-inline: 18px;
+  }
+
+  .day-preset-manager-layer {
+    padding: 0;
+  }
+
+  .day-preset-manager {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .day-preset-manager-body {
+    grid-template-columns: 1fr;
+    max-height: calc(100vh - 110px);
+  }
+
+  .day-preset-manager nav {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .day-preset-manager nav button {
+    width: auto;
+    min-width: 120px;
+  }
+
+  .day-preset-item-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .planner-week-header {
   display: grid;
   grid-template-columns: minmax(240px, 1fr) auto minmax(240px, 1fr);

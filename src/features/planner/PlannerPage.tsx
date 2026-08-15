@@ -10,7 +10,7 @@ import useExperience from "../../experience/useExperience";
 import ActivityDetailsPanel from "../activities/components/ActivityDetailsPanel";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
 import useActivityUndo from "../activities/hooks/useActivityUndo";
-import type { ActivityTemplate, Pillar } from "../../database/db";
+import type { ActivityTemplate, DayPreset, Pillar } from "../../database/db";
 import {
   restorePlannedActivitySchedule,
   softDeletePlannedActivity,
@@ -22,6 +22,11 @@ import {
   restoreActivityTemplate,
 } from "../activities/services/recurrenceService";
 import usePlanner from "./hooks/usePlanner";
+import {
+  applyDayPreset,
+  createDayPresetFromActivities,
+  undoAppliedDayPreset,
+} from "./services/dayPresetService";
 
 import type {
   CreateActivityInput,
@@ -34,6 +39,7 @@ import PlannerDayCarousel from "./components/PlannerDayCarousel";
 import PlannerDayPanel from "./components/PlannerDayPanel";
 import PlannerTemplates from "./components/PlannerTemplates";
 import PlannerMonthOverview from "./components/PlannerMonthOverview";
+import DayPresetManager from "./components/DayPresetManager";
 
 import "./planner.css";
 
@@ -55,6 +61,8 @@ export default function PlannerPage() {
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(
     () => sessionStorage.getItem("momentum.planner.selected-day")
   );
+  const [dayPresetManagerOpen, setDayPresetManagerOpen] = useState(false);
+  const [initialDayPreset, setInitialDayPreset] = useState<DayPreset | undefined>();
   const celebrationTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -250,6 +258,23 @@ export default function PlannerPage() {
     });
   }
 
+  async function useDayPreset(preset: DayPreset, dateKey: string) {
+    const result = await applyDayPreset(preset, dateKey);
+    if (result.createdIds.length === 0) return;
+    experience.playFeedback("task-added");
+    activityUndo.show({
+      message: `Added ${result.createdIds.length} from ${preset.name}${result.skippedCount ? ` · ${result.skippedCount} already planned` : ""}`,
+      undo: () => undoAppliedDayPreset(result.createdIds),
+    });
+  }
+
+  async function saveDayAsPreset(day: NonNullable<typeof selectedDay>) {
+    const preset = await createDayPresetFromActivities(`${day.dayName} Routine`, day.activities);
+    experience.playFeedback("task-added");
+    setInitialDayPreset(preset);
+    setDayPresetManagerOpen(true);
+  }
+
   return (
     <div className="planner-page">
       <WeekHeader
@@ -315,6 +340,19 @@ export default function PlannerPage() {
           onSendToTop={sendToTop}
           onReorder={reorderActivities}
           onMoveRemaining={moveRemaining}
+          dayPresets={planner.dayPresets}
+          onApplyDayPreset={useDayPreset}
+          onManageDayPresets={() => { setInitialDayPreset(undefined); setDayPresetManagerOpen(true); }}
+          onCreatePresetFromDay={saveDayAsPreset}
+        />
+      )}
+
+      {dayPresetManagerOpen && (
+        <DayPresetManager
+          open
+          presets={planner.dayPresets}
+          initialPreset={initialDayPreset}
+          onClose={() => setDayPresetManagerOpen(false)}
         />
       )}
 

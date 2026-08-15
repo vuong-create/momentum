@@ -3041,3 +3041,18 @@ The user should experience:
 * [x] Ready for technical architecture
 
 **Momentum Data Architecture: COMPLETE**
+
+---
+
+# 109. Schema Version 29 — Progression and Day Presets
+
+Schema Version 29 adds `dayPresets`, `weeklyProgressResults`,
+`milestoneSnapshots`, and `progressionState`.
+
+Day Presets store ordered embedded activity definitions; applying one creates
+ordinary `PlannedActivity` records and therefore does not introduce a second
+completion system. Weekly results reference their Sunday `weekStart`, while the
+corresponding bonus remains an auditable, deduplicated `XPEvent`.
+
+Schema 26–28 backups migrate by adding the new tables empty. This preserves old
+backups without fabricating historical weekly results or milestone moments.

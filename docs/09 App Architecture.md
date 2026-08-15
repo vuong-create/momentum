@@ -1933,7 +1933,11 @@ Current milestone status:
 * Global and pillar progression curves implemented as derived data
 * Planner completion, correction, and restore behavior integrated
 * Centered Home progression breakdown and recent history implemented
-* Weekly bonus automation, milestone snapshots, and celebrations remain future XP milestones
+* Weekly bonus automation reconciles one Momentum-only award per completed week
+* Week Complete, Perfect Week, and global level-up recognition implemented
+* Progress and Journey views expose weekly history and milestone snapshots
+* Milestone snapshots persist at Levels 5, 10, 25, 50, 75, and 100
+* Planner Day Presets provide editable batch planning with duplicate protection and undo
 
 ## Phase 4 — Library / Journal
 
