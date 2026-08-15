@@ -559,6 +559,28 @@ export interface AppSettings {
   updatedAt: string;
 }
 
+export type FocusPhase = "focus" | "short-break" | "long-break";
+export type FocusSessionStatus = "active" | "paused" | "completed" | "abandoned";
+
+export interface FocusSession {
+  id?: number;
+  activityId: number;
+  activityTitle: string;
+  pillar: Pillar;
+  status: FocusSessionStatus;
+  phase: FocusPhase;
+  focusMinutes: number;
+  phaseDurationSeconds: number;
+  remainingSeconds: number;
+  phaseStartedAt?: string;
+  phaseEndsAt?: string;
+  completedCycles: number;
+  focusedSeconds: number;
+  startedAt: string;
+  endedAt?: string;
+  updatedAt: string;
+}
+
 class MomentumDatabase extends Dexie {
   plannedActivities!: Table<PlannedActivity>;
   activityEvents!: Table<ActivityEvent>;
@@ -589,6 +611,7 @@ class MomentumDatabase extends Dexie {
   financeMonthlyReviews!: Table<FinanceMonthlyReview>;
   financeNetWorthSnapshots!: Table<FinanceNetWorthSnapshot>;
   financeImportBatches!: Table<FinanceImportBatch>;
+  focusSessions!: Table<FocusSession>;
 
   constructor() {
     super("MomentumDatabase");
@@ -971,6 +994,11 @@ class MomentumDatabase extends Dexie {
         "++id, goalType, accountId, timeframe, deadline, updatedAt, deletedAt",
       financeMonthlyReviews:
         "++id, &month, closedAt, updatedAt",
+    });
+
+    this.version(27).stores({
+      focusSessions:
+        "++id, activityId, status, phase, startedAt, endedAt, updatedAt",
     });
   }
 }

@@ -294,6 +294,32 @@
     background 170ms ease;
 }
 
+.home-todo-focus {
+  min-height: 26px;
+  padding: 0 9px;
+  border-color: color-mix(in srgb, var(--pillar-color) 28%, transparent);
+  color: color-mix(in srgb, var(--pillar-color) 72%, #fff);
+  background: color-mix(in srgb, var(--pillar-color) 7%, transparent);
+  font-size: 7px;
+  opacity: 0;
+  transition: opacity 140ms ease, background 140ms ease;
+}
+
+.home-todo-strip:hover .home-todo-focus,
+.home-todo-focus:focus-visible {
+  opacity: 1;
+}
+
+.home-todo-focus:hover {
+  background: color-mix(in srgb, var(--pillar-color) 13%, transparent);
+}
+
+@media (hover: none) {
+  .home-todo-focus {
+    opacity: 1;
+  }
+}
+
 .home-todo-strip:hover .home-todo-edit,
 .home-todo-edit:focus-visible {
   opacity: 1;

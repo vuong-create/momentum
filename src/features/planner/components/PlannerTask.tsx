@@ -22,6 +22,7 @@ type PlannerTaskProps = {
   weekDays?: PlannerDay[];
   celebrating?: boolean;
   onOpenDetails: (activityId: number) => void;
+  onFocus: (activityId: number) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
   onChangePillar: (activity: PlannerActivity, pillar: Pillar) => Promise<void>;
@@ -37,6 +38,7 @@ export default function PlannerTask({
   weekDays = [],
   celebrating = false,
   onOpenDetails,
+  onFocus,
   onComplete,
   onToggleImportant,
   onChangePillar,
@@ -209,6 +211,11 @@ export default function PlannerTask({
               <button type="button" onClick={() => activity.id && onOpenDetails(activity.id)}>
                 Details
               </button>
+              {!activity.completed && (
+                <button type="button" onClick={() => { setMenuOpen(false); if (activity.id) onFocus(activity.id); }}>
+                  Focus
+                </button>
+              )}
               {onRename && (
                 <button type="button" onClick={() => { setMenuOpen(false); setEditing(true); }}>
                   Rename

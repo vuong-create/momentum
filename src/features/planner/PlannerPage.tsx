@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
 
 import useExperience from "../../experience/useExperience";
 import ActivityDetailsPanel from "../activities/components/ActivityDetailsPanel";
@@ -37,6 +38,7 @@ import PlannerMonthOverview from "./components/PlannerMonthOverview";
 import "./planner.css";
 
 export default function PlannerPage() {
+  const navigate = useNavigate();
   const planner = usePlanner();
   const experience = useExperience();
   const activityUndo = useActivityUndo();
@@ -303,6 +305,7 @@ export default function PlannerPage() {
           onNavigate={navigateDay}
           onAdd={addActivity}
           onOpenDetails={(activityId) => openActivityDetails(activityId)}
+          onFocus={(activityId) => navigate(`/focus/${activityId}`)}
           onComplete={completeActivity}
           onToggleImportant={planner.markImportant}
           onChangePillar={changePillar}

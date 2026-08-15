@@ -280,9 +280,19 @@ and a large one-idea-per-line scratchpad, then adds the cleaned list to Today in
 one action. Blank lines, pasted bullets, numbering, and duplicate lines are
 normalized before capture. This is a capture aid, not a separate task database.
 
-An eventual **Focus Mode** may combine a Pomodoro timer with optional work
-music. It should be attached to a selected activity, respect global sound
-settings, and remain outside the first Brainstorm milestone.
+**Focus Mode** combines a calm Pomodoro timer with optional procedural
+soundscapes. It is attached to a selected activity, respects global sound
+settings, and remains separate from Brainstorm capture.
+
+Version 1 provides 25- and 50-minute focus blocks, five-minute short breaks,
+a fifteen-minute long break after four cycles, pause/resume and phase skipping,
+keyboard control, timer recovery after reload, completed-session history, and
+an optional handoff into the normal Planner completion flow. Focus never marks
+an activity complete automatically.
+
+Soundscape options are Stillness, Soft Rain, and Warm Noise. They are generated
+locally with the browser audio system; Momentum does not stream media or send
+listening data elsewhere.
 
 ---
 

@@ -13,6 +13,7 @@ import AthleticsPage from "../features/athletics/AthleticsPage";
 import CookingPage from "../features/cooking/CookingPage";
 import FinancePage from "../features/finance/FinancePage";
 import SettingsPage from "../features/settings/SettingsPage";
+import FocusPage from "../features/focus/FocusPage";
 
 export default function AppShell() {
   return (
@@ -56,6 +57,11 @@ export default function AppShell() {
         <Route
           path="/settings"
           element={<SettingsPage />}
+        />
+
+        <Route
+          path="/focus/:activityId"
+          element={<FocusPage />}
         />
 
         <Route

@@ -2047,7 +2047,8 @@ Current milestone status:
 * Visual identity
 * Performance
 * Backup/restore Version 1 implemented: complete local JSON export, verified preview, safety backup, transactional restore, and reload flow
-* Later backup improvements: automatic schedules, backup migrations, media packaging, and human-readable pillar exports
+* Later backup improvements: automatic schedules, additional backup migrations, media packaging, and human-readable pillar exports
+* Focus Mode Version 1 implemented as a task-attached workspace with recoverable Pomodoro timing, break cycles, local procedural soundscapes, session history, and optional Planner completion
 
 ---
 
