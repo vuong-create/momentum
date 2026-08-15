@@ -64,8 +64,8 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
   if (!isRecord(value.manifest) || !isRecord(value.data)) return value;
   if (value.backupVersion !== MOMENTUM_BACKUP_VERSION) return value;
   const sourceVersion = value.manifest.schemaVersion;
-  if (sourceVersion !== 26 && sourceVersion !== 27) return value;
-  if (database.verno !== 28) return value;
+  if (![26, 27, 28].includes(Number(sourceVersion))) return value;
+  if (database.verno !== 29) return value;
 
   const migrated = structuredClone(value);
   if (!isRecord(migrated) || !isRecord(migrated.manifest) || !isRecord(migrated.data)) {
@@ -75,6 +75,19 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
     migrated.data.focusSessions = [];
     if (isRecord(migrated.manifest.tableCounts)) {
       migrated.manifest.tableCounts.focusSessions = 0;
+    }
+  }
+  for (const tableName of [
+    "dayPresets",
+    "weeklyProgressResults",
+    "milestoneSnapshots",
+    "progressionState",
+  ]) {
+    if (!(tableName in migrated.data)) {
+      migrated.data[tableName] = [];
+      if (isRecord(migrated.manifest.tableCounts)) {
+        migrated.manifest.tableCounts[tableName] = 0;
+      }
     }
   }
   const settings = migrated.data.appSettings;
@@ -88,7 +101,7 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
       item.soundscapeVolume ??= 0.35;
     }
   }
-  migrated.manifest.schemaVersion = 28;
+  migrated.manifest.schemaVersion = 29;
   return migrated;
 }
 

@@ -7,7 +7,7 @@ import {
 import { createPortal } from "react-dom";
 
 import SegmentedProgress from "../../../components/SegmentedProgress";
-import type { Pillar } from "../../../database/db";
+import type { DayPreset, Pillar } from "../../../database/db";
 import PillarQuickSelect from "../../activities/components/PillarQuickSelect";
 import { isActivityCompleted } from "../../activities/services/activityLifecycle";
 import {
@@ -38,6 +38,10 @@ type PlannerDayPanelProps = {
   onSendToTop: (activity: PlannerActivity, group: PlannerActivity[]) => Promise<void>;
   onReorder: (activities: PlannerActivity[]) => Promise<void>;
   onMoveRemaining: (activities: PlannerActivity[], dateKey: string) => Promise<void>;
+  dayPresets: DayPreset[];
+  onApplyDayPreset: (preset: DayPreset, dateKey: string) => Promise<void>;
+  onManageDayPresets: () => void;
+  onCreatePresetFromDay: (day: PlannerDay) => Promise<void>;
 };
 
 type DaySectionProps = {
@@ -131,6 +135,7 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
     day, weekDays, celebratingActivityId, onClose, onNavigate, onAdd,
     onOpenDetails, onComplete, onToggleImportant, onChangePillar, onRename, onMove,
     onDuplicate, onSendToTop, onReorder, onMoveRemaining, onFocus,
+    dayPresets, onApplyDayPreset, onManageDayPresets, onCreatePresetFromDay,
   } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -263,6 +268,25 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
             </div>
           )}
         </form>
+
+        <section className="planner-day-presets" aria-label="Day presets">
+          <div>
+            <span className="text-label">Day presets</span>
+            <small>Apply a reusable set to {day.dayName}.</small>
+          </div>
+          <div className="planner-day-preset-actions">
+            {dayPresets.map((preset) => (
+              <button type="button" key={preset.id} onClick={() => onApplyDayPreset(preset, activeDateKey)}>
+                {preset.name}
+                <small>{preset.items.length}</small>
+              </button>
+            ))}
+            <button type="button" className="planner-day-preset-manage" onClick={onManageDayPresets}>+ Manage</button>
+            {day.activities.length > 0 && (
+              <button type="button" className="planner-day-preset-save-day" onClick={() => onCreatePresetFromDay(day)}>Save this day</button>
+            )}
+          </div>
+        </section>
 
         <div className="planner-day-panel-toolbar">
           <button type="button" onClick={() => setCollapsed(Object.fromEntries(sectionNames.map((section) => [section, !allCollapsed])))}>{allCollapsed ? "Expand all" : "Collapse all"}</button>

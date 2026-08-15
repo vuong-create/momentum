@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import type { ActivityTemplate } from "../../../database/db";
+import { listDayPresets } from "../services/dayPresetService";
 import {
   instantiateTemplate,
   listSavedTemplates,
@@ -47,12 +48,14 @@ export default function usePlanner() {
     [weekStartKey]
   );
   const liveTemplates = useLiveQuery(() => listSavedTemplates(), []);
+  const liveDayPresets = useLiveQuery(() => listDayPresets(), []);
 
   const activities = useMemo(
     () => liveActivities ?? [],
     [liveActivities]
   );
   const templates = liveTemplates ?? [];
+  const dayPresets = liveDayPresets ?? [];
 
   const days = useMemo(
     () => buildPlannerDays(weekStartKey, activities),
@@ -156,6 +159,7 @@ export default function usePlanner() {
     days,
     activities,
     templates,
+    dayPresets,
     totalActivities,
     completedActivities,
     completionPercentage,

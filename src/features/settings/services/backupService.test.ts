@@ -156,7 +156,7 @@ describe("backup service", () => {
 
     const migrated = validateMomentumBackup(legacy, db);
 
-    expect(migrated.manifest.schemaVersion).toBe(28);
+    expect(migrated.manifest.schemaVersion).toBe(29);
     expect(migrated.data.focusSessions).toEqual([]);
     expect(migrated.manifest.tableCounts.focusSessions).toBe(0);
   });
@@ -175,9 +175,26 @@ describe("backup service", () => {
     delete settings.interfaceSoundsEnabled;
 
     const migrated = validateMomentumBackup(legacy, db);
-    expect(migrated.manifest.schemaVersion).toBe(28);
+    expect(migrated.manifest.schemaVersion).toBe(29);
     expect(migrated.data.appSettings[0]).toEqual(expect.objectContaining({
       soundVolume: 0.6, interfaceSoundsEnabled: true,
     }));
+  });
+
+  it("migrates schema 28 backups with empty progression and day preset tables", async () => {
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+    const legacy = structuredClone(backup);
+    legacy.manifest.schemaVersion = 28;
+    for (const table of ["dayPresets", "weeklyProgressResults", "milestoneSnapshots", "progressionState"]) {
+      delete legacy.data[table];
+      delete legacy.manifest.tableCounts[table];
+    }
+
+    const migrated = validateMomentumBackup(legacy, db);
+    expect(migrated.manifest.schemaVersion).toBe(29);
+    expect(migrated.data.dayPresets).toEqual([]);
+    expect(migrated.data.weeklyProgressResults).toEqual([]);
+    expect(migrated.data.milestoneSnapshots).toEqual([]);
+    expect(migrated.data.progressionState).toEqual([]);
   });
 });

@@ -98,6 +98,26 @@ export interface ActivityTemplate {
   deletedAt?: string;
 }
 
+export interface DayPresetItem {
+  id: string;
+  title: string;
+  pillar: Pillar;
+  difficulty: Difficulty;
+  scheduledTime?: string;
+  important?: boolean;
+  notes?: string;
+}
+
+export interface DayPreset {
+  id?: number;
+  name: string;
+  items: DayPresetItem[];
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
 export interface RecurrenceRule extends RecurrencePattern {
   id?: number;
   templateId: number;
@@ -138,6 +158,43 @@ export interface XPEvent {
   weekStart?: string;
   finalXP?: number;
   voidedAt?: string;
+}
+
+export interface WeeklyProgressResult {
+  id?: number;
+  weekStart: string;
+  weekEnd: string;
+  eligibleCount: number;
+  completedCount: number;
+  percentage: number;
+  bonusXP: number;
+  totalWeekXP: number;
+  perfectWeek: boolean;
+  settledAt: string;
+  updatedAt: string;
+  acknowledgedAt?: string;
+}
+
+export interface MilestoneSnapshot {
+  id?: number;
+  level: number;
+  achievedAt: string;
+  lifetimeXP: number;
+  title: string;
+  pillarXP: Partial<Record<Pillar, number>>;
+  completedPlans: number;
+  perfectWeeks: number;
+  chineseActivities: number;
+  athleticsActivities: number;
+  mealsCooked: number;
+  libraryEntries: number;
+  financeActivities: number;
+}
+
+export interface ProgressionState {
+  id: "global";
+  lastRecognizedLevel: number;
+  updatedAt: string;
 }
 
 export interface ChineseEntry {
@@ -617,6 +674,10 @@ class MomentumDatabase extends Dexie {
   financeNetWorthSnapshots!: Table<FinanceNetWorthSnapshot>;
   financeImportBatches!: Table<FinanceImportBatch>;
   focusSessions!: Table<FocusSession>;
+  dayPresets!: Table<DayPreset>;
+  weeklyProgressResults!: Table<WeeklyProgressResult>;
+  milestoneSnapshots!: Table<MilestoneSnapshot>;
+  progressionState!: Table<ProgressionState, "global">;
 
   constructor() {
     super("MomentumDatabase");
@@ -1016,6 +1077,17 @@ class MomentumDatabase extends Dexie {
         settings.celebrationSoundsEnabled = settings.celebrationSoundsEnabled ?? true;
         settings.soundscapeVolume = settings.soundscapeVolume ?? 0.35;
       });
+    });
+
+    this.version(29).stores({
+      dayPresets:
+        "++id, name, sortOrder, updatedAt, deletedAt",
+      weeklyProgressResults:
+        "++id, &weekStart, weekEnd, percentage, perfectWeek, acknowledgedAt",
+      milestoneSnapshots:
+        "++id, &level, achievedAt",
+      progressionState:
+        "&id",
     });
   }
 }

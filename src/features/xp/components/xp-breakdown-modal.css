@@ -435,3 +435,22 @@
     display: none;
   }
 }
+
+.xp-breakdown-tabs{display:flex;gap:5px;margin:-11px 0 20px;padding:4px;border:1px solid var(--glass-border);border-radius:11px;background:rgba(0,0,0,.2)}
+.xp-breakdown-tabs button{min-height:30px;flex:1;border:0;border-radius:8px;color:var(--text-faint);background:transparent;font-size:8px}
+.xp-breakdown-tabs button.is-selected{color:var(--text-primary);background:rgba(255,255,255,.075);box-shadow:inset 0 1px rgba(255,255,255,.06)}
+.momentum-journey{display:grid;gap:24px}
+.momentum-journey-summary{display:grid;grid-template-columns:repeat(3,1fr);overflow:hidden;border:1px solid var(--glass-border);border-radius:15px;background:rgba(255,255,255,.02)}
+.momentum-journey-summary article{min-height:82px;padding:17px;border-left:1px solid var(--glass-border)}.momentum-journey-summary article:first-child{border-left:0}
+.momentum-journey-summary span,.momentum-journey-summary strong{display:block}.momentum-journey-summary span{color:var(--text-faint);font-size:7px;text-transform:uppercase;letter-spacing:.08em}.momentum-journey-summary strong{margin-top:9px;font-size:20px;font-weight:420}
+.momentum-milestones>header,.momentum-week-history>header{margin-bottom:11px}.momentum-milestones>header p,.momentum-week-history>header p{margin:5px 0 0;color:var(--text-muted);font-size:9px}
+.momentum-milestones>div{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.momentum-milestones button{display:grid;min-height:92px;place-content:center;justify-items:center;border:1px solid var(--glass-border);border-radius:13px;color:var(--text-faint);background:rgba(255,255,255,.018)}
+.momentum-milestones button>span{font-size:18px}.momentum-milestones button strong{margin:8px 0 3px;font-size:8px;font-weight:500}.momentum-milestones button small{font-size:6px}
+.momentum-milestones button.is-earned{color:#c4b9ff;border-color:rgba(173,157,255,.25);background:radial-gradient(circle at 50% 15%,rgba(142,114,255,.13),transparent 55%),rgba(255,255,255,.025);box-shadow:0 0 24px rgba(126,95,255,.06)}
+.momentum-milestone-snapshot{padding:21px;border:1px solid rgba(173,157,255,.16);border-radius:16px;background:rgba(126,95,255,.035)}
+.momentum-milestone-snapshot>header{display:flex;justify-content:space-between}.momentum-milestone-snapshot h3{margin:6px 0 0;font-size:18px;font-weight:450}.momentum-milestone-snapshot>header button{border:0;color:var(--text-muted);background:none;font-size:17px}.momentum-milestone-snapshot>p{color:var(--text-muted);font-size:8px}
+.momentum-milestone-snapshot>div{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.momentum-milestone-snapshot article{padding:11px;border:1px solid var(--glass-border);border-radius:9px}.momentum-milestone-snapshot article span,.momentum-milestone-snapshot article strong{display:block}.momentum-milestone-snapshot article span{color:var(--text-faint);font-size:6px}.momentum-milestone-snapshot article strong{margin-top:6px;font-size:13px;font-weight:450}
+.momentum-week-history>div{display:grid;border:1px solid var(--glass-border);border-radius:14px;overflow:hidden}.momentum-week-history article{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:12px;min-height:58px;padding:0 15px;border-top:1px solid var(--glass-border)}.momentum-week-history article:first-child{border-top:0}.momentum-week-history article>span{display:grid;width:34px;height:34px;place-items:center;border-radius:10px;color:var(--text-muted);background:rgba(255,255,255,.04);font-size:8px}.momentum-week-history article.is-perfect>span{color:#dec680;background:rgba(222,198,128,.08)}
+.momentum-week-history article strong,.momentum-week-history article small{display:block}.momentum-week-history article strong{font-size:9px;font-weight:470}.momentum-week-history article small{margin-top:3px;color:var(--text-faint);font-size:7px}.momentum-week-history article>b{color:var(--text-secondary);font-size:8px;font-weight:500}
+@media(max-width:720px){.momentum-milestones>div{grid-template-columns:repeat(3,1fr)}.momentum-milestone-snapshot>div{grid-template-columns:repeat(2,1fr)}}

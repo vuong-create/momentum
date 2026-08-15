@@ -1,0 +1,16 @@
+.progression-celebration-layer{position:fixed;z-index:120;inset:0;display:grid;place-items:center;padding:24px;background:rgba(0,0,0,.83);backdrop-filter:blur(16px)}
+.progression-celebration{position:relative;width:min(520px,100%);overflow:hidden;padding:42px;border:1px solid rgba(177,165,255,.2);border-radius:28px;background:radial-gradient(circle at 50% 0,rgba(126,105,255,.12),transparent 42%),linear-gradient(150deg,rgba(27,25,34,.98),rgba(11,11,14,.99));box-shadow:inset 0 1px rgba(255,255,255,.08),0 45px 120px rgba(0,0,0,.72),0 0 60px rgba(126,105,255,.08);text-align:center;animation:momentum-rise-in 420ms var(--ease-out) both}
+.progression-celebration-aura{position:absolute;width:240px;height:240px;top:-170px;left:calc(50% - 120px);border-radius:50%;background:rgba(144,125,255,.18);filter:blur(28px);pointer-events:none}
+.progression-celebration h2{position:relative;margin:12px 0 7px;font-size:clamp(34px,6vw,55px);font-weight:400;letter-spacing:.07em;text-transform:uppercase}
+.progression-level-change{margin:0;color:#b7afe5;font-size:10px}.progression-level-change span{margin:0 7px;color:#716c8a}
+.progression-week-result{margin-top:27px;padding:22px;border:1px solid rgba(255,255,255,.075);border-radius:18px;background:rgba(0,0,0,.2)}
+.progression-week-result>small{color:var(--text-faint);font-size:7px;text-transform:uppercase;letter-spacing:.1em}
+.progression-week-result>strong{display:block;margin:13px 0 3px;font-size:32px;font-weight:400}.progression-week-result>strong span{color:var(--text-faint);font-size:10px;font-weight:400}
+.progression-week-result>p{margin:0;color:var(--text-muted);font-size:8px}
+.progression-week-track{height:7px;margin:16px 0 20px;overflow:hidden;border:1px solid rgba(255,255,255,.07);border-radius:7px;background:rgba(0,0,0,.4)}
+.progression-week-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7564d4,#b9afff 72%,#e8fbff);box-shadow:0 0 18px rgba(145,130,255,.32)}
+.progression-week-result footer{display:grid;grid-template-columns:1fr auto;gap:9px;text-align:left}.progression-week-result footer span{color:var(--text-faint);font-size:7px}.progression-week-result footer strong{color:var(--text-secondary);font-size:9px;font-weight:520;text-align:right}
+.progression-celebration>button{min-width:130px;min-height:38px;margin-top:24px;border:1px solid rgba(255,255,255,.84);border-radius:11px;color:#101010;background:rgba(255,255,255,.92);font-size:9px}
+.progression-celebration.is-perfect{border-color:rgba(225,198,125,.24);background:radial-gradient(circle at 50% 0,rgba(219,184,92,.13),transparent 44%),linear-gradient(150deg,rgba(31,28,22,.98),rgba(11,11,12,.99))}
+.progression-celebration.is-perfect .progression-week-track i{background:linear-gradient(90deg,#95743a,#e3c77f 72%,#fff7d7);box-shadow:0 0 18px rgba(225,198,125,.28)}
+@media(max-width:620px){.progression-celebration{padding:31px 22px}.progression-week-result{padding:18px}}

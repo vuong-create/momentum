@@ -493,6 +493,13 @@ weekdays, weekly, monthly, and custom interval rules. Optional end dates remain
 hidden with the rest of the recurrence controls until Repeat is enabled.
 
 Reusable templates appear in a compact row beside the Planner capture flow.
+
+Day Presets are a separate Planner concept: an ordered bundle of normal
+activities that can be applied intentionally to one selected date. The detailed
+day view exposes compact preset buttons and a centered manager for creating,
+editing, duplicating, and deleting presets. Applying a preset skips matching
+title-and-pillar activities and provides one batch undo. Presets never create
+recurrence and later preset edits never rewrite days already planned.
 They remember the activity defaults and may also remember a recurrence preset.
 Workout exercise templates remain owned by the future Athletics feature.
 
