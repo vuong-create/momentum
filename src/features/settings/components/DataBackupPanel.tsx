@@ -7,6 +7,10 @@ import {
   restoreMomentumBackup,
 } from "../services/backupService";
 import type { MomentumBackupPackage } from "../services/backupService";
+import {
+  auditMomentumData,
+  type DataHealthReport,
+} from "../services/dataHealthService";
 
 type BackupState =
   | { kind: "idle" }
@@ -24,6 +28,11 @@ const RECORD_GROUPS = [
       "activityTemplates",
       "recurrenceRules",
       "streakRecords",
+      "dayPresets",
+      "focusSessions",
+      "weeklyProgressResults",
+      "milestoneSnapshots",
+      "progressionState",
     ],
   },
   {
@@ -86,6 +95,22 @@ export default function DataBackupPanel() {
     useState<MomentumBackupPackage | null>(null);
   const [restoreConfirmed, setRestoreConfirmed] = useState(false);
   const [restoreComplete, setRestoreComplete] = useState(false);
+  const [healthReport, setHealthReport] = useState<DataHealthReport | null>(null);
+
+  async function checkDataHealth() {
+    setState({ kind: "working", message: "Reading your local records…" });
+    try {
+      const report = await auditMomentumData();
+      setHealthReport(report);
+      setState({ kind: "idle" });
+    } catch (error) {
+      setHealthReport(null);
+      setState({
+        kind: "error",
+        message: error instanceof Error ? error.message : "The data check could not finish.",
+      });
+    }
+  }
 
   async function exportBackup() {
     setState({ kind: "working", message: "Preparing your backup…" });
@@ -183,6 +208,56 @@ export default function DataBackupPanel() {
       <div className="settings-data-actions">
         <div>
           <span className="settings-action-number">01</span>
+          <strong>Check data health</strong>
+          <p>Read every local store and verify a backup in memory. Nothing is changed.</p>
+        </div>
+        <button
+          type="button"
+          className="settings-data-button"
+          disabled={state.kind === "working"}
+          onClick={checkDataHealth}
+        >
+          Check now
+        </button>
+      </div>
+
+      {healthReport && (
+        <div
+          className={`settings-health-report is-${healthReport.status}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="settings-health-symbol" aria-hidden="true">
+            {healthReport.status === "healthy" ? "✓" : "!"}
+          </span>
+          <div>
+            <strong>
+              {healthReport.status === "healthy"
+                ? "Your local data is healthy."
+                : "A few links need attention."}
+            </strong>
+            <p>
+              {healthReport.totalRecords.toLocaleString()} records across {healthReport.tableCount} stores
+              {healthReport.backupReady ? " · backup verified" : " · backup verification failed"}
+              {` · data version ${healthReport.schemaVersion}`}
+            </p>
+            {healthReport.issues.length > 0 && (
+              <ul>
+                {healthReport.issues.map((issue) => (
+                  <li key={issue.id}>
+                    <span>{issue.label}</span>
+                    <b>{issue.count}</b>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="settings-data-actions">
+        <div>
+          <span className="settings-action-number">02</span>
           <strong>Create a backup</strong>
           <p>Save a dated copy you can keep anywhere.</p>
         </div>
@@ -198,7 +273,7 @@ export default function DataBackupPanel() {
 
       <div className="settings-data-actions">
         <div>
-          <span className="settings-action-number">02</span>
+          <span className="settings-action-number">03</span>
           <strong>Restore from a backup</strong>
           <p>Momentum checks the file before anything changes.</p>
         </div>

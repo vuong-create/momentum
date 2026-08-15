@@ -2592,6 +2592,12 @@ Transient interface state such as open tabs, selected weeks, scroll positions, a
 
 Restore uses strict format, schema, table, preference, and record-count validation before mutation. The existing database is captured and downloaded as a safety backup, then all IndexedDB tables are replaced inside one transaction. The app must reload after a successful restore so all derived views rebuild from the restored source data.
 
+The Daily Driver quality pass also provides a strictly read-only data health
+audit. It reads every current store, checks important cross-record links, and
+builds and validates a backup package in memory. The audit never repairs,
+deletes, migrates, or rewrites user records. Any reported issue remains
+unchanged until the user explicitly approves a separate repair.
+
 The initial contract accepts the current schema version only. Supporting older backup schemas requires an explicit, tested backup migration rather than permissive best-effort importing.
 
 Schema Version 27 adds `focusSessions`. A session stores its activity identity

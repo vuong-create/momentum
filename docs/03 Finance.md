@@ -1125,6 +1125,7 @@ Implemented:
 * Safe reopening clears generated rollover and is blocked when the following month has already been closed
 * Editing closed-month transactions, reconciliation, or budget plans reopens the month first so saved review metrics never become stale
 * Transaction ledger displays Notes between Category and Account for faster scanning
+* Opening Finance is idempotent: the current monthly snapshot is only rewritten when its calculated account position actually changes
 
 Rollover cash-out remains a later enhancement because it creates a real account
 transfer and should be designed together with the backup and audit contract.

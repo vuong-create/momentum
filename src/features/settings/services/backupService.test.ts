@@ -197,4 +197,63 @@ describe("backup service", () => {
     expect(migrated.data.milestoneSnapshots).toEqual([]);
     expect(migrated.data.progressionState).toEqual([]);
   });
+
+  it("round-trips progression and day presets without changing their records", async () => {
+    const now = "2026-08-15T12:00:00.000Z";
+    await db.dayPresets.add({
+      id: 8,
+      name: "Normal Work Day",
+      items: [{
+        id: "walk",
+        title: "Go on a walk",
+        pillar: "athletics",
+        difficulty: "easy",
+      }],
+      sortOrder: 1,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await db.weeklyProgressResults.add({
+      id: 3,
+      weekStart: "2026-08-09",
+      weekEnd: "2026-08-15",
+      eligibleCount: 4,
+      completedCount: 4,
+      percentage: 100,
+      bonusXP: 200,
+      totalWeekXP: 252,
+      perfectWeek: true,
+      settledAt: now,
+      updatedAt: now,
+    });
+    await db.milestoneSnapshots.add({
+      id: 2,
+      level: 5,
+      achievedAt: now,
+      lifetimeXP: 700,
+      title: "Steady",
+      pillarXP: { athletics: 200 },
+      completedPlans: 18,
+      perfectWeeks: 1,
+      chineseActivities: 2,
+      athleticsActivities: 5,
+      mealsCooked: 3,
+      libraryEntries: 4,
+      financeActivities: 1,
+    });
+    await db.progressionState.put({
+      id: "global",
+      lastRecognizedLevel: 5,
+      updatedAt: now,
+    });
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+
+    await clearDatabase();
+    await restoreMomentumBackup(backup, db, new MemoryStorage());
+
+    expect(await db.dayPresets.get(8)).toEqual(backup.data.dayPresets[0]);
+    expect(await db.weeklyProgressResults.get(3)).toEqual(backup.data.weeklyProgressResults[0]);
+    expect(await db.milestoneSnapshots.get(2)).toEqual(backup.data.milestoneSnapshots[0]);
+    expect(await db.progressionState.get("global")).toEqual(backup.data.progressionState[0]);
+  });
 });

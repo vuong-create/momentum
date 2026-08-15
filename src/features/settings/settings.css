@@ -358,6 +358,77 @@
   display: none;
 }
 
+.settings-health-report {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  margin: 4px 0 18px;
+  padding: 16px;
+  border: 1px solid rgba(119, 193, 145, 0.24);
+  border-radius: var(--radius-md);
+  background: rgba(64, 137, 90, 0.055);
+}
+
+.settings-health-report.is-attention {
+  border-color: rgba(214, 169, 103, 0.28);
+  background: rgba(214, 169, 103, 0.055);
+}
+
+.settings-health-symbol {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(119, 193, 145, 0.3);
+  border-radius: 50%;
+  color: rgba(177, 220, 190, 0.9);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.settings-health-report.is-attention .settings-health-symbol {
+  border-color: rgba(214, 169, 103, 0.34);
+  color: rgba(235, 214, 180, 0.9);
+}
+
+.settings-health-report strong {
+  color: var(--color-text-primary);
+  font-size: 11px;
+  font-weight: 510;
+}
+
+.settings-health-report p {
+  margin: 5px 0 0;
+  color: var(--color-text-muted);
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+.settings-health-report ul {
+  display: grid;
+  gap: 5px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.settings-health-report li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 7px;
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: 8px;
+}
+
+.settings-health-report li b {
+  color: rgba(235, 214, 180, 0.9);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
 .settings-restore-preview {
   margin-top: 22px;
   padding: 20px;
