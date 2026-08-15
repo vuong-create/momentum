@@ -18,6 +18,7 @@ export type FeedbackCue =
   | "finance-transaction"
   | "finance-income"
   | "finance-snapshot"
+  | "focus-phase"
   | "navigation";
 
 type Tone = {
@@ -82,6 +83,13 @@ function playTone(context: AudioContext, tone: Tone) {
 }
 
 function getCueTones(cue: FeedbackCue): Tone[] {
+  if (cue === "focus-phase") {
+    return [
+      { frequency: 392, endFrequency: 523.25, duration: 0.18, volume: 0.012, type: "sine" },
+      { frequency: 659.25, delay: 0.11, duration: 0.24, volume: 0.014, type: "sine" },
+    ];
+  }
+
   if (cue === "navigation") {
     return [
       {

@@ -28,6 +28,7 @@ type PlannerDayPanelProps = {
   onNavigate: (direction: -1 | 1) => void;
   onAdd: (input: CreateActivityInput) => Promise<void>;
   onOpenDetails: (activityId: number) => void;
+  onFocus: (activityId: number) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
   onChangePillar: (activity: PlannerActivity, pillar: Pillar) => Promise<void>;
@@ -47,6 +48,7 @@ type DaySectionProps = {
   celebratingActivityId: number | null;
   onToggle: () => void;
   onOpenDetails: (activityId: number) => void;
+  onFocus: (activityId: number) => void;
   onComplete: (activity: PlannerActivity) => Promise<void>;
   onToggleImportant: (activity: PlannerActivity) => Promise<void>;
   onChangePillar: (activity: PlannerActivity, pillar: Pillar) => Promise<void>;
@@ -67,6 +69,7 @@ function DaySection({
   celebratingActivityId,
   onToggle,
   onOpenDetails,
+  onFocus,
   onComplete,
   onToggleImportant,
   onChangePillar,
@@ -106,6 +109,7 @@ function DaySection({
               weekDays={weekDays}
               celebrating={celebratingActivityId === activity.id}
               onOpenDetails={onOpenDetails}
+              onFocus={onFocus}
               onComplete={onComplete}
               onToggleImportant={onToggleImportant}
               onChangePillar={onChangePillar}
@@ -126,7 +130,7 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
   const {
     day, weekDays, celebratingActivityId, onClose, onNavigate, onAdd,
     onOpenDetails, onComplete, onToggleImportant, onChangePillar, onRename, onMove,
-    onDuplicate, onSendToTop, onReorder, onMoveRemaining,
+    onDuplicate, onSendToTop, onReorder, onMoveRemaining, onFocus,
   } = props;
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -214,7 +218,7 @@ export default function PlannerDayPanel(props: PlannerDayPanelProps) {
 
   const allCollapsed = sectionNames.every((section) => collapsed[section]);
   const sectionProps = {
-    weekDays, celebratingActivityId, onOpenDetails, onComplete,
+    weekDays, celebratingActivityId, onOpenDetails, onFocus, onComplete,
     onToggleImportant, onChangePillar, onRename, onMove, onDuplicate, onSendToTop, onReorder,
   };
   const portalTarget = document.querySelector(".experience-root") ?? document.body;

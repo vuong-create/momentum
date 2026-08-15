@@ -9,6 +9,7 @@ export const BACKED_UP_LOCAL_STORAGE_KEYS = [
   "momentum.finance.hideBalances",
   "momentum.planner.pillar",
   "momentum-journal-draft",
+  "momentum.focus.soundscape",
 ] as const;
 
 type StorageKey = (typeof BACKED_UP_LOCAL_STORAGE_KEYS)[number];
@@ -56,6 +57,30 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function currentTableNames(database: Dexie) {
   return database.tables.map((table) => table.name).sort();
+}
+
+function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
+  if (!isRecord(value) || value.format !== MOMENTUM_BACKUP_FORMAT) return value;
+  if (!isRecord(value.manifest) || !isRecord(value.data)) return value;
+
+  const isPreFocusBackup =
+    value.backupVersion === MOMENTUM_BACKUP_VERSION &&
+    value.manifest.schemaVersion === 26 &&
+    database.verno === 27 &&
+    !("focusSessions" in value.data);
+
+  if (!isPreFocusBackup) return value;
+
+  const migrated = structuredClone(value);
+  if (!isRecord(migrated) || !isRecord(migrated.manifest) || !isRecord(migrated.data)) {
+    return value;
+  }
+  migrated.data.focusSessions = [];
+  if (isRecord(migrated.manifest.tableCounts)) {
+    migrated.manifest.tableCounts.focusSessions = 0;
+  }
+  migrated.manifest.schemaVersion = 27;
+  return migrated;
 }
 
 function assertString(value: unknown, label: string): asserts value is string {
@@ -125,6 +150,7 @@ export function validateMomentumBackup(
   value: unknown,
   database: Dexie = db,
 ): MomentumBackupPackage {
+  value = migrateMomentumBackup(value, database);
   if (!isRecord(value)) throw new Error("This is not a Momentum backup file.");
   if (value.format !== MOMENTUM_BACKUP_FORMAT) {
     throw new Error("This file was not created by Momentum.");

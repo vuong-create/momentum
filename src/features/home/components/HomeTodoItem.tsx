@@ -15,6 +15,7 @@ type HomeTodoItemProps = {
   celebrating?: boolean;
   onToggle: (activity: PlannedActivity) => void;
   onOpen: (activityId: number) => void;
+  onFocus: (activityId: number) => void;
   onChangePillar: (activity: PlannedActivity, pillar: Pillar) => Promise<void>;
 };
 
@@ -38,6 +39,7 @@ export default function HomeTodoItem({
   celebrating = false,
   onToggle,
   onOpen,
+  onFocus,
   onChangePillar,
 }: HomeTodoItemProps) {
   const theme =
@@ -96,6 +98,17 @@ export default function HomeTodoItem({
         value={activity.pillar}
         onChange={(pillar) => onChangePillar(activity, pillar)}
       />
+
+      {!activity.completed && (
+        <button
+          type="button"
+          className="home-todo-focus"
+          onClick={() => activity.id && onFocus(activity.id)}
+          aria-label={`Focus on ${activity.title}`}
+        >
+          Focus
+        </button>
+      )}
 
       <button
         type="button"

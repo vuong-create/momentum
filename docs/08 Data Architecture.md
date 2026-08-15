@@ -2594,6 +2594,15 @@ Restore uses strict format, schema, table, preference, and record-count validati
 
 The initial contract accepts the current schema version only. Supporting older backup schemas requires an explicit, tested backup migration rather than permissive best-effort importing.
 
+Schema Version 27 adds `focusSessions`. A session stores its activity identity
+and title snapshot, pillar, phase, duration, remaining time, phase timestamps,
+completed cycles, focused seconds, status, and lifecycle timestamps. Active
+timers are recovered from timestamps rather than one-second database writes.
+
+Backup Version 1 includes Focus sessions automatically. A tested migration
+upgrades Schema 26 backup files by adding an empty `focusSessions` collection,
+so backups created immediately before Focus Mode remain restorable.
+
 ---
 
 # 92. Data Safety

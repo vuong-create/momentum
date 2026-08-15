@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
 
 import type { Pillar, PlannedActivity } from "../../../database/db";
 import { pillarThemes } from "../../../app/theme";
@@ -65,6 +66,7 @@ export default function HomeTodo({
   onAdd,
   onToggle,
 }: HomeTodoProps) {
+  const navigate = useNavigate();
   const experience = useExperience();
   const activityUndo = useActivityUndo();
   const [newTask, setNewTask] = useState("");
@@ -316,6 +318,7 @@ export default function HomeTodo({
                 }
                 onToggle={handleToggle}
                 onOpen={setSelectedActivityId}
+                onFocus={(activityId) => navigate(`/focus/${activityId}`)}
                 onChangePillar={changeActivityPillar}
               />
             ))}
@@ -358,6 +361,7 @@ export default function HomeTodo({
                     activity={activity}
                     onToggle={handleToggle}
                     onOpen={setSelectedActivityId}
+                    onFocus={(activityId) => navigate(`/focus/${activityId}`)}
                     onChangePillar={changeActivityPillar}
                   />
                 ))}

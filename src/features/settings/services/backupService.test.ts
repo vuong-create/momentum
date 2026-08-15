@@ -143,6 +143,21 @@ describe("backup service", () => {
       "momentum.finance.hideBalances",
       "momentum.planner.pillar",
       "momentum-journal-draft",
+      "momentum.focus.soundscape",
     ]);
+  });
+
+  it("migrates a schema 26 backup into the Focus schema safely", async () => {
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+    const legacy = structuredClone(backup);
+    legacy.manifest.schemaVersion = 26;
+    delete legacy.data.focusSessions;
+    delete legacy.manifest.tableCounts.focusSessions;
+
+    const migrated = validateMomentumBackup(legacy, db);
+
+    expect(migrated.manifest.schemaVersion).toBe(27);
+    expect(migrated.data.focusSessions).toEqual([]);
+    expect(migrated.manifest.tableCounts.focusSessions).toBe(0);
   });
 });
