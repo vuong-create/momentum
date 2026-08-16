@@ -36,9 +36,7 @@
   justify-items: center;
   padding: 32px;
   color: var(--color-text-primary);
-  background:
-    radial-gradient(circle at 50% 40%, rgba(122, 104, 177, 0.1), transparent 42%),
-    var(--color-bg-primary);
+  background: #080808;
   text-align: center;
 }
 

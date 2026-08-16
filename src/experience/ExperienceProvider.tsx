@@ -157,14 +157,6 @@ export default function ExperienceProvider({
           .filter(Boolean)
           .join(" ")}
       >
-        <div
-          className="experience-light experience-light-primary"
-          aria-hidden="true"
-        />
-        <div
-          className="experience-light experience-light-secondary"
-          aria-hidden="true"
-        />
         <div className="experience-content">{children}</div>
       </div>
     </ExperienceContext.Provider>

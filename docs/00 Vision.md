@@ -817,6 +817,22 @@ It should make life feel **organized, intentional, and remembered.**
 
 # Design Rule
 
+Momentum's shared environment uses a flat **Obsidian Console** treatment:
+
+* solid near-black foundations rather than atmospheric color gradients
+* faint etched dots and large structural grid lines
+* restrained coordinate marks and local-system labels
+* existing Geist, Geist Pixel, and Cormorant Garamond typography
+* existing custom navigation icons, pillar colors, cards, and page composition
+
+The background should make Momentum feel like a calm, precisely built personal
+instrument. It must remain secondary to the user's actual life data and should
+never become a decorative sci-fi interface.
+
+---
+
+# Product Filter
+
 Every feature should ultimately answer:
 
 > **Does this help Future Me?**
