@@ -33,13 +33,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   color: var(--color-text-primary);
-  background:
-    radial-gradient(
-      circle at 85% 0%,
-      rgba(255, 255, 255, 0.035),
-      transparent 30%
-    ),
-    var(--color-background);
+  background: #080808;
 }
 
 button,
