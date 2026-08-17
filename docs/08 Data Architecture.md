@@ -1589,7 +1589,7 @@ Primary records:
 
 Current implementation:
 
-* `cookingRecipes` stores recipes with embedded ordered ingredients for atomic local edits.
+* `cookingRecipes` stores recipes with embedded ordered ingredients and an optional compressed cover-image data URL for atomic, local-first edits.
 * `groceryItems` stores persistent, categorized shopping rows and their recipe sources.
 * `cookingMealLogs` records spontaneous cooked meals and links completion history to planned activities.
 * `plannedActivities` remains the only meal calendar and completion authority.
@@ -1613,7 +1613,7 @@ notes
 
 favorite
 
-coverMediaId
+coverImageDataUrl (optional compressed local cover)
 
 createdAt
 updatedAt

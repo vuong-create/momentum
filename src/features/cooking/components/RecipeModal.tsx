@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 
 import type { CookingRecipe } from "../../../database/db";
 import type { CookingRecipeInput, RecipeIngredientInput } from "../services/recipeService";
+import { processRecipeCoverImage } from "../services/recipeImageService";
 
 type RecipeModalProps = {
   recipe: CookingRecipe | null;
@@ -34,6 +35,7 @@ function parseIngredient(line: string): RecipeIngredientInput {
 
 export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }: RecipeModalProps) {
   const [name, setName] = useState(recipe?.name ?? "");
+  const [coverImageDataUrl, setCoverImageDataUrl] = useState(recipe?.coverImageDataUrl);
   const [servings, setServings] = useState(recipe?.defaultServings ?? 2);
   const [prepMinutes, setPrepMinutes] = useState(recipe?.prepMinutes ?? 30);
   const [tags, setTags] = useState(recipe?.tags.join(", ") ?? "");
@@ -43,6 +45,9 @@ export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }:
   const [favorite, setFavorite] = useState(recipe?.favorite ?? false);
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [processingImage, setProcessingImage] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -53,6 +58,29 @@ export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }:
 
   if (!open) return null;
 
+  async function acceptImage(file?: File) {
+    if (!file || processingImage) return;
+    setProcessingImage(true);
+    setImageError("");
+    try {
+      setCoverImageDataUrl(await processRecipeCoverImage(file));
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : "Momentum could not use that image.");
+    } finally {
+      setProcessingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    void acceptImage(event.target.files?.[0]);
+  }
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    void acceptImage(event.dataTransfer.files?.[0]);
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!name.trim() || saving) return;
@@ -60,6 +88,7 @@ export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }:
     try {
       await onSave({
         name,
+        coverImageDataUrl,
         defaultServings: servings,
         prepMinutes,
         tags: tags.split(","),
@@ -84,6 +113,13 @@ export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }:
           <button type="button" onClick={onClose} aria-label="Close">×</button>
         </header>
         <div className="cooking-recipe-fields">
+          <div className="cooking-cover-field cooking-field-wide" onDragOver={(event) => event.preventDefault()} onDrop={handleDrop}>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} tabIndex={-1} aria-hidden="true" />
+            {coverImageDataUrl
+              ? <div className="cooking-cover-preview"><img src={coverImageDataUrl} alt={`${name || "Recipe"} cover`} /><span><button type="button" onClick={() => fileInputRef.current?.click()} disabled={processingImage}>Replace photo</button><button type="button" onClick={() => setCoverImageDataUrl(undefined)}>Remove</button></span></div>
+              : <button type="button" className="cooking-cover-upload" onClick={() => fileInputRef.current?.click()} disabled={processingImage}><span>＋</span><strong>{processingImage ? "Preparing image…" : "Add a cover photo"}</strong><small>Choose or drop an image · Momentum resizes it for you</small></button>}
+            {imageError && <p role="alert">{imageError}</p>}
+          </div>
           <label className="cooking-field-wide"><span>Recipe name</span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Japanese curry" autoFocus /></label>
           <label><span>Servings</span><input type="number" min="1" max="30" value={servings} onChange={(event) => setServings(Number(event.target.value))} /></label>
           <label><span>Prep + cook</span><span className="cooking-input-unit"><input type="number" min="1" value={prepMinutes} onChange={(event) => setPrepMinutes(Number(event.target.value))} /><small>min</small></span></label>

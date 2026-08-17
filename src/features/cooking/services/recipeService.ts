@@ -11,6 +11,7 @@ export type RecipeIngredientInput = {
 
 export type CookingRecipeInput = {
   name: string;
+  coverImageDataUrl?: string;
   defaultServings?: number;
   prepMinutes?: number;
   ingredients?: RecipeIngredientInput[];
@@ -26,6 +27,7 @@ function normalizeRecipeInput(input: CookingRecipeInput, timestamp: string) {
 
   return {
     name,
+    coverImageDataUrl: input.coverImageDataUrl?.trim() || undefined,
     defaultServings: Math.max(1, Math.round(input.defaultServings ?? 2)),
     prepMinutes: input.prepMinutes && input.prepMinutes > 0
       ? Math.round(input.prepMinutes)

@@ -54,7 +54,7 @@ export default function CookingGroceries({ items, onAdd, onToggle, onChangeCateg
             <button type="button" className="cooking-grocery-remove" onClick={() => onDelete(item)} aria-label={`Remove ${item.name}`}>×</button>
           </article>)}</div>
         </section>)}
-        {!items.length && <div className="cooking-empty-groceries"><span>籠</span><strong>Your basket is empty.</strong><small>Add an item above or send ingredients from a recipe.</small></div>}
+        {!items.length && <div className="cooking-empty-groceries"><span>⌑</span><strong>Your basket is empty.</strong><small>Add an item above or send ingredients from a recipe.</small></div>}
       </div>
     </div>
   );

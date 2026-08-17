@@ -412,6 +412,7 @@ export interface RecipeIngredient {
 export interface CookingRecipe {
   id?: number;
   name: string;
+  coverImageDataUrl?: string;
   defaultServings: number;
   prepMinutes?: number;
   ingredients: RecipeIngredient[];

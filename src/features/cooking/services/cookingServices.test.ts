@@ -9,6 +9,7 @@ import {
   logCookedRecipe,
   scheduleRecipeMeal,
   undoCookingPlanCompletion,
+  visibleCookingPlans,
 } from "./cookingPlannerService";
 import {
   addGroceryItem,
@@ -22,7 +23,8 @@ import {
   updateCookingRecipe,
   visibleCookingRecipes,
 } from "./recipeService";
-import { createPlannedActivity } from "../../activities/services/activityService";
+import { createPlannedActivity, updateActivityDetails } from "../../activities/services/activityService";
+import { getCustomMealActivityKind } from "../cookingCatalog";
 
 beforeEach(async () => {
   await db.transaction("rw", db.tables, async () => {
@@ -38,6 +40,7 @@ afterAll(async () => {
 async function createCurry() {
   return createCookingRecipe({
     name: " Japanese Curry ",
+    coverImageDataUrl: "data:image/webp;base64,dGVzdA==",
     defaultServings: 2,
     tags: ["Japanese", "Comfort", "Japanese"],
     ingredients: [
@@ -53,6 +56,7 @@ describe("cooking services", () => {
     const id = await createCurry();
     expect(await db.cookingRecipes.get(id)).toMatchObject({
       name: "Japanese Curry",
+      coverImageDataUrl: "data:image/webp;base64,dGVzdA==",
       defaultServings: 2,
       tags: ["Japanese", "Comfort"],
       ingredients: [
@@ -123,5 +127,16 @@ describe("cooking services", () => {
     });
     await expect(completeCookingPlan(prepId)).rejects.toThrow("Cooking meal plan not found");
     expect(await db.cookingMealLogs.count()).toBe(0);
+  });
+
+  it("shows a Planner task in Cooking after it is reclassified as a meal", async () => {
+    const activityId = await createPlannedActivity({
+      title: "Chicken dish",
+      scheduledDate: "2026-08-09",
+      pillar: "cooking",
+    });
+    expect(visibleCookingPlans(await db.plannedActivities.toArray())).toHaveLength(0);
+    await updateActivityDetails(activityId, { activityKind: getCustomMealActivityKind("dinner") });
+    expect(visibleCookingPlans(await db.plannedActivities.toArray()).map(({ id }) => id)).toEqual([activityId]);
   });
 });
