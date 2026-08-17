@@ -67,6 +67,26 @@ describe("backup service", () => {
     expect(Object.keys(backup.localPreferences)).not.toContain("unrelated-secret");
   });
 
+  it("round-trips an uploaded cookbook cover with its recipe", async () => {
+    const now = "2026-08-16T12:00:00.000Z";
+    const coverImageDataUrl = "data:image/webp;base64,dGVzdA==";
+    await db.cookingRecipes.add({
+      name: "Chicken dish",
+      coverImageDataUrl,
+      defaultServings: 2,
+      ingredients: [],
+      instructions: [],
+      tags: [],
+      favorite: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+    await clearDatabase();
+    await restoreMomentumBackup(backup, db, new MemoryStorage());
+    expect((await db.cookingRecipes.toArray())[0]).toMatchObject({ name: "Chicken dish", coverImageDataUrl });
+  });
+
   it("rejects malformed, incomplete, and incompatible backups", async () => {
     const backup = await createMomentumBackup(db, new MemoryStorage());
     const incomplete = structuredClone(backup);

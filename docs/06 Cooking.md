@@ -985,16 +985,18 @@ The user should spend more time cooking and less time maintaining the system.
 The first production foundation is implemented with four focused views:
 
 * **This Week** — a Sunday-first meal view backed by the shared Planner
-* **Meals** — searchable recipes, favorites, serving sizes, ingredients, instructions, and notes
+* **Cookbook** — an illustrated menu-style collection with searchable recipes, favorites, serving sizes, ingredients, instructions, notes, and persistent cover photos
 * **Groceries** — recipe transfer, serving scaling, category inference, quick add, checking, clearing, and undo
 * **What Should I Make?** — lightweight suggestions from the personal cookbook
 
 Meal plans are normal `PlannedActivity` records with the Cooking pillar and a typed recipe or quick-meal activity kind. Momentum therefore has one calendar and one completion state across Cooking, Planner, Home, and XP.
 
+Meal titles in **This Week** open the shared activity editor. A meal reclassified from Planner can therefore be inspected and edited directly from Cooking without creating a second record.
+
 The implementation stores recipes, grocery items, and cooking logs in dedicated local-first tables. A cooking log records spontaneous **Cooked today** actions; completed planned meals remain authoritative Planner activities and are linked to their log for history and undo.
 
 Completing a planned meal awards shared planned-activity XP. A spontaneous cooked meal awards base Cooking XP. Recipe editing and grocery maintenance never award XP. Both paths provide restrained Cooking-specific sound and motion feedback and respect global experience settings.
 
-Recipe photos and galleries are intentionally deferred from this foundation. Abstract warm covers provide a consistent visual cookbook without introducing media storage, compression, and backup requirements prematurely.
+Each recipe can store one manually uploaded cover photo. The browser resizes and compresses it before saving it with the recipe, so the image remains local-first and travels with Momentum backup and restore. Existing recipes remain valid without a cover and show a quiet illustrated placeholder. Additional galleries and generated recipe artwork remain deferred.
 
 **Cooking Foundation: IMPLEMENTED**

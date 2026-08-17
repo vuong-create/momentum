@@ -13,6 +13,7 @@ type CookingWeekProps = {
   onPlanQuick: (type: "leftovers" | "eating-out" | "open", label: string, date: string) => Promise<void>;
   onComplete: (activity: PlannedActivity) => Promise<void>;
   onRemove: (activity: PlannedActivity) => Promise<void>;
+  onOpen: (activity: PlannedActivity) => void;
   onOpenRecipes: () => void;
   unclassifiedCount?: number;
 };
@@ -32,7 +33,7 @@ function getWeek(now: Date) {
   });
 }
 
-export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRecipe, onPlanQuick, onComplete, onRemove, onOpenRecipes, unclassifiedCount = 0 }: CookingWeekProps) {
+export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRecipe, onPlanQuick, onComplete, onRemove, onOpen, onOpenRecipes, unclassifiedCount = 0 }: CookingWeekProps) {
   const week = useMemo(() => getWeek(now), [now]);
   const todayKey = dateKey(now);
   const [date, setDate] = useState(todayKey);
@@ -91,8 +92,8 @@ export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRe
                 {dayPlans.length ? dayPlans.map((plan) => {
                   const complete = getActivityStatus(plan) === "completed";
                   return <div key={plan.id} className={complete ? "is-complete" : ""}>
-                    <span className="cooking-meal-mark" aria-hidden="true">{complete ? "✓" : "火"}</span>
-                    <span><strong>{plan.title}</strong><small>{complete ? "Cooked" : getCookingMealSlotLabel(plan.activityKind) ?? plan.notes ?? "Meal"}</small></span>
+                    <span className="cooking-meal-mark" aria-hidden="true">{complete ? "✓" : "•"}</span>
+                    <button type="button" className="cooking-meal-open" onClick={() => onOpen(plan)}><strong>{plan.title}</strong><small>{complete ? "Cooked" : getCookingMealSlotLabel(plan.activityKind) ?? plan.notes ?? "Meal"}</small></button>
                     {!complete && <button type="button" onClick={() => onComplete(plan)}>Cooked</button>}
                     <button type="button" className="cooking-remove-plan" onClick={() => onRemove(plan)} aria-label={`Remove ${plan.title}`}>×</button>
                   </div>;
@@ -106,7 +107,7 @@ export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRe
       <section className="cooking-week-lower">
         <article className="cooking-card cooking-recent-card">
           <header><div><span className="text-label">Recently cooked</span><h3>Return to favorites.</h3></div><button type="button" onClick={onOpenRecipes}>View meals</button></header>
-          <div>{recentMeals.slice(0, 5).map((meal) => <span key={meal.id ?? `${meal.title}-${meal.completedAt}`}><i>火</i><span><strong>{meal.title}</strong><small>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${meal.date}T00:00:00`))}</small></span></span>)}</div>
+          <div>{recentMeals.slice(0, 5).map((meal) => <span key={meal.id ?? `${meal.title}-${meal.completedAt}`}><i>✓</i><span><strong>{meal.title}</strong><small>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${meal.date}T00:00:00`))}</small></span></span>)}</div>
           {!recentMeals.length && <p>Meals you complete will gather here automatically.</p>}
         </article>
         <article className="cooking-card cooking-cookbook-callout">

@@ -5,17 +5,17 @@ export const groceryCategories: Array<{
   label: string;
   mark: string;
 }> = [
-  { id: "produce", label: "Produce", mark: "葉" },
-  { id: "meat-seafood", label: "Meat / Seafood", mark: "切" },
-  { id: "dairy", label: "Dairy", mark: "乳" },
-  { id: "pantry", label: "Pantry", mark: "瓶" },
-  { id: "frozen", label: "Frozen", mark: "氷" },
-  { id: "other", label: "Other", mark: "＋" },
+  { id: "produce", label: "Produce", mark: "◌" },
+  { id: "meat-seafood", label: "Meat / Seafood", mark: "◇" },
+  { id: "dairy", label: "Dairy", mark: "○" },
+  { id: "pantry", label: "Pantry", mark: "□" },
+  { id: "frozen", label: "Frozen", mark: "✳" },
+  { id: "other", label: "Other", mark: "+" },
 ];
 
 export const quickMealOptions = [
   { id: "leftovers", label: "Leftovers", mark: "↺" },
-  { id: "eating-out", label: "Eating Out", mark: "外" },
+  { id: "eating-out", label: "Eating Out", mark: "↗" },
   { id: "open", label: "Open", mark: "○" },
 ] as const;
 

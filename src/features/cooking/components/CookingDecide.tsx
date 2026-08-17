@@ -33,7 +33,7 @@ export default function CookingDecide({ recipes, todayKey, onPlan, onOpenRecipes
           <span>0{index + 1}</span><div><small>{recipe.tags[0] ?? "From your cookbook"}</small><h3 className="font-quote">{recipe.name}</h3><p>{recipe.ingredients.slice(0, 3).map((item) => item.name).join(" · ") || "A familiar favorite"}</p></div><button type="button" onClick={() => onPlan(recipe, date)}>Add to week →</button>
         </article>)}</div>
         <footer><label><span>Plan for</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><button type="button" onClick={() => setShuffle((value) => value + 1)}>↻ Shuffle again</button></footer>
-      </> : <div className="cooking-decide-empty cooking-card"><span>三</span><h3>Add three meals to unlock suggestions.</h3><p>Momentum only recommends food from your own cookbook.</p><button type="button" onClick={onOpenRecipes}>Build cookbook →</button></div>}
+      </> : <div className="cooking-decide-empty cooking-card"><span>3</span><h3>Add three meals to unlock suggestions.</h3><p>Momentum only recommends food from your own cookbook.</p><button type="button" onClick={onOpenRecipes}>Build cookbook →</button></div>}
     </div>
   );
 }
