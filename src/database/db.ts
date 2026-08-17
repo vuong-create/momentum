@@ -209,6 +209,11 @@ export interface ChineseEntry {
   notes?: string;
   tags: string[];
   source?: string;
+  favorite?: boolean;
+  collections?: string[];
+  practiceStatus?: "keep-practicing" | "comfortable";
+  practiceCount?: number;
+  lastPracticedAt?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -1111,6 +1116,11 @@ class MomentumDatabase extends Dexie {
     this.version(30).stores({
       libraryWishlistItems:
         "++id, name, status, sortOrder, updatedAt, deletedAt",
+    });
+
+    this.version(31).stores({
+      chineseEntries:
+        "++id, traditional, pinyin, meaning, entryType, source, favorite, practiceStatus, *tags, *collections, createdAt, updatedAt, deletedAt",
     });
   }
 }

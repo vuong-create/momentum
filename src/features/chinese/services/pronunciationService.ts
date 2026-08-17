@@ -21,7 +21,15 @@ export function canSpeakTraditionalChinese() {
   );
 }
 
-export function speakTraditionalChinese(text: string) {
+export interface PronunciationOptions {
+  rate?: number;
+  repeat?: number;
+}
+
+export function speakTraditionalChinese(
+  text: string,
+  { rate = 0.82, repeat = 1 }: PronunciationOptions = {}
+) {
   const speech = getSpeechSynthesis();
   const phrase = text.trim();
 
@@ -29,16 +37,18 @@ export function speakTraditionalChinese(text: string) {
     return false;
   }
 
-  const utterance = new SpeechSynthesisUtterance(phrase);
   const voice = selectMandarinVoice(speech.getVoices());
-
-  utterance.lang = voice?.lang ?? "zh-TW";
-  utterance.voice = voice ?? null;
-  utterance.rate = 0.82;
-  utterance.pitch = 1;
-
   speech.cancel();
-  speech.speak(utterance);
+
+  const repetitions = Math.min(5, Math.max(1, Math.round(repeat)));
+  for (let index = 0; index < repetitions; index += 1) {
+    const utterance = new SpeechSynthesisUtterance(phrase);
+    utterance.lang = voice?.lang ?? "zh-TW";
+    utterance.voice = voice ?? null;
+    utterance.rate = Math.min(1.25, Math.max(0.5, rate));
+    utterance.pitch = 1;
+    speech.speak(utterance);
+  }
 
   return true;
 }

@@ -5,6 +5,7 @@ import type { ChineseEntry, ChineseEntryType } from "../../../database/db";
 import type { ChineseEntryInput } from "../services/chineseEntryService";
 import { generatePinyin } from "../services/pinyinService";
 import { speakTraditionalChinese } from "../services/pronunciationService";
+import { translateTraditionalToEnglish } from "../services/translationService";
 
 type ChineseEntryModalProps = {
   entry: ChineseEntry | null;
@@ -26,10 +27,14 @@ export default function ChineseEntryModal({
   const [entryType, setEntryType] = useState<ChineseEntryType>(entry?.entryType ?? "word");
   const [source, setSource] = useState(entry?.source ?? "");
   const [tags, setTags] = useState(entry?.tags.join(", ") ?? "");
+  const [collections, setCollections] = useState(entry?.collections?.join(", ") ?? "");
+  const [favorite, setFavorite] = useState(Boolean(entry?.favorite));
   const [example, setExample] = useState(entry?.example ?? "");
   const [notes, setNotes] = useState(entry?.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translationNotice, setTranslationNotice] = useState("");
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -53,12 +58,31 @@ export default function ChineseEntryModal({
         entryType,
         source,
         tags: tags.split(","),
+        collections: collections.split(","),
+        favorite,
         example,
         notes,
       });
       onClose();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleTranslate() {
+    if (!traditional.trim() || translating) return;
+    setTranslating(true);
+    setTranslationNotice("");
+    try {
+      const result = await translateTraditionalToEnglish(traditional);
+      if (result.status === "translated") {
+        setMeaning(result.text);
+        setTranslationNotice("Draft added. Review it before saving.");
+      } else {
+        setTranslationNotice(result.reason);
+      }
+    } finally {
+      setTranslating(false);
     }
   }
 
@@ -100,9 +124,10 @@ export default function ChineseEntryModal({
             </div>
           </label>
 
-          <label>
-            <span>Meaning</span>
-            <input value={meaning} onChange={(event) => setMeaning(event.target.value)} placeholder="whatever / as you like" />
+          <label className="chinese-entry-meaning-field">
+            <span>Meaning · reviewed before save</span>
+            <div><input value={meaning} onChange={(event) => setMeaning(event.target.value)} placeholder="whatever / as you like" /><button type="button" onClick={handleTranslate} disabled={!traditional.trim() || translating}>{translating ? "Translating…" : "Translate"}</button></div>
+            {translationNotice && <small>{translationNotice}</small>}
           </label>
 
           <label>
@@ -114,12 +139,15 @@ export default function ChineseEntryModal({
             <legend>Type</legend>
             <button type="button" className={entryType === "word" ? "is-selected" : ""} onClick={() => setEntryType("word")}>Word</button>
             <button type="button" className={entryType === "phrase" ? "is-selected" : ""} onClick={() => setEntryType("phrase")}>Phrase</button>
+            <button type="button" className={favorite ? "is-selected chinese-entry-favorite-toggle" : "chinese-entry-favorite-toggle"} onClick={() => setFavorite((current) => !current)}>★ {favorite ? "Favorite" : "Add favorite"}</button>
           </fieldset>
 
           <div className="chinese-entry-modal-grid">
             <label><span>Source</span><input value={source} onChange={(event) => setSource(event.target.value)} placeholder="Tutor, song, conversation…" /></label>
             <label><span>Tags · comma separated</span><input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="Taiwan, casual speech" /></label>
           </div>
+
+          <label><span>Collections · comma separated</span><input value={collections} onChange={(event) => setCollections(event.target.value)} placeholder="Tutor lessons, Daily life, Restaurant" /></label>
 
           <label><span>Example</span><textarea value={example} onChange={(event) => setExample(event.target.value)} rows={2} placeholder="Optional example sentence" /></label>
           <label><span>Notes</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="Anything worth remembering" /></label>

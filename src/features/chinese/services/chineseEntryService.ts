@@ -10,6 +10,8 @@ export interface ChineseEntryInput {
   notes?: string;
   tags?: string[];
   source?: string;
+  favorite?: boolean;
+  collections?: string[];
 }
 
 function normalizeTags(tags: string[] = []) {
@@ -33,7 +35,43 @@ function normalizeInput(input: ChineseEntryInput) {
     notes: input.notes?.trim() || undefined,
     tags: normalizeTags(input.tags),
     source: input.source?.trim() || undefined,
+    favorite: Boolean(input.favorite),
+    collections: normalizeTags(input.collections),
   };
+}
+
+export async function setChineseEntryFavorite(id: number, favorite: boolean) {
+  await db.chineseEntries.update(id, {
+    favorite,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export async function markChineseEntryPractice(
+  id: number,
+  practiceStatus: "keep-practicing" | "comfortable"
+) {
+  const entry = await db.chineseEntries.get(id);
+  if (!entry || entry.deletedAt) throw new Error("Chinese entry was not found.");
+
+  await db.chineseEntries.update(id, {
+    practiceStatus,
+    practiceCount: (entry.practiceCount ?? 0) + 1,
+    lastPracticedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export function buildChinesePracticeQueue(entries: ChineseEntry[]) {
+  return visibleChineseEntries(entries).sort((first, second) => {
+    const statusWeight = (entry: ChineseEntry) =>
+      entry.practiceStatus === "keep-practicing" ? 0 :
+        entry.practiceStatus === "comfortable" ? 2 : 1;
+    const statusDifference = statusWeight(first) - statusWeight(second);
+    if (statusDifference) return statusDifference;
+    if (Boolean(first.favorite) !== Boolean(second.favorite)) return first.favorite ? -1 : 1;
+    return (first.lastPracticedAt ?? "").localeCompare(second.lastPracticedAt ?? "");
+  });
 }
 
 export async function createChineseEntry(input: ChineseEntryInput) {
