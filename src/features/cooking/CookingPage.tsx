@@ -43,6 +43,7 @@ import {
   visibleCookingRecipes,
   type CookingRecipeInput,
 } from "./services/recipeService";
+import { getRecipeCookingHistory } from "./services/recipeHistoryService";
 
 import "./cooking.css";
 
@@ -100,6 +101,7 @@ export default function CookingPage() {
     .filter((plan) => plan.id && getActivityStatus(plan) === "completed" && !loggedPlans.has(plan.id))
     .map((plan) => ({ title: plan.title, date: plan.scheduledDate ?? plan.completedAt!.slice(0, 10), plannedActivityId: plan.id, completedAt: plan.completedAt ?? plan.updatedAt ?? plan.date }));
   const recentMeals = [...visibleMealLogs, ...derivedMeals].sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  const historyByRecipeId = new Map(recipes.flatMap((recipe) => recipe.id ? [[recipe.id, getRecipeCookingHistory(recipe.id, allMealLogs, allPlans)] as const] : []));
 
   function selectView(next: CookingView) {
     setView(next);
@@ -184,7 +186,7 @@ export default function CookingPage() {
 
       <main className="cooking-content">
         {view === "week" && <CookingWeek now={experience.now} recipes={recipes} plans={weekPlans} recentMeals={recentMeals} unclassifiedCount={unclassifiedCookingCount} onPlanRecipe={(id, date) => { const recipe = recipes.find((item) => item.id === id)!; return handlePlanRecipe(recipe, date); }} onPlanQuick={async (type: QuickMealType, label, date) => { const id = await scheduleQuickMeal(type, label, date); experience.playFeedback("meal-planned"); undo.show({ message: `${label} added to Planner`, undo: () => softDeletePlannedActivity(id) }); }} onComplete={handleCompletePlan} onRemove={handleRemovePlan} onOpen={(activity) => setSelectedActivityId(activity.id ?? null)} onOpenRecipes={() => selectView("recipes")} />}
-        {view === "recipes" && <CookingRecipes recipes={recipes} todayKey={todayKey} onCreate={handleCreateRecipe} onUpdate={handleUpdateRecipe} onDelete={handleDeleteRecipe} onToggleFavorite={async (recipe) => { await toggleRecipeFavorite(recipe.id!); experience.playFeedback("task-updated"); }} onPlan={handlePlanRecipe} onCookToday={handleCookToday} onAddGroceries={async (recipe, servings) => {
+        {view === "recipes" && <CookingRecipes recipes={recipes} todayKey={todayKey} historyByRecipeId={historyByRecipeId} onCreate={handleCreateRecipe} onUpdate={handleUpdateRecipe} onDelete={handleDeleteRecipe} onToggleFavorite={async (recipe) => { await toggleRecipeFavorite(recipe.id!); experience.playFeedback("task-updated"); }} onPlan={handlePlanRecipe} onCookToday={handleCookToday} onAddGroceries={async (recipe, servings) => {
           const before = await db.groceryItems.toArray();
           await addRecipeIngredientsToGroceries({ recipeId: recipe.id!, recipeName: recipe.name, ingredients: recipe.ingredients, defaultServings: recipe.defaultServings, servings });
           experience.playFeedback("task-added");

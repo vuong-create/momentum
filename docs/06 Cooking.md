@@ -984,8 +984,8 @@ The user should spend more time cooking and less time maintaining the system.
 
 The first production foundation is implemented with four focused views:
 
-* **This Week** — a Sunday-first meal view backed by the shared Planner
-* **Cookbook** — an illustrated menu-style collection with searchable recipes, favorites, serving sizes, ingredients, instructions, notes, and persistent cover photos
+* **This Week** — a Sunday-first meal view backed by the shared Planner, including cookbook artwork for recipe-linked meals
+* **Cookbook** — a compact illustrated menu with five-column desktop browsing, handwritten titles, searchable recipes, favorites, serving sizes, ingredients, instructions, notes, and persistent cover photos
 * **Groceries** — recipe transfer, serving scaling, category inference, quick add, checking, clearing, and undo
 * **What Should I Make?** — lightweight suggestions from the personal cookbook
 
@@ -998,5 +998,11 @@ The implementation stores recipes, grocery items, and cooking logs in dedicated 
 Completing a planned meal awards shared planned-activity XP. A spontaneous cooked meal awards base Cooking XP. Recipe editing and grocery maintenance never award XP. Both paths provide restrained Cooking-specific sound and motion feedback and respect global experience settings.
 
 Each recipe can store one manually uploaded cover photo. The browser resizes and compresses it before saving it with the recipe, so the image remains local-first and travels with Momentum backup and restore. Existing recipes remain valid without a cover and show a quiet illustrated placeholder. Additional galleries and generated recipe artwork remain deferred.
+
+Recipe cover art is rendered directly into the warm paper surface so white or transparent illustration backgrounds do not appear as detached rectangles. Recipe cards keep actions in a compact hover surface, allowing roughly fifteen meals to remain visible on a large desktop viewport.
+
+Recipes may optionally declare one reusable **Menu section**. The default cookbook remains a dense all-recipes grid, while **Group sections** organizes cards under their section names and places recipes without a section under **Unsorted**. Full section management remains deferred.
+
+The recipe editor derives **times made** and **last made** from cooking logs and completed recipe-linked Planner activities. The value is not manually stored, so completion and undo remain authoritative and cannot drift from the activity history.
 
 **Cooking Foundation: IMPLEMENTED**

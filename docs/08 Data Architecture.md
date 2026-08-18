@@ -1589,7 +1589,7 @@ Primary records:
 
 Current implementation:
 
-* `cookingRecipes` stores recipes with embedded ordered ingredients and an optional compressed cover-image data URL for atomic, local-first edits.
+* `cookingRecipes` stores recipes with embedded ordered ingredients, an optional compressed cover-image data URL, and an optional primary menu-section label for atomic, local-first edits.
 * `groceryItems` stores persistent, categorized shopping rows and their recipe sources.
 * `cookingMealLogs` records spontaneous cooked meals and links completion history to planned activities.
 * `plannedActivities` remains the only meal calendar and completion authority.
@@ -1605,6 +1605,7 @@ Recipe
 
 id
 name
+menuSection (optional reusable primary grouping)
 
 defaultServings
 
@@ -1620,6 +1621,8 @@ updatedAt
 ```
 
 Tags are stored through the shared tag system.
+
+Recipe cooking counts are derived from visible `cookingMealLogs` plus completed recipe-linked `plannedActivities` that do not yet have a corresponding log. They are not persisted counters. This keeps completion, reopening, undo, and legacy activity history consistent without repair logic.
 
 ---
 

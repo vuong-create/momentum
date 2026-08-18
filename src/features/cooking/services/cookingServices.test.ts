@@ -25,6 +25,7 @@ import {
 } from "./recipeService";
 import { createPlannedActivity, updateActivityDetails } from "../../activities/services/activityService";
 import { getCustomMealActivityKind } from "../cookingCatalog";
+import { getRecipeCookingHistory } from "./recipeHistoryService";
 
 beforeEach(async () => {
   await db.transaction("rw", db.tables, async () => {
@@ -41,6 +42,7 @@ async function createCurry() {
   return createCookingRecipe({
     name: " Japanese Curry ",
     coverImageDataUrl: "data:image/webp;base64,dGVzdA==",
+    menuSection: " Weeknight Dinners ",
     defaultServings: 2,
     tags: ["Japanese", "Comfort", "Japanese"],
     ingredients: [
@@ -57,6 +59,7 @@ describe("cooking services", () => {
     expect(await db.cookingRecipes.get(id)).toMatchObject({
       name: "Japanese Curry",
       coverImageDataUrl: "data:image/webp;base64,dGVzdA==",
+      menuSection: "Weeknight Dinners",
       defaultServings: 2,
       tags: ["Japanese", "Comfort"],
       ingredients: [
@@ -116,6 +119,19 @@ describe("cooking services", () => {
     expect(result.xpAwarded).toBe(10);
     expect((await db.cookingMealLogs.get(result.logId))?.recipeId).toBe(recipeId);
     expect(getXPBreakdown(await db.xpEvents.toArray()).totalXP).toBe(10);
+  });
+
+  it("derives recipe history from spontaneous and planned meals without drifting", async () => {
+    const recipeId = await createCurry();
+    await logCookedRecipe(recipeId, "2026-08-08", 2);
+    const activityId = await scheduleRecipeMeal(recipeId, "2026-08-10", 2);
+    await completeCookingPlan(activityId);
+    expect(getRecipeCookingHistory(recipeId, await db.cookingMealLogs.toArray(), await db.plannedActivities.toArray())).toEqual({
+      timesMade: 2,
+      lastMadeDate: "2026-08-10",
+    });
+    await undoCookingPlanCompletion(activityId);
+    expect(getRecipeCookingHistory(recipeId, await db.cookingMealLogs.toArray(), await db.plannedActivities.toArray()).timesMade).toBe(1);
   });
 
   it("keeps prep and legacy Cooking tasks out of meal history", async () => {

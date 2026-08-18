@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 
 import type { CookingMealLog, CookingRecipe, PlannedActivity } from "../../../database/db";
 import { getActivityStatus } from "../../activities/services/activityLifecycle";
-import { getCookingMealSlotLabel, quickMealOptions } from "../cookingCatalog";
+import { getCookingMealSlotLabel, parseRecipeActivityKind, quickMealOptions } from "../cookingCatalog";
 
 type CookingWeekProps = {
   now: Date;
@@ -91,8 +91,11 @@ export default function CookingWeek({ now, recipes, plans, recentMeals, onPlanRe
               <div>
                 {dayPlans.length ? dayPlans.map((plan) => {
                   const complete = getActivityStatus(plan) === "completed";
+                  const recipe = recipes.find(({ id }) => id === parseRecipeActivityKind(plan.activityKind));
                   return <div key={plan.id} className={complete ? "is-complete" : ""}>
-                    <span className="cooking-meal-mark" aria-hidden="true">{complete ? "✓" : "•"}</span>
+                    {recipe?.coverImageDataUrl
+                      ? <span className="cooking-meal-art" aria-hidden="true"><img src={recipe.coverImageDataUrl} alt="" />{complete && <i>✓</i>}</span>
+                      : <span className="cooking-meal-mark" aria-hidden="true">{complete ? "✓" : "•"}</span>}
                     <button type="button" className="cooking-meal-open" onClick={() => onOpen(plan)}><strong>{plan.title}</strong><small>{complete ? "Cooked" : getCookingMealSlotLabel(plan.activityKind) ?? plan.notes ?? "Meal"}</small></button>
                     {!complete && <button type="button" onClick={() => onComplete(plan)}>Cooked</button>}
                     <button type="button" className="cooking-remove-plan" onClick={() => onRemove(plan)} aria-label={`Remove ${plan.title}`}>×</button>
