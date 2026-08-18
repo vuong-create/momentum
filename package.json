@@ -13,6 +13,7 @@
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.3.0",
     "@fontsource/geist": "^5.3.0",
+    "@fontsource/kalam": "^5.3.0",
     "dexie": "^4.4.4",
     "dexie-react-hooks": "^4.4.0",
     "geist": "^1.7.2",

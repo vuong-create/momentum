@@ -73,6 +73,7 @@ describe("backup service", () => {
     await db.cookingRecipes.add({
       name: "Chicken dish",
       coverImageDataUrl,
+      menuSection: "Weeknight Dinners",
       defaultServings: 2,
       ingredients: [],
       instructions: [],
@@ -84,7 +85,7 @@ describe("backup service", () => {
     const backup = await createMomentumBackup(db, new MemoryStorage());
     await clearDatabase();
     await restoreMomentumBackup(backup, db, new MemoryStorage());
-    expect((await db.cookingRecipes.toArray())[0]).toMatchObject({ name: "Chicken dish", coverImageDataUrl });
+    expect((await db.cookingRecipes.toArray())[0]).toMatchObject({ name: "Chicken dish", coverImageDataUrl, menuSection: "Weeknight Dinners" });
   });
 
   it("rejects malformed, incomplete, and incompatible backups", async () => {

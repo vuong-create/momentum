@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import type { CookingRecipe } from "../../../database/db";
 import type { CookingRecipeInput, RecipeIngredientInput } from "../services/recipeService";
 import { processRecipeCoverImage } from "../services/recipeImageService";
+import type { RecipeCookingHistory } from "../services/recipeHistoryService";
 
 type RecipeModalProps = {
   recipe: CookingRecipe | null;
@@ -11,6 +12,8 @@ type RecipeModalProps = {
   onClose: () => void;
   onSave: (input: CookingRecipeInput) => Promise<void>;
   onDelete?: () => Promise<void>;
+  history?: RecipeCookingHistory;
+  menuSections: string[];
 };
 
 const knownUnits = new Set(["tsp", "tbsp", "cup", "cups", "oz", "lb", "lbs", "g", "kg", "ml", "l", "clove", "cloves", "can", "cans"]);
@@ -33,9 +36,10 @@ function parseIngredient(line: string): RecipeIngredientInput {
   };
 }
 
-export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }: RecipeModalProps) {
+export default function RecipeModal({ recipe, open, onClose, onSave, onDelete, history, menuSections }: RecipeModalProps) {
   const [name, setName] = useState(recipe?.name ?? "");
   const [coverImageDataUrl, setCoverImageDataUrl] = useState(recipe?.coverImageDataUrl);
+  const [menuSection, setMenuSection] = useState(recipe?.menuSection ?? "");
   const [servings, setServings] = useState(recipe?.defaultServings ?? 2);
   const [prepMinutes, setPrepMinutes] = useState(recipe?.prepMinutes ?? 30);
   const [tags, setTags] = useState(recipe?.tags.join(", ") ?? "");
@@ -89,6 +93,7 @@ export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }:
       await onSave({
         name,
         coverImageDataUrl,
+        menuSection,
         defaultServings: servings,
         prepMinutes,
         tags: tags.split(","),
@@ -110,6 +115,7 @@ export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }:
       <form className="cooking-recipe-modal" onSubmit={submit}>
         <header>
           <div><span className="text-label">{recipe ? "Personal cookbook" : "New recipe"}</span><h2>{recipe ? recipe.name : "Remember a meal"}</h2></div>
+          {recipe && <div className="cooking-recipe-history"><span><strong>{history?.timesMade ?? 0}</strong><small>{history?.timesMade === 1 ? "time made" : "times made"}</small></span><span><strong>{history?.lastMadeDate ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${history.lastMadeDate}T00:00:00`)) : "—"}</strong><small>last made</small></span></div>}
           <button type="button" onClick={onClose} aria-label="Close">×</button>
         </header>
         <div className="cooking-recipe-fields">
@@ -121,6 +127,7 @@ export default function RecipeModal({ recipe, open, onClose, onSave, onDelete }:
             {imageError && <p role="alert">{imageError}</p>}
           </div>
           <label className="cooking-field-wide"><span>Recipe name</span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Japanese curry" autoFocus /></label>
+          <label className="cooking-field-wide"><span>Menu section · optional</span><input value={menuSection} onChange={(event) => setMenuSection(event.target.value)} list="cooking-menu-sections" placeholder="Weeknight dinners" /><datalist id="cooking-menu-sections">{menuSections.map((section) => <option key={section} value={section} />)}</datalist></label>
           <label><span>Servings</span><input type="number" min="1" max="30" value={servings} onChange={(event) => setServings(Number(event.target.value))} /></label>
           <label><span>Prep + cook</span><span className="cooking-input-unit"><input type="number" min="1" value={prepMinutes} onChange={(event) => setPrepMinutes(Number(event.target.value))} /><small>min</small></span></label>
           <label className="cooking-field-wide"><span>Tags</span><input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="Japanese, Comfort, Easy" /></label>
