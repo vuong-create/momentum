@@ -11,7 +11,12 @@ import {
   restoreChineseActivity,
   softDeleteChineseActivity,
 } from "./chineseActivityService";
-import { createChineseEntry } from "./chineseEntryService";
+import {
+  buildChinesePracticeQueue,
+  createChineseEntry,
+  markChineseEntryPractice,
+  setChineseEntryFavorite,
+} from "./chineseEntryService";
 import {
   createChineseMediaResource,
   restoreChineseMediaResource,
@@ -48,6 +53,32 @@ describe("Chinese services", () => {
     });
     expect(entry?.pinyin).toContain("suí");
     expect(await db.chineseActivities.count()).toBe(0);
+    expect(await getTotalXP()).toBe(0);
+  });
+
+  it("stores collections and favorites without creating XP", async () => {
+    const id = await createChineseEntry({
+      traditional: "好吃",
+      meaning: "delicious",
+      favorite: true,
+      collections: ["Daily life", "Daily life", " Food "],
+    });
+    await setChineseEntryFavorite(id, false);
+    const entry = await db.chineseEntries.get(id);
+
+    expect(entry).toMatchObject({ favorite: false, collections: ["Daily life", "Food"] });
+    expect(await getTotalXP()).toBe(0);
+  });
+
+  it("prioritizes keep-practicing entries and records review state without XP", async () => {
+    const comfortableId = await createChineseEntry({ traditional: "你好", meaning: "hello" });
+    const practiceId = await createChineseEntry({ traditional: "原來如此", meaning: "so that's how it is" });
+    await markChineseEntryPractice(comfortableId, "comfortable");
+    await markChineseEntryPractice(practiceId, "keep-practicing");
+
+    const queue = buildChinesePracticeQueue(await db.chineseEntries.toArray());
+    expect(queue.map((entry) => entry.id)).toEqual([practiceId, comfortableId]);
+    expect(queue[0]).toMatchObject({ practiceStatus: "keep-practicing", practiceCount: 1 });
     expect(await getTotalXP()).toBe(0);
   });
 

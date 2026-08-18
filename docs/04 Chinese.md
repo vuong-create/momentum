@@ -1,7 +1,7 @@
 # Momentum — Chinese Learning Pillar
 
-**Status:** 🟢 Foundation Implemented
-**Next Step:** Today, Database, Progress, and Planner Linkage
+**Status:** 🟢 Chinese V2.1 Implemented
+**Next Step:** Tutor capture, practice-session refinement, and optional export
 
 ---
 
@@ -74,11 +74,12 @@ It does not need to recreate every specialized language-learning tool.
 
 # 3. Navigation
 
-The Chinese pillar has three primary sections:
+The Chinese pillar has four primary sections:
 
 1. Today
-2. Database
-3. Progress
+2. Practice
+3. Database
+4. Progress
 
 The structure should remain intentionally small.
 
@@ -259,6 +260,8 @@ Generated pinyin is always editable because names, regional vocabulary, and poly
 * Notes
 * Tags
 * Source
+* Favorite
+* Collections
 
 Database maintenance does not earn XP and does not activate the streak. Collecting language and practicing Chinese remain deliberately separate behaviors.
 
@@ -278,7 +281,32 @@ The Database includes a dedicated pronunciation workspace. A saved word or phras
 
 Playback uses the device's speech system and fails gracefully when a compatible voice is unavailable.
 
-Microphone recording, pronunciation scoring, and tutor-style feedback remain future enhancements rather than requirements for the first reliable version.
+The V2 pronunciation studio adds slow, natural, and fast playback, one- or three-time repetition, and a temporary local microphone recording. The recording is held only in the current page session, is never written to Momentum's database, and can be played beside the reference voice. Automated pronunciation scoring and tutor-style feedback remain future enhancements.
+
+---
+
+# 10B. Translation Review
+
+Traditional Chinese can be translated into an English meaning from the entry editor. Momentum uses the browser's built-in on-device Translator API when available and does not silently send personal language to an unknown translation server.
+
+A translation is always a draft. It fills the editable Meaning field and must be reviewed before the entry can be saved. When the browser or language pack does not support on-device translation, manual entry remains fully functional.
+
+---
+
+# 10C. Practice Queue
+
+Practice Queue is a lightweight recall surface built from the personal database.
+
+Each card follows this sequence:
+
+1. Read the Traditional Chinese
+2. Hear Taiwanese Mandarin if useful
+3. Reveal pinyin and meaning
+4. Mark **Keep practicing** or **Comfortable**
+
+Keep-practicing entries are prioritized in future queues. Favorites are prioritized within the same practice state. The queue may be focused by collection.
+
+Practice status is a personal signal, not a mastery score. Queue reviews do not create XP, complete Planner tasks, or activate the Chinese streak.
 
 ---
 
@@ -348,8 +376,11 @@ The database supports:
 * Sorting
 * Tag filtering
 * Source filtering
-* Date filtering
 * Word / Phrase filtering
+* Favorite filtering
+* Collection filtering
+
+Collections are intentionally lightweight and may overlap. Examples include Tutor Lessons, Daily Life, Restaurant, or Taiwan Travel. Tags still describe the language; collections group entries into useful practice sets.
 
 A prominent:
 

@@ -177,7 +177,7 @@ describe("backup service", () => {
 
     const migrated = validateMomentumBackup(legacy, db);
 
-    expect(migrated.manifest.schemaVersion).toBe(30);
+    expect(migrated.manifest.schemaVersion).toBe(31);
     expect(migrated.data.focusSessions).toEqual([]);
     expect(migrated.manifest.tableCounts.focusSessions).toBe(0);
   });
@@ -196,7 +196,7 @@ describe("backup service", () => {
     delete settings.interfaceSoundsEnabled;
 
     const migrated = validateMomentumBackup(legacy, db);
-    expect(migrated.manifest.schemaVersion).toBe(30);
+    expect(migrated.manifest.schemaVersion).toBe(31);
     expect(migrated.data.appSettings[0]).toEqual(expect.objectContaining({
       soundVolume: 0.6, interfaceSoundsEnabled: true,
     }));
@@ -212,7 +212,7 @@ describe("backup service", () => {
     }
 
     const migrated = validateMomentumBackup(legacy, db);
-    expect(migrated.manifest.schemaVersion).toBe(30);
+    expect(migrated.manifest.schemaVersion).toBe(31);
     expect(migrated.data.dayPresets).toEqual([]);
     expect(migrated.data.weeklyProgressResults).toEqual([]);
     expect(migrated.data.milestoneSnapshots).toEqual([]);
@@ -228,9 +228,26 @@ describe("backup service", () => {
     delete legacy.manifest.tableCounts.libraryWishlistItems;
 
     const migrated = validateMomentumBackup(legacy, db);
-    expect(migrated.manifest.schemaVersion).toBe(30);
+    expect(migrated.manifest.schemaVersion).toBe(31);
     expect(migrated.data.libraryWishlistItems).toEqual([]);
     expect(migrated.manifest.tableCounts.libraryWishlistItems).toBe(0);
+  });
+
+  it("migrates schema 30 backups without changing Chinese entries", async () => {
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+    const legacy = structuredClone(backup);
+    legacy.manifest.schemaVersion = 30;
+    legacy.data.chineseEntries = [{
+      id: 7, traditional: "加油", pinyin: "jiā yóu", meaning: "keep going",
+      entryType: "phrase", tags: [], createdAt: "2026-08-01", updatedAt: "2026-08-01",
+    }];
+    legacy.manifest.tableCounts.chineseEntries = 1;
+    legacy.manifest.totalRecords = Object.values(legacy.manifest.tableCounts)
+      .reduce((total, count) => total + count, 0);
+
+    const migrated = validateMomentumBackup(legacy, db);
+    expect(migrated.manifest.schemaVersion).toBe(31);
+    expect(migrated.data.chineseEntries).toEqual(legacy.data.chineseEntries);
   });
 
   it("round-trips progression and day presets without changing their records", async () => {

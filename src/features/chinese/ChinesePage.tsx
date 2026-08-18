@@ -16,6 +16,7 @@ import { getXPBreakdown } from "../xp/XPService";
 import { parseChineseActivityKind } from "./activityCatalog";
 import ChineseDatabase from "./components/ChineseDatabase";
 import ChineseEntryModal from "./components/ChineseEntryModal";
+import ChinesePractice from "./components/ChinesePractice";
 import ChineseProgress from "./components/ChineseProgress";
 import ChineseToday from "./components/ChineseToday";
 import {
@@ -26,7 +27,9 @@ import {
 } from "./services/chineseActivityService";
 import {
   createChineseEntry,
+  markChineseEntryPractice,
   restoreChineseEntry,
+  setChineseEntryFavorite,
   softDeleteChineseEntry,
   updateChineseEntry,
   visibleChineseEntries,
@@ -43,10 +46,11 @@ import {
 
 import "./chinese.css";
 
-type ChineseView = "today" | "database" | "progress";
+type ChineseView = "today" | "practice" | "database" | "progress";
 
 const tabs: { id: ChineseView; label: string; mark: string }[] = [
   { id: "today", label: "Today", mark: "今" },
+  { id: "practice", label: "Practice", mark: "練" },
   { id: "database", label: "Database", mark: "詞" },
   { id: "progress", label: "Progress", mark: "續" },
 ];
@@ -158,10 +162,39 @@ export default function ChinesePage() {
       notes: selectedEntry.notes,
       tags: selectedEntry.tags,
       source: selectedEntry.source,
+      favorite: selectedEntry.favorite,
+      collections: selectedEntry.collections,
     };
     await updateChineseEntry(selectedEntry.id, input);
     experience.playFeedback("task-updated");
     undo.show({ message: "Chinese entry updated", undo: () => updateChineseEntry(selectedEntry.id!, previous) });
+  }
+
+  async function handleToggleFavorite(entry: ChineseEntry) {
+    if (!entry.id) return;
+    const nextFavorite = !entry.favorite;
+    await setChineseEntryFavorite(entry.id, nextFavorite);
+    experience.playFeedback(nextFavorite ? "task-added" : "task-dismissed");
+    undo.show({
+      message: nextFavorite ? "Added to Chinese favorites" : "Removed from Chinese favorites",
+      undo: () => setChineseEntryFavorite(entry.id!, Boolean(entry.favorite)),
+    });
+  }
+
+  async function handleMarkPractice(entry: ChineseEntry, status: "keep-practicing" | "comfortable") {
+    if (!entry.id) return;
+    const previous = {
+      practiceStatus: entry.practiceStatus,
+      practiceCount: entry.practiceCount,
+      lastPracticedAt: entry.lastPracticedAt,
+      updatedAt: entry.updatedAt,
+    };
+    await markChineseEntryPractice(entry.id, status);
+    experience.playFeedback(status === "comfortable" ? "task-completed" : "task-updated");
+    undo.show({
+      message: status === "comfortable" ? "Marked comfortable" : "Kept in your practice rotation",
+      undo: async () => { await db.chineseEntries.update(entry.id!, previous); },
+    });
   }
 
   async function handleDeleteEntry() {
@@ -202,7 +235,8 @@ export default function ChinesePage() {
 
       <main className="chinese-content">
         {view === "today" && <ChineseToday entries={entries} mediaResources={mediaResources} todayActivities={todayActivities} plannedTypes={plannedTypes} currentStreak={streaks.current} loggingType={loggingType} justLoggedType={justLoggedType} onLog={handleLog} onQuickAdd={handleCreateEntry} onAddMedia={handleAddMedia} onRemoveMedia={handleRemoveMedia} onOpenEntry={openEntry} />}
-        {view === "database" && <ChineseDatabase entries={entries} onAdd={openNewEntry} onOpen={openEntry} />}
+        {view === "practice" && <ChinesePractice entries={entries} onMark={handleMarkPractice} />}
+        {view === "database" && <ChineseDatabase entries={entries} onAdd={openNewEntry} onOpen={openEntry} onToggleFavorite={handleToggleFavorite} />}
         {view === "progress" && <ChineseProgress activities={activities} todayActivities={todayActivities} entries={entries} now={experience.now} pillarXP={chineseXP.xp} progression={chineseXP.progression} onUndoActivity={handleUndoActivity} />}
       </main>
 

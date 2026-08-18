@@ -60,7 +60,7 @@
 .chinese-header-stats .chinese-header-level {
   min-width: 126px;
   border-color: rgba(227, 38, 54, 0.19);
-  background: linear-gradient(145deg, rgba(227, 38, 54, 0.07), rgba(255, 255, 255, 0.015));
+  background: rgba(227, 38, 54, 0.055);
 }
 
 .chinese-header-level i {
@@ -869,6 +869,131 @@
   transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-out);
 }
 
+.chinese-pronunciation-intro p {
+  max-width: 210px;
+}
+
+.chinese-pronunciation-session {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+  padding: 15px 17px;
+  border: 1px solid rgba(227, 38, 54, 0.18);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.chinese-pronunciation-phrase {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.chinese-pronunciation-phrase > span {
+  display: grid;
+  min-width: 0;
+}
+
+.chinese-pronunciation-phrase strong {
+  font-family: var(--font-quote);
+  font-size: clamp(29px, 3.4vw, 43px);
+  font-weight: 520;
+  line-height: 1;
+}
+
+.chinese-pronunciation-phrase i {
+  margin-top: 5px;
+  color: var(--chinese-red);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.chinese-pronunciation-phrase small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chinese-pronunciation-phrase > button,
+.chinese-record-button {
+  min-height: 32px;
+  flex: 0 0 auto;
+  padding: 0 11px;
+  border-color: rgba(227, 38, 54, 0.25);
+  color: #ff7b85;
+  background: var(--chinese-red-soft);
+  font-size: 8px;
+}
+
+.chinese-pronunciation-controls {
+  display: flex;
+  align-items: end;
+  gap: 9px;
+  padding-top: 9px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.chinese-pronunciation-controls fieldset {
+  display: flex;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.chinese-pronunciation-controls legend {
+  margin-bottom: 4px;
+  color: var(--color-text-disabled);
+  font-size: 6px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chinese-pronunciation-controls fieldset button {
+  min-height: 25px;
+  padding: 0 7px;
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 7px;
+}
+
+.chinese-pronunciation-controls fieldset button.is-selected {
+  color: var(--color-text-primary);
+  border-color: rgba(227, 38, 54, 0.25);
+  background: var(--chinese-red-soft);
+}
+
+.chinese-record-button {
+  margin-left: auto;
+}
+
+.chinese-record-button.is-recording {
+  color: #fff;
+  background: rgba(227, 38, 54, 0.32);
+}
+
+.chinese-recording-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chinese-recording-result small {
+  flex: 1;
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.chinese-recording-result audio {
+  width: min(250px, 50%);
+  height: 28px;
+}
+
 .chinese-pronunciation-workspace.is-dragging-over {
   border-color: rgba(227, 38, 54, 0.55);
   background: rgba(227, 38, 54, 0.12);
@@ -1020,6 +1145,22 @@
   font-size: 8px;
 }
 
+.chinese-favorite-filter {
+  min-height: 34px;
+  padding: 0 10px;
+  border-color: var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 8px;
+}
+
+.chinese-favorite-filter.is-selected {
+  color: #e7c77d;
+  border-color: rgba(231, 199, 125, 0.26);
+  background: rgba(231, 199, 125, 0.07);
+}
+
 .chinese-database-meta {
   display: flex;
   justify-content: space-between;
@@ -1127,6 +1268,144 @@
   border-radius: 50%;
   color: var(--color-text-disabled);
   background: transparent;
+}
+
+.chinese-entry-favorite {
+  position: absolute;
+  top: 19px;
+  right: 47px;
+  width: 27px;
+  min-height: 27px;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 50%;
+  color: var(--color-text-disabled);
+  background: transparent;
+}
+
+.chinese-entry-favorite.is-favorite {
+  color: #e7c77d;
+}
+
+/* Practice Queue */
+
+.chinese-practice {
+  display: grid;
+  gap: 18px;
+}
+
+.chinese-practice .chinese-section-header select {
+  min-height: 34px;
+  padding: 0 30px 0 11px;
+  border-color: var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 8px;
+}
+
+.chinese-practice-card {
+  min-height: 440px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 36px;
+  border: 1px solid rgba(227, 38, 54, 0.16);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.014);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.chinese-practice-position {
+  width: min(570px, 100%);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 45px;
+  color: var(--color-text-disabled);
+  font-size: 8px;
+}
+
+.chinese-practice-position small {
+  color: #e7c77d;
+  font-size: 7px;
+}
+
+.chinese-practice-card > strong {
+  font-family: var(--font-quote);
+  font-size: clamp(55px, 8vw, 92px);
+  font-weight: 520;
+  line-height: 1;
+}
+
+.chinese-practice-reveal {
+  min-height: 34px;
+  margin: 35px 0 47px;
+  padding: 0 14px;
+  border-color: var(--color-border-default);
+  color: var(--color-text-secondary);
+  background: transparent;
+  font-size: 8px;
+}
+
+.chinese-practice-answer {
+  min-height: 116px;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  margin-top: 18px;
+  text-align: center;
+}
+
+.chinese-practice-answer span {
+  color: var(--chinese-red);
+  font-size: 11px;
+}
+
+.chinese-practice-answer p {
+  margin: 10px 0 5px;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+}
+
+.chinese-practice-answer small {
+  color: var(--color-text-muted);
+  font-family: var(--font-quote);
+  font-size: 11px;
+}
+
+.chinese-practice-actions {
+  width: min(570px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 17px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.chinese-practice-actions i {
+  flex: 1;
+}
+
+.chinese-practice-actions button {
+  min-height: 33px;
+  padding: 0 12px;
+  border-color: var(--color-border-default);
+  color: var(--color-text-muted);
+  background: transparent;
+  font-size: 8px;
+}
+
+.chinese-practice-actions button.is-primary {
+  color: #f0dcdf;
+  border-color: rgba(227, 38, 54, 0.28);
+  background: var(--chinese-red-soft);
+}
+
+.chinese-practice-footnote {
+  margin: 0;
+  color: var(--color-text-disabled);
+  font-size: 7px;
+  text-align: center;
 }
 
 .chinese-database-empty {
@@ -1465,9 +1744,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-xl);
-  background:
-    radial-gradient(circle at 0 0, rgba(227, 38, 54, 0.075), transparent 31%),
-    #141414;
+  background: #141414;
   box-shadow: var(--shadow-floating);
   animation: momentum-rise-in 220ms var(--ease-out) both;
 }
@@ -1532,6 +1809,31 @@
   border-color: rgba(227, 38, 54, 0.2);
   color: var(--chinese-red);
   background: var(--chinese-red-soft);
+}
+
+.chinese-entry-meaning-field > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.chinese-entry-meaning-field button {
+  min-width: 82px;
+  padding: 0 10px;
+  border-color: rgba(227, 38, 54, 0.2);
+  color: var(--color-text-secondary);
+  background: var(--chinese-red-soft);
+  font-size: 7px;
+}
+
+.chinese-entry-meaning-field > small {
+  margin-top: 5px;
+  color: var(--color-text-disabled);
+  font-size: 7px;
+}
+
+.chinese-entry-favorite-toggle {
+  margin-left: auto;
 }
 
 .chinese-entry-type-field {

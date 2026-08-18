@@ -1323,7 +1323,9 @@ features/chinese/
 ChinesePage
 components/
   ChineseToday
+  ChinesePractice
   ChineseDatabase
+  ChinesePronunciationStudio
   ChineseProgress
   ChineseEntryModal
 services/
@@ -1332,9 +1334,10 @@ services/
   chineseQueries
   pinyinService
   pronunciationService
+  translationService
 ```
 
-Chinese should remain intentionally small.
+Chinese should remain intentionally focused.
 
 The page owns section selection and orchestration. Services own mutations, typed Planner matching, XP eligibility, streak calculations, and pronunciation capability checks. Presentation components receive data and callbacks.
 
@@ -1968,6 +1971,10 @@ Current milestone status:
 * Typed Planner auto-completion and shared pillar/global XP integration implemented
 * Explicit streaks, Sunday-first 52-week heatmap, and month comparison implemented
 * Generated editable pinyin and Taiwanese Mandarin pronunciation playback implemented
+* Practice Queue with explicit keep-practicing and comfortable states implemented
+* Favorites, overlapping collections, stronger filtering, and database sorting implemented
+* Reviewed on-device translation workflow with graceful manual fallback implemented
+* Playback speed, repetition, and temporary local recording implemented
 
 ## Phase 6 — Athletics
 

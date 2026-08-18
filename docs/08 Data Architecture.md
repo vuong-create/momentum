@@ -1230,6 +1230,13 @@ notes
 tags
 source
 
+favorite
+collections
+
+practiceStatus
+practiceCount
+lastPracticedAt
+
 createdAt
 updatedAt
 deletedAt
@@ -1241,6 +1248,8 @@ Required:
 * Meaning
 
 Everything else may be automatic or optional.
+
+`favorite` and `collections` support retrieval and focused practice without splitting language into separate databases. Practice fields store explicit user review signals only. They do not imply proficiency, award XP, or activate a streak. Existing entries remain valid when these V2 fields are absent; schema 31 adds indexes without rewriting prior Chinese records.
 
 ---
 
