@@ -43,17 +43,20 @@ export default function CookingRecipes({ recipes, todayKey, onCreate, onUpdate, 
   }, [filtered]);
 
   function renderRecipeCard(recipe: CookingRecipe) {
-    const number = filtered.findIndex(({ id }) => id === recipe.id) + 1;
     return (
       <article key={recipe.id} className="cooking-recipe-card">
         <button type="button" className={`cooking-recipe-cover ${recipe.coverImageDataUrl ? "has-image" : ""}`} onClick={() => setSelected(recipe)} aria-label={`Open ${recipe.name}`}>
           {recipe.coverImageDataUrl
             ? <img src={recipe.coverImageDataUrl} alt="" />
             : <span className="cooking-cover-placeholder" aria-hidden="true"><i /><b>＋ Add cover</b></span>}
-          <em>{String(number).padStart(2, "0")}</em>
-          <span className="cooking-recipe-caption"><strong>{recipe.name}</strong><small>{recipe.menuSection || `${recipe.prepMinutes ? `${recipe.prepMinutes} min · ` : ""}${recipe.defaultServings} servings`}</small></span>
         </button>
-        <button type="button" className={`cooking-card-favorite ${recipe.favorite ? "is-favorite" : ""}`} onClick={() => onToggleFavorite(recipe)} aria-label={`${recipe.favorite ? "Remove" : "Add"} ${recipe.name} ${recipe.favorite ? "from" : "to"} favorites`}>{recipe.favorite ? "★" : "☆"}</button>
+        <div className="cooking-recipe-caption">
+          <button type="button" className="cooking-recipe-open" onClick={() => setSelected(recipe)}>
+            <strong>{recipe.name}</strong>
+            <small>{recipe.menuSection || `${recipe.prepMinutes ? `${recipe.prepMinutes} min · ` : ""}${recipe.defaultServings} servings`}</small>
+          </button>
+          <button type="button" className={`cooking-card-favorite ${recipe.favorite ? "is-favorite" : ""}`} onClick={() => onToggleFavorite(recipe)} aria-label={`${recipe.favorite ? "Remove" : "Add"} ${recipe.name} ${recipe.favorite ? "from" : "to"} favorites`}>{recipe.favorite ? "★" : "☆"}</button>
+        </div>
         <div className="cooking-card-actions">
           <button type="button" onClick={() => onCookToday(recipe)}>Made</button>
           <button type="button" onClick={() => onAddGroceries(recipe, recipe.defaultServings)}>Groceries</button>
