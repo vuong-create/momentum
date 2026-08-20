@@ -160,7 +160,7 @@ export default function HomeTodo({
           : undefined,
       });
       setNewTask("");
-      experience.playFeedback("task-added");
+      experience.playFeedback("entry-confirmed");
 
       if (experience.motionEnabled) {
         setShowAddedFeedback(true);
@@ -225,6 +225,22 @@ export default function HomeTodo({
     activityUndo.show({
       message,
       undo: () => restorePlannedActivitySchedule(activity),
+    });
+  }
+
+  async function moveAllUnfinishedToToday(activities: PlannedActivity[]) {
+    const movable = activities.filter((activity) => activity.id);
+    if (!movable.length) return;
+
+    await Promise.all(
+      movable.map((activity) => movePlannedActivity(activity.id!, todayKey))
+    );
+    experience.playFeedback("entry-confirmed");
+    activityUndo.show({
+      message: `${movable.length} ${movable.length === 1 ? "activity" : "activities"} added to Today`,
+      undo: () => Promise.all(
+        movable.map((activity) => restorePlannedActivitySchedule(activity))
+      ).then(() => undefined),
     });
   }
 
@@ -326,6 +342,7 @@ export default function HomeTodo({
         <UnfinishedActivities
           activities={overdueActivities}
           todayKey={todayKey}
+          onMoveAllToToday={moveAllUnfinishedToToday}
           onMoveToToday={(activity) =>
             moveUnfinishedActivity(activity, todayKey, "Moved to Today")
           }

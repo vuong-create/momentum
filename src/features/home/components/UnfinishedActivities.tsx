@@ -13,6 +13,7 @@ import "./unfinished-activities.css";
 type UnfinishedActivitiesProps = {
   activities: PlannedActivity[];
   todayKey: string;
+  onMoveAllToToday: (activities: PlannedActivity[]) => Promise<void>;
   onMoveToToday: (activity: PlannedActivity) => Promise<void>;
   onReschedule: (
     activity: PlannedActivity,
@@ -66,6 +67,7 @@ function formatOriginalDate(dateKey?: string) {
 export default function UnfinishedActivities({
   activities,
   todayKey,
+  onMoveAllToToday,
   onMoveToToday,
   onReschedule,
   onComplete,
@@ -81,6 +83,7 @@ export default function UnfinishedActivities({
   );
   const [customDate, setCustomDate] = useState("");
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [movingAll, setMovingAll] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
   const nextWeekDates = useMemo(
     () => getNextWeekDates(todayKey),
@@ -131,6 +134,23 @@ export default function UnfinishedActivities({
 
       {expanded && (
         <div className="home-unfinished-list">
+          <div className="home-unfinished-bulk">
+            <span>Bring the whole list into today.</span>
+            <button
+              type="button"
+              disabled={movingAll || busyId !== null}
+              onClick={async () => {
+                setMovingAll(true);
+                try {
+                  await onMoveAllToToday(activities);
+                } finally {
+                  setMovingAll(false);
+                }
+              }}
+            >
+              {movingAll ? "Adding…" : "Add all to Today"}
+            </button>
+          </div>
           {activities.map((activity) => {
             const theme =
               pillarThemes[activity.pillar as PillarKey];
@@ -148,7 +168,7 @@ export default function UnfinishedActivities({
                   <PillarQuickSelect
                     value={activity.pillar}
                     iconOnly
-                    disabled={isBusy}
+                    disabled={isBusy || movingAll}
                     label={`Change pillar for ${activity.title}`}
                     onChange={(pillar) => onChangePillar(activity, pillar)}
                   />
@@ -171,14 +191,14 @@ export default function UnfinishedActivities({
                 <div className="home-unfinished-actions">
                   <button
                     type="button"
-                    disabled={isBusy}
+                    disabled={isBusy || movingAll}
                     onClick={() => runAction(activity, () => onComplete(activity))}
                   >
                     Complete now
                   </button>
                   <button
                     type="button"
-                    disabled={isBusy}
+                    disabled={isBusy || movingAll}
                     onClick={() =>
                       runAction(activity, () => onMoveToToday(activity))
                     }
@@ -187,7 +207,7 @@ export default function UnfinishedActivities({
                   </button>
                   <button
                     type="button"
-                    disabled={isBusy}
+                    disabled={isBusy || movingAll}
                     onClick={() => {
                       setReschedulingId(isRescheduling ? null : activity.id!);
                       setCustomDate("");
@@ -197,7 +217,7 @@ export default function UnfinishedActivities({
                   </button>
                   <button
                     type="button"
-                    disabled={isBusy}
+                    disabled={isBusy || movingAll}
                     className={confirmingDeleteId === activity.id ? "is-confirming-delete" : ""}
                     onClick={() => {
                       if (confirmingDeleteId !== activity.id) {
@@ -220,7 +240,7 @@ export default function UnfinishedActivities({
                         <button
                           key={date.dateKey}
                           type="button"
-                          disabled={isBusy}
+                          disabled={isBusy || movingAll}
                           onClick={() =>
                             runAction(activity, () =>
                               onReschedule(activity, date.dateKey)
@@ -244,7 +264,7 @@ export default function UnfinishedActivities({
                       />
                       <button
                         type="button"
-                        disabled={!customDate || isBusy}
+                        disabled={!customDate || isBusy || movingAll}
                         onClick={() =>
                           runAction(activity, () =>
                             onReschedule(activity, customDate)

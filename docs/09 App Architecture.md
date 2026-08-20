@@ -2044,6 +2044,10 @@ Current milestone status:
 * Accounts support auditable current-balance reconciliation without rewriting history or distorting monthly cash flow
 * Paid-in-full credit cards are spending sources rather than balance accounts, stay out of the Overview account list, and Finance privacy mode blurs sensitive balance figures
 * Reports switch between monthly and annual perspectives with twelve-month aggregation
+* Finance navigation places Reports immediately after Budget; the compact pillar header leaves summary figures to Overview and Reports
+* Transactions lead with the bottom-anchored ledger and place Quick Entry below it so recent records remain in view
+* The desktop Transactions workspace locks to the viewport, confines scrolling to ledger rows, and allows Quick Entry to collapse without changing data
+* Report categories use coordinated pastel identities across comparison bars and a complete multi-category spending orbit
 * Investment contributions route from a cash source to an investment account, preserve net worth, and support account/holding contribution reports
 * Ledger visibility hides reconciliation entries by default without removing their accounting effects; individual records can be hidden or restored
 * Overview category progress is driven by the same Budget rows and over-plan rules as the Budget screen
@@ -2066,6 +2070,7 @@ Current milestone status:
 * Later backup improvements: automatic schedules, additional backup migrations, media packaging, and human-readable pillar exports
 * Focus Mode Version 1 implemented as a task-attached workspace with recoverable Pomodoro timing, break cycles, local procedural soundscapes, session history, and optional Planner completion
 * Sound & Feedback System Version 2 implemented with an approved asset library, semantic cue registry, pillar motifs, volume/category preferences, playback priority and cooldown protection, trigger cleanup, and a Settings sound gallery
+* Rapid keyboard entry uses a dedicated low-volume interface confirmation rather than a full action cue
 * Daily Driver resilience implemented with route-level feature loading, an app recovery boundary, read-only data health reporting, and end-to-end Planner/preset/XP/backup regression coverage
 * Pillar routes ship as independent production chunks so one feature's weight does not delay every screen
 * Data health checks never mutate live records and require explicit approval before any future repair workflow

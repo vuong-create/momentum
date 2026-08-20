@@ -64,6 +64,30 @@
   animation: momentum-rise-in var(--duration-normal) var(--ease-out) both;
 }
 
+.home-unfinished-bulk {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 6px 9px 13px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.home-unfinished-bulk span {
+  color: var(--color-text-disabled);
+  font-size: 8px;
+}
+
+.home-unfinished-bulk button {
+  min-height: 30px;
+  padding: 0 10px;
+  border-color: rgba(241, 183, 74, 0.18);
+  color: #d8c59b;
+  background: rgba(241, 183, 74, 0.065);
+  font-size: 8px;
+}
+
 .home-unfinished-item {
   padding: 13px;
   border-top: 1px solid var(--color-border-subtle);
@@ -212,6 +236,11 @@
 }
 
 @media (max-width: 560px) {
+  .home-unfinished-bulk {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .home-unfinished-actions,
   .home-unfinished-reschedule {
     margin-left: 0;
