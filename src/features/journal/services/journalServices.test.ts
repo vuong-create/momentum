@@ -33,6 +33,17 @@ import {
   updateWishlistItem,
   visibleWishlistItems,
 } from "./wishlistService";
+import {
+  createWatchItem,
+  formatPlaybackTimestamp,
+  normalizeWatchUrl,
+  parsePlaybackTimestamp,
+  restoreWatchItem,
+  setWatchItemStatus,
+  softDeleteWatchItem,
+  updateWatchItem,
+  visibleWatchItems,
+} from "./watchlistService";
 
 beforeEach(async () => {
   await db.transaction("rw", db.tables, async () => {
@@ -46,6 +57,58 @@ afterAll(async () => {
 });
 
 describe("journal services", () => {
+  it("tracks movies and shows with resumable watch progress", async () => {
+    const showId = await createWatchItem({
+      title: "  Shōgun  ",
+      mediaType: "show",
+      status: "watching",
+      releaseYear: 2024,
+      url: "example.com/shogun",
+      platform: "  Hulu  ",
+      seasonNumber: 1,
+      episodeNumber: 4,
+      playbackPosition: "42:15",
+      notes: "  Continue after dinner.  ",
+    });
+    const movieId = await createWatchItem({
+      title: "Perfect Days",
+      mediaType: "movie",
+      status: "want-to-watch",
+    });
+
+    expect(await db.libraryWatchItems.get(showId)).toMatchObject({
+      title: "Shōgun",
+      url: "https://example.com/shogun",
+      platform: "Hulu",
+      seasonNumber: 1,
+      episodeNumber: 4,
+      playbackPositionSeconds: 2535,
+      status: "watching",
+    });
+    expect((await db.libraryWatchItems.get(showId))?.startedAt).toBeTruthy();
+    expect(visibleWatchItems(await db.libraryWatchItems.toArray()).map(({ id }) => id)).toEqual([showId, movieId]);
+
+    await setWatchItemStatus(showId, "finished");
+    expect((await db.libraryWatchItems.get(showId))?.finishedAt).toBeTruthy();
+    await updateWatchItem(movieId, {
+      title: "Perfect Days",
+      mediaType: "movie",
+      status: "watching",
+      playbackPosition: "1:08:30",
+    });
+    expect((await db.libraryWatchItems.get(movieId))?.playbackPositionSeconds).toBe(4110);
+
+    await softDeleteWatchItem(movieId);
+    expect(visibleWatchItems(await db.libraryWatchItems.toArray())).toHaveLength(1);
+    await restoreWatchItem(movieId);
+    expect(visibleWatchItems(await db.libraryWatchItems.toArray())).toHaveLength(2);
+    expect(parsePlaybackTimestamp("42:15")).toBe(2535);
+    expect(formatPlaybackTimestamp(4110)).toBe("1:08:30");
+    expect(normalizeWatchUrl(undefined)).toBeUndefined();
+    expect(() => parsePlaybackTimestamp("42 minutes")).toThrow("Timestamp");
+    expect(() => normalizeWatchUrl("javascript:alert(1)")).toThrow("http or https");
+  });
+
   it("keeps Wish List links optional and tracks acquired items", async () => {
     const linkedId = await createWishlistItem({
       name: "  Reading lamp  ",

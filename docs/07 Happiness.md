@@ -64,14 +64,15 @@ The system prioritizes meaningful memories over graphs and statistics.
 
 # 3. Navigation
 
-Library contains six lightweight sections:
+Library contains seven lightweight sections:
 
 1. Write
 2. Journal
 3. Books
-4. Wish List
-5. Look Back
-6. Quotes
+4. Watchlist
+5. Wish List
+6. Look Back
+7. Quotes
 
 ---
 
@@ -888,6 +889,16 @@ The Library does not use reading streaks, ratings, quotas, or completion pressur
 
 ---
 
+# 43A. Watchlist
+
+Watchlist is a quiet home for movies and shows the user wants to watch, is currently watching, or has finished.
+
+Each item can keep an optional year, platform, link, note, season, episode, and playback timestamp. Starting and finishing dates are recorded automatically so progress is useful without creating another form to maintain.
+
+The Watchlist does not use ratings, XP, streaks, posters, or completion pressure. It is a practical memory and resumption tool rather than an entertainment tracker that demands attention.
+
+---
+
 # 44. Foundation Implementation
 
 Implemented in the first Journal milestone:
@@ -901,6 +912,7 @@ Implemented in the first Journal milestone:
 * Saved Momentum quotes, personal quotes, and favorites
 * Personal Library with reading states and a physical bookshelf view
 * Optional book reflection link into Journal
+* Watchlist for movies and shows with progress, links, notes, and finished history
 * Wish List for considered items, optional links and notes, and acquired history
 
 Photo attachments, memory galleries, and media compression remain intentionally
@@ -909,7 +921,7 @@ deferred; Apple Photos already covers that role well enough for now.
 Implemented in the Library evolution milestone:
 
 * Library becomes the visible pillar name while `/journal` remains the stable route
-* Write, Journal, Books, Wish List, Look Back, and Quotes remain focused subsections
+* Write, Journal, Books, Watchlist, Wish List, Look Back, and Quotes remain focused subsections
 * Optional Reflection, Gratitude, Memory, Growth, Ideas, and Books categories
 * Category badges, filtering, and editing
 * Prompt gallery with category filtering and generated writing templates

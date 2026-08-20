@@ -177,7 +177,7 @@ describe("backup service", () => {
 
     const migrated = validateMomentumBackup(legacy, db);
 
-    expect(migrated.manifest.schemaVersion).toBe(31);
+    expect(migrated.manifest.schemaVersion).toBe(32);
     expect(migrated.data.focusSessions).toEqual([]);
     expect(migrated.manifest.tableCounts.focusSessions).toBe(0);
   });
@@ -196,7 +196,7 @@ describe("backup service", () => {
     delete settings.interfaceSoundsEnabled;
 
     const migrated = validateMomentumBackup(legacy, db);
-    expect(migrated.manifest.schemaVersion).toBe(31);
+    expect(migrated.manifest.schemaVersion).toBe(32);
     expect(migrated.data.appSettings[0]).toEqual(expect.objectContaining({
       soundVolume: 0.6, interfaceSoundsEnabled: true,
     }));
@@ -212,7 +212,7 @@ describe("backup service", () => {
     }
 
     const migrated = validateMomentumBackup(legacy, db);
-    expect(migrated.manifest.schemaVersion).toBe(31);
+    expect(migrated.manifest.schemaVersion).toBe(32);
     expect(migrated.data.dayPresets).toEqual([]);
     expect(migrated.data.weeklyProgressResults).toEqual([]);
     expect(migrated.data.milestoneSnapshots).toEqual([]);
@@ -228,7 +228,7 @@ describe("backup service", () => {
     delete legacy.manifest.tableCounts.libraryWishlistItems;
 
     const migrated = validateMomentumBackup(legacy, db);
-    expect(migrated.manifest.schemaVersion).toBe(31);
+    expect(migrated.manifest.schemaVersion).toBe(32);
     expect(migrated.data.libraryWishlistItems).toEqual([]);
     expect(migrated.manifest.tableCounts.libraryWishlistItems).toBe(0);
   });
@@ -246,8 +246,20 @@ describe("backup service", () => {
       .reduce((total, count) => total + count, 0);
 
     const migrated = validateMomentumBackup(legacy, db);
-    expect(migrated.manifest.schemaVersion).toBe(31);
+    expect(migrated.manifest.schemaVersion).toBe(32);
     expect(migrated.data.chineseEntries).toEqual(legacy.data.chineseEntries);
+  });
+
+  it("migrates schema 31 backups with an empty Watchlist", async () => {
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+    const legacy = structuredClone(backup);
+    legacy.manifest.schemaVersion = 31;
+    delete legacy.data.libraryWatchItems;
+    delete legacy.manifest.tableCounts.libraryWatchItems;
+    const migrated = validateMomentumBackup(legacy, db);
+    expect(migrated.manifest.schemaVersion).toBe(32);
+    expect(migrated.data.libraryWatchItems).toEqual([]);
+    expect(migrated.manifest.tableCounts.libraryWatchItems).toBe(0);
   });
 
   it("round-trips progression and day presets without changing their records", async () => {

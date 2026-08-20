@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { db, type JournalEntry, type LibraryBook, type LibraryWishlistItem, type SavedQuote } from "../../database/db";
+import { db, type JournalEntry, type LibraryBook, type LibraryWatchItem, type LibraryWishlistItem, type SavedQuote } from "../../database/db";
 import useExperience from "../../experience/useExperience";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
 import useActivityUndo from "../activities/hooks/useActivityUndo";
@@ -11,6 +11,7 @@ import JournalLibrary from "./components/JournalLibrary";
 import JournalLookBack from "./components/JournalLookBack";
 import JournalQuotes from "./components/JournalQuotes";
 import JournalToday from "./components/JournalToday";
+import JournalWatchlist from "./components/JournalWatchlist";
 import JournalWishlist from "./components/JournalWishlist";
 import {
   createJournalEntry,
@@ -45,15 +46,17 @@ import {
   visibleWishlistItems,
   type WishlistItemInput,
 } from "./services/wishlistService";
+import { createWatchItem, restoreWatchItem, setWatchItemStatus, softDeleteWatchItem, updateWatchItem, visibleWatchItems, type WatchItemInput } from "./services/watchlistService";
 
 import "./journal.css";
 
-type JournalView = "today" | "journal" | "library" | "wishlist" | "look-back" | "quotes";
+type JournalView = "today" | "journal" | "library" | "watchlist" | "wishlist" | "look-back" | "quotes";
 
 const journalTabs: { id: JournalView; label: string }[] = [
   { id: "today", label: "Write" },
   { id: "journal", label: "Journal" },
   { id: "library", label: "Books" },
+  { id: "watchlist", label: "Watchlist" },
   { id: "wishlist", label: "Wish List" },
   { id: "look-back", label: "Look Back" },
   { id: "quotes", label: "Quotes" },
@@ -72,10 +75,12 @@ export default function JournalPage() {
   const allEntries = useLiveQuery(() => db.journalEntries.toArray(), []) ?? [];
   const allQuotes = useLiveQuery(() => db.savedQuotes.toArray(), []) ?? [];
   const allBooks = useLiveQuery(() => db.libraryBooks.toArray(), []) ?? [];
+  const allWatchItems = useLiveQuery(() => db.libraryWatchItems.toArray(), []) ?? [];
   const allWishlistItems = useLiveQuery(() => db.libraryWishlistItems.toArray(), []) ?? [];
   const entries = visibleJournalEntries(allEntries);
   const quotes = visibleQuotes(allQuotes);
   const books = visibleLibraryBooks(allBooks);
+  const watchItems = visibleWatchItems(allWatchItems);
   const wishlistItems = visibleWishlistItems(allWishlistItems);
 
   function selectView(nextView: JournalView) {
@@ -202,6 +207,24 @@ export default function JournalPage() {
     experience.playFeedback("library-saved");
   }
 
+  async function saveWatchItem(item: LibraryWatchItem | null, input: WatchItemInput) {
+    if (item?.id) await updateWatchItem(item.id, input); else await createWatchItem(input);
+    experience.playFeedback("library-saved");
+  }
+
+  async function deleteWatchItem(item: LibraryWatchItem) {
+    if (!item.id) return;
+    await softDeleteWatchItem(item.id);
+    experience.playFeedback("library-removed");
+    undo.show({ message: "Title removed from Watchlist", undo: () => restoreWatchItem(item.id!) });
+  }
+
+  async function changeWatchStatus(item: LibraryWatchItem, status: LibraryWatchItem["status"]) {
+    if (!item.id) return;
+    await setWatchItemStatus(item.id, status);
+    experience.playFeedback(status === "finished" ? "task-completed" : "library-saved");
+  }
+
   const closeEntry = useCallback(() => setSelectedEntry(null), []);
 
   return (
@@ -220,6 +243,7 @@ export default function JournalPage() {
           <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}>
             {tab.label}
             {tab.id === "library" && books.length > 0 && <span>{books.length}</span>}
+            {tab.id === "watchlist" && watchItems.length > 0 && <span>{watchItems.length}</span>}
             {tab.id === "wishlist" && wishlistItems.length > 0 && <span>{wishlistItems.length}</span>}
             {tab.id === "quotes" && quotes.length > 0 && <span>{quotes.length}</span>}
           </button>
@@ -230,6 +254,7 @@ export default function JournalPage() {
         {view === "today" && <JournalToday now={experience.now} savedQuotes={allQuotes} onSave={saveNewEntry} onToggleQuote={async (quote) => { await toggleBuiltInQuote(quote); experience.playFeedback("library-saved"); }} />}
         {view === "journal" && <JournalHistory entries={entries} onOpen={setSelectedEntry} />}
         {view === "library" && <JournalLibrary books={books} onSave={saveBook} onDelete={deleteBook} onJournalize={journalizeBook} />}
+        {view === "watchlist" && <JournalWatchlist items={watchItems} onSave={saveWatchItem} onDelete={deleteWatchItem} onStatusChange={changeWatchStatus} />}
         {view === "wishlist" && <JournalWishlist items={wishlistItems} onSave={saveWishlistItem} onDelete={deleteWishlistItem} onStatusChange={changeWishlistStatus} />}
         {view === "look-back" && <JournalLookBack entries={entries} now={experience.now} onOpen={setSelectedEntry} />}
         {view === "quotes" && <JournalQuotes quotes={quotes} onAdd={addQuote} onFavorite={favoriteQuote} onDelete={deleteQuote} />}
