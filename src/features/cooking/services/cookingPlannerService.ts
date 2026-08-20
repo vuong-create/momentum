@@ -88,6 +88,12 @@ export async function softDeleteCookingMealLog(id: number) {
   if (log.xpEventId) await db.xpEvents.update(log.xpEventId, { voidedAt: now });
 }
 
+export async function updateCookingMealNote(id: number, notes?: string) {
+  const log = await db.cookingMealLogs.get(id);
+  if (!log || log.deletedAt) throw new Error("Cooking history entry not found.");
+  await db.cookingMealLogs.update(id, { notes: notes?.trim() || undefined });
+}
+
 export function visibleCookingPlans(activities: PlannedActivity[]) {
   return activities.filter((activity) => activity.pillar === "cooking" && isCookingMealActivityKind(activity.activityKind) && !activity.deletedAt && activity.status !== "dismissed" && activity.status !== "cancelled");
 }

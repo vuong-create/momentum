@@ -50,7 +50,7 @@ import HomeTodo from "./components/HomeTodo";
 
 import "./home-dashboard.css";
 import "./components/home-todo.css";
-import FlipClock from "./components/FlipClock";
+import PixelTerminalClock from "./components/PixelTerminalClock";
 import MomentumXPCard from "./components/MomentumXPCard";
 
 const weekDayNames = [
@@ -431,7 +431,7 @@ export default function HomeDashboard() {
 
         <section className="living-home-time" aria-label="Current time">
           <span className="living-home-label">Now</span>
-          <FlipClock />
+          <PixelTerminalClock />
         </section>
 
         <MomentumXPCard

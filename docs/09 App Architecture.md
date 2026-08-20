@@ -1381,7 +1381,7 @@ components/
   CookingRecipes
   RecipeModal
   CookingGroceries
-  CookingDecide
+  CookingJournal
 services/
   recipeService
   groceryService

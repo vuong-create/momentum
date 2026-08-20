@@ -52,9 +52,9 @@ Meal planning should never require maintaining a second calendar.
 Cooking contains four primary sections:
 
 1. This Week
-2. Meals
-3. Grocery List
-4. What Should I Make?
+2. Cookbook
+3. Groceries
+4. Kitchen Journal
 
 ---
 
@@ -82,7 +82,7 @@ Quick actions:
 
 `🛒 Grocery List`
 
-`🎲 What Should I Make?`
+`◉ Kitchen Journal`
 
 ---
 
@@ -638,55 +638,33 @@ There should also be protection against accidentally deleting the entire active 
 
 ---
 
-# 29. What Should I Make?
+# 29. Kitchen Journal
 
-Cooking includes a lightweight meal-decision tool.
+Cooking includes a visual history of meals that actually reached the table.
 
-Button:
+The Journal derives its entries from completed meal plans and spontaneous cookbook completions. It does not create a second completion system.
 
-`🎲 What Should I Make?`
+Each entry may include:
 
-Momentum selects **3 meals from the user's saved Meals database**.
+* Cookbook artwork
+* Date cooked
+* Recipe link
+* Times-made context
+* An optional post-cooking note
 
-Example:
-
-## What Should I Make?
-
-🍜 **Ramen**
-
-🍛 **Japanese Curry**
-
-🌮 **Chicken Tacos**
-
-Actions:
-
-`Add to Week`
-
-`Shuffle Again`
+The history can be searched and viewed by month. Clicking a recipe-linked entry opens the normal cookbook record.
 
 ---
 
-# 30. Suggestion Philosophy
+# 30. History Philosophy
 
-The feature is intentionally simple.
+The Journal should help answer:
 
-It does not require complex AI recommendations in Version 1.
+> **What have I actually cooked, and what would I remember next time?**
 
-Its primary purpose is:
+It does not add ratings, nutrition scoring, streak pressure, or a separate cooking database. Planner completion and cooking logs remain authoritative.
 
-> **I don't know what I want to cook. Give me a few things I already know I like.**
-
-Suggestions come from the user's own Meals database.
-
-Future versions can potentially use:
-
-* Favorites
-* Recently cooked
-* Tags
-* Variety
-* Available ingredients
-
-But these are not required initially.
+Meal suggestions can remain a future, contextual action inside planning rather than occupying a permanent primary tab.
 
 ---
 
@@ -968,7 +946,7 @@ The user should spend more time cooking and less time maintaining the system.
 * [x] Recipe → Grocery List
 * [x] Duplicate ingredient handling
 * [x] Grocery persistence
-* [x] What Should I Make?
+* [x] Kitchen Journal
 * [x] Recently Cooked
 * [x] Cook Again
 * [x] No nutrition tracking
@@ -984,10 +962,10 @@ The user should spend more time cooking and less time maintaining the system.
 
 The first production foundation is implemented with four focused views:
 
-* **This Week** — a Sunday-first meal view backed by the shared Planner, including cookbook artwork for recipe-linked meals
+* **This Week** — a Sunday-first visual menu backed by the shared Planner, with full square cookbook artwork for recipe-linked meals
 * **Cookbook** — a compact illustrated menu with five-column desktop browsing, handwritten titles, searchable recipes, favorites, serving sizes, ingredients, instructions, notes, and persistent cover photos
 * **Groceries** — recipe transfer, serving scaling, category inference, quick add, checking, clearing, and undo
-* **What Should I Make?** — lightweight suggestions from the personal cookbook
+* **Kitchen Journal** — searchable and month-filtered visual cooking history with recipe links and optional post-cooking notes
 
 Meal plans are normal `PlannedActivity` records with the Cooking pillar and a typed recipe or quick-meal activity kind. Momentum therefore has one calendar and one completion state across Cooking, Planner, Home, and XP.
 
@@ -1004,5 +982,7 @@ Recipe cover art is rendered directly into the warm paper surface so white or tr
 Recipes may optionally declare one reusable **Menu section**. The default cookbook remains a dense all-recipes grid, while **Group sections** organizes cards under their section names and places recipes without a section under **Unsorted**. Full section management remains deferred.
 
 The recipe editor derives **times made** and **last made** from cooking logs and completed recipe-linked Planner activities. The value is not manually stored, so completion and undo remain authoritative and cannot drift from the activity history.
+
+The Kitchen Journal uses those same authoritative records. Notes are optional fields on persisted cooking logs; older completed Planner meals remain visible without being rewritten.
 
 **Cooking Foundation: IMPLEMENTED**
