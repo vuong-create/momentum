@@ -1409,10 +1409,14 @@ components/
   JournalLookBack
   JournalQuotes
   JournalLibrary
+  JournalWatchlist
+  JournalWishlist
 services/
   journalService
   quoteService
   libraryService
+  watchlistService
+  wishlistService
 ```
 
 The notebook appearance belongs primarily in presentation components.
@@ -1955,6 +1959,7 @@ Current milestone status:
 * Look Back and unified quote collection implemented
 * Personal Library and bookshelf implemented
 * Library pillar naming, optional categories, and prompt-generated templates implemented
+* Watchlist implemented with movie/show states, resumable progress, and finished history
 * Photo memories remain intentionally deferred
 
 ## Phase 5 — Chinese

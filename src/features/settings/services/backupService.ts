@@ -64,8 +64,8 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
   if (!isRecord(value.manifest) || !isRecord(value.data)) return value;
   if (value.backupVersion !== MOMENTUM_BACKUP_VERSION) return value;
   const sourceVersion = value.manifest.schemaVersion;
-  if (![26, 27, 28, 29, 30].includes(Number(sourceVersion))) return value;
-  if (database.verno !== 31) return value;
+  if (![26, 27, 28, 29, 30, 31].includes(Number(sourceVersion))) return value;
+  if (database.verno !== 32) return value;
 
   const migrated = structuredClone(value);
   if (!isRecord(migrated) || !isRecord(migrated.manifest) || !isRecord(migrated.data)) {
@@ -83,6 +83,7 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
     "milestoneSnapshots",
     "progressionState",
     "libraryWishlistItems",
+    "libraryWatchItems",
   ]) {
     if (!(tableName in migrated.data)) {
       migrated.data[tableName] = [];
@@ -102,7 +103,7 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
       item.soundscapeVolume ??= 0.35;
     }
   }
-  migrated.manifest.schemaVersion = 31;
+  migrated.manifest.schemaVersion = 32;
   return migrated;
 }
 

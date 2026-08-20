@@ -398,6 +398,29 @@ export interface LibraryWishlistItem {
   deletedAt?: string;
 }
 
+export type LibraryMediaType = "movie" | "show";
+export type LibraryWatchStatus = "want-to-watch" | "watching" | "finished";
+
+export interface LibraryWatchItem {
+  id?: number;
+  title: string;
+  mediaType: LibraryMediaType;
+  status: LibraryWatchStatus;
+  releaseYear?: number;
+  url?: string;
+  platform?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  playbackPositionSeconds?: number;
+  notes?: string;
+  sortOrder: number;
+  startedAt?: string;
+  finishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
 export type GroceryCategory =
   | "produce"
   | "meat-seafood"
@@ -680,6 +703,7 @@ class MomentumDatabase extends Dexie {
   recurrenceRules!: Table<RecurrenceRule>;
   libraryBooks!: Table<LibraryBook>;
   libraryWishlistItems!: Table<LibraryWishlistItem>;
+  libraryWatchItems!: Table<LibraryWatchItem>;
   chineseEntries!: Table<ChineseEntry>;
   chineseActivities!: Table<ChineseActivity>;
   chineseMediaResources!: Table<ChineseMediaResource>;
@@ -1123,6 +1147,11 @@ class MomentumDatabase extends Dexie {
     this.version(31).stores({
       chineseEntries:
         "++id, traditional, pinyin, meaning, entryType, source, favorite, practiceStatus, *tags, *collections, createdAt, updatedAt, deletedAt",
+    });
+
+    this.version(32).stores({
+      libraryWatchItems:
+        "++id, title, mediaType, status, sortOrder, updatedAt, deletedAt",
     });
   }
 }

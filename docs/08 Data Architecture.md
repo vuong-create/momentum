@@ -1982,7 +1982,43 @@ deletedAt
 
 `status` is one of `want-to-read`, `reading`, or `finished`. The bookshelf is a view of finished book records, not a separate shelf database. The optional Journal link avoids duplicating reflection text into an unrelated memory model.
 
-The current local schema stores Journal entries, quotes, and Library books in Dexie with soft deletion for recoverable undo. Photos remain reserved for the shared Media implementation.
+The current local schema stores Journal entries, quotes, Library books, Wish List items, and Watchlist items in Dexie with soft deletion for recoverable undo. Photos remain reserved for the shared Media implementation.
+
+---
+
+# 67B. Library Watch Item
+
+The Library Watchlist stores movies and shows without introducing ratings, posters, or another activity system.
+
+```text
+LibraryWatchItem
+
+id
+title
+mediaType
+status
+
+releaseYear
+platform
+url
+
+seasonNumber
+episodeNumber
+playbackPositionSeconds
+notes
+
+startedAt
+finishedAt
+sortOrder
+
+createdAt
+updatedAt
+deletedAt
+```
+
+`mediaType` is `movie` or `show`. `status` is `want-to-watch`, `watching`, or `finished`. Playback position is stored as seconds so the interface can accept and display familiar `MM:SS` or `HH:MM:SS` timestamps without persisting presentation text.
+
+Schema 32 adds `libraryWatchItems` additively. Existing backups migrate with an empty Watchlist so no Journal, Library, Wish List, or pillar data is changed.
 
 ---
 
