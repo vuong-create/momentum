@@ -398,11 +398,17 @@ Options:
 
 `Move to Today`
 
+`Add all to Today`
+
 `Reschedule`
 
 `Dismiss`
 
 This prevents unfinished work from silently accumulating while still allowing the user to decide what happens.
+
+Bulk carryover moves every visible unfinished activity into Today as one
+intentional action and provides one undo operation that restores every task to
+its prior date.
 
 ---
 

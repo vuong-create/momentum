@@ -17,7 +17,7 @@ import FinanceOverview from "./components/FinanceOverview";
 import FinanceReports from "./components/FinanceReports";
 import FinanceTransactions from "./components/FinanceTransactions";
 import TransactionComposer from "./components/TransactionComposer";
-import { formatMoney, getAccountBalance, getMonthSummary, visibleFinanceAccounts, visibleFinanceTransactions } from "./services/financeCalculations";
+import { getAccountBalance, visibleFinanceAccounts, visibleFinanceTransactions } from "./services/financeCalculations";
 import { calculateBudgetRows, copyPreviousBudget, setBudgetAllocation } from "./services/financeBudgetService";
 import { closeFinanceMonth, reopenFinanceMonth, visibleFinanceReviews } from "./services/financeCloseService";
 import { archiveFinanceCategory, createFinanceCategory, ensureFinanceCategories, moveFinanceCategory, renameFinanceCategory, restoreFinanceCategory, visibleFinanceCategories } from "./services/financeCategoryService";
@@ -33,9 +33,9 @@ const tabs: Array<{ id: FinanceView; label: string; mark: string }> = [
   { id: "overview", label: "Overview", mark: "◇" },
   { id: "transactions", label: "Transactions", mark: "≡" },
   { id: "budget", label: "Budget", mark: "▤" },
+  { id: "reports", label: "Reports", mark: "↗" },
   { id: "goals", label: "Goals", mark: "◎" },
   { id: "accounts", label: "Accounts", mark: "○" },
-  { id: "reports", label: "Reports", mark: "↗" },
 ];
 function initialView(): FinanceView { const stored = sessionStorage.getItem("momentum.finance.tab"); return tabs.some((item) => item.id === stored) ? stored as FinanceView : "overview"; }
 function dateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
@@ -50,6 +50,7 @@ export default function FinancePage() {
   const [closingMonth, setClosingMonth] = useState<string | null>(null);
   const [balancesHidden, setBalancesHidden] = useState(() => localStorage.getItem("momentum.finance.hideBalances") === "true");
   const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
+  const [quickEntryHidden, setQuickEntryHidden] = useState(false);
   const allAccounts = useLiveQuery(() => db.financeAccounts.toArray(), []) ?? [];
   const allTransactions = useLiveQuery(() => db.financeTransactions.toArray(), []) ?? [];
   const allCategories = useLiveQuery(() => db.financeCategories.toArray(), []) ?? [];
@@ -65,14 +66,17 @@ export default function FinancePage() {
   const goals = visibleFinanceGoals(allGoals); const reviews = visibleFinanceReviews(allReviews);
   const todayKey = dateKey(experience.now);
   const month = todayKey.slice(0, 7);
-  const summary = getMonthSummary(transactions, month, categories);
   const currentBudgetRows = calculateBudgetRows(month, budgetAllocations, categories, transactions);
-  const expenseBudgetRemaining = currentBudgetRows.filter((row) => row.category.flowType === "expense").reduce((total, row) => total + row.remaining, 0);
 
   useEffect(() => { void ensureFinanceCategories(); }, []);
   useEffect(() => { void upsertMonthlyNetWorthSnapshot(accounts, transactions, new Date(`${todayKey}T12:00:00`)); }, [accounts, transactions, todayKey]);
+  useEffect(() => {
+    if (!editingTransaction || view !== "transactions") return;
+    requestAnimationFrame(() => document.querySelector(".finance-transaction-composer")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }, [editingTransaction, view]);
 
   function selectView(next: FinanceView) { setView(next); sessionStorage.setItem("momentum.finance.tab", next); window.scrollTo({ top: 0, behavior: "smooth" }); if (next !== "transactions") setEditingTransaction(null); }
+  function editTransaction(item: FinanceTransaction) { setQuickEntryHidden(false); setEditingTransaction(item); }
   function toggleBalances() { setBalancesHidden((current) => { const next = !current; localStorage.setItem("momentum.finance.hideBalances", String(next)); return next; }); }
   async function reopenForChange(months: string[]) { for (const affected of [...new Set(months)].sort((a, b) => b.localeCompare(a))) if (reviews.some((item) => item.month === affected)) await reopenFinanceMonth(affected); }
   async function saveAccount(input: FinanceAccountInput) {
@@ -83,24 +87,24 @@ export default function FinancePage() {
     const id = await createFinanceAccount(input); experience.playFeedback("finance-account-added");
     undo.show({ message: `${input.name.trim()} added`, undo: () => softDeleteFinanceAccount(id) });
   }
-  async function saveTransaction(input: FinanceTransactionInput) {
+  async function saveTransaction(input: FinanceTransactionInput, method: "keyboard" | "button" = "button") {
     await reopenForChange([input.date.slice(0, 7), ...(editingTransaction ? [editingTransaction.date.slice(0, 7)] : [])]);
     if (editingTransaction?.id) {
-      const previous = { ...editingTransaction }; await updateFinanceTransaction(editingTransaction.id, input); setEditingTransaction(null); experience.playFeedback("task-updated");
+      const previous = { ...editingTransaction }; await updateFinanceTransaction(editingTransaction.id, input); setEditingTransaction(null); experience.playFeedback(method === "keyboard" ? "entry-confirmed" : "task-updated");
       undo.show({ message: "Transaction updated", undo: () => db.financeTransactions.put(previous) }); return;
     }
-    const id = await createFinanceTransaction(input); experience.playFeedback(input.type === "income" ? "finance-income" : "finance-transaction");
+    const id = await createFinanceTransaction(input); experience.playFeedback(method === "keyboard" ? "entry-confirmed" : input.type === "income" ? "finance-income" : "finance-transaction");
     undo.show({ message: `${input.merchant.trim() || "Transaction"} recorded`, undo: () => softDeleteFinanceTransaction(id) });
   }
   async function removeTransaction(item: FinanceTransaction) { if (!item.id) return; await reopenForChange([item.date.slice(0, 7)]); await softDeleteFinanceTransaction(item.id); experience.playFeedback("task-dismissed"); undo.show({ message: "Transaction removed", undo: () => restoreFinanceTransaction(item.id!) }); }
 
-  return <div className={`finance-page ${balancesHidden ? "is-balances-hidden" : ""}`}>
-    <header className="finance-page-header"><div><span className="text-label">Clarity · Intention · Growth</span><h1 className="font-pixel">Finance</h1><p>Your financial life, without the spreadsheet friction.</p></div><div className="finance-header-stats"><span><small>Spent this month</small><strong className="finance-balance-value">{formatMoney(summary.expenses, true)}</strong></span><span><small>Savings rate</small><strong className={`${summary.savingsRate >= 0 ? "is-positive" : "is-negative"} finance-balance-value`}>{summary.savingsRate.toFixed(0)}%</strong></span><span><small>Budget remaining</small><strong className={`${expenseBudgetRemaining >= 0 ? "is-positive" : "is-negative"} finance-balance-value`}>{formatMoney(expenseBudgetRemaining, true)}</strong></span></div></header>
+  return <div className={`finance-page ${balancesHidden ? "is-balances-hidden" : ""} ${view === "transactions" ? "is-transactions-view" : ""} ${quickEntryHidden ? "is-quick-entry-hidden" : ""}`}>
+    <header className="finance-page-header finance-page-header-compact"><div><span className="text-label">Clarity · Intention · Growth</span><h1 className="font-pixel">Finance</h1></div></header>
     <nav className="finance-tabs" aria-label="Finance sections">{tabs.map((tab) => <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}</button>)}</nav>
     <main className="finance-content">
-      {view === "transactions" && <TransactionComposer key={editingTransaction?.id ?? "new"} accounts={accounts} transactions={transactions} categories={categories} editing={editingTransaction} todayKey={todayKey} onSave={saveTransaction} onCancelEdit={() => setEditingTransaction(null)} />}
       {view === "overview" && <FinanceOverview accounts={accounts} transactions={transactions} categories={allCategories} budgetRows={currentBudgetRows} now={experience.now} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAddAccount={() => setAccountModal("new")} onOpenTransactions={() => selectView("transactions")} />}
-      {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} onImport={() => setImportOpen(true)} onEdit={(item) => { setEditingTransaction(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} onDelete={removeTransaction} onSetVisibility={async (item, hidden) => { if (!item.id) return; await setFinanceTransactionLedgerVisibility(item.id, hidden); experience.playFeedback(hidden ? "task-dismissed" : "task-restored"); undo.show({ message: hidden ? "Transaction hidden from ledger" : "Transaction restored to ledger", undo: () => setFinanceTransactionLedgerVisibility(item.id!, !hidden) }); }} />}
+      {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} onImport={() => setImportOpen(true)} onEdit={editTransaction} onDelete={removeTransaction} onSetVisibility={async (item, hidden) => { if (!item.id) return; await setFinanceTransactionLedgerVisibility(item.id, hidden); experience.playFeedback(hidden ? "task-dismissed" : "task-restored"); undo.show({ message: hidden ? "Transaction hidden from ledger" : "Transaction restored to ledger", undo: () => setFinanceTransactionLedgerVisibility(item.id!, !hidden) }); }} />}
+      {view === "transactions" && (!quickEntryHidden ? <TransactionComposer key={editingTransaction?.id ?? "new"} accounts={accounts} transactions={transactions} categories={categories} editing={editingTransaction} todayKey={todayKey} onSave={saveTransaction} onCancelEdit={() => setEditingTransaction(null)} onHide={() => { setEditingTransaction(null); setQuickEntryHidden(true); }} /> : <button className="finance-quick-entry-restore" type="button" onClick={() => setQuickEntryHidden(false)}>＋ Show Quick Entry</button>)}
       {view === "budget" && <FinanceBudget now={experience.now} categories={categories} months={budgetMonths} allocations={budgetAllocations} transactions={transactions} reviews={reviews} onSetAllocation={async (budgetMonth, categoryId, amount) => { await reopenForChange([budgetMonth]); await setBudgetAllocation(budgetMonth, categoryId, amount); experience.playFeedback("task-updated"); }} onCopyPrevious={async (budgetMonth) => { await reopenForChange([budgetMonth]); const count = await copyPreviousBudget(budgetMonth); experience.playFeedback("task-restored"); return count; }} onManageCategories={() => setCategoryManagerOpen(true)} onCloseMonth={setClosingMonth} onReopenMonth={async (budgetMonth) => { await reopenFinanceMonth(budgetMonth); experience.playFeedback("task-restored"); }} />}
       {view === "goals" && <FinanceGoals now={experience.now} accounts={accounts} transactions={transactions} goals={goals} onCreate={async (input: FinanceGoalInput) => { const id = await createFinanceGoal(input); experience.playFeedback("task-added"); undo.show({ message: `${input.name.trim()} goal created`, undo: () => softDeleteFinanceGoal(id) }); }} onUpdate={async (id, input) => { const previous = { ...allGoals.find((item) => item.id === id)! }; await updateFinanceGoal(id, input); experience.playFeedback("task-updated"); undo.show({ message: "Goal updated", undo: () => db.financeGoals.put(previous) }); }} onDelete={async (goal: FinanceGoal) => { await softDeleteFinanceGoal(goal.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Goal archived", undo: () => restoreFinanceGoal(goal.id!) }); }} />}
       {view === "accounts" && <FinanceAccounts accounts={accounts} transactions={transactions} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAdd={() => setAccountModal("new")} onEdit={setAccountModal} onAdjust={setBalanceAccount} />}

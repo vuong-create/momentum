@@ -18,4 +18,9 @@ describe("Sound v2 cue registry", () => {
     expect(cueRegistry["level-up"].category).toBe("celebration");
     expect(cueRegistry.navigation.category).toBe("interface");
   });
+
+  it("keeps keyboard confirmation quieter than a full add action", () => {
+    expect(cueRegistry["entry-confirmed"].category).toBe("interface");
+    expect(cueRegistry["entry-confirmed"].gain).toBeLessThan(cueRegistry["task-added"].gain);
+  });
 });

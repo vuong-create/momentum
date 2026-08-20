@@ -10,7 +10,7 @@ import libraryUrl from "../../assets/sounds/07-library-paper-bell.wav?url";
 export type SoundCategory = "interface" | "action" | "celebration";
 
 export type FeedbackCue =
-  | "navigation" | "task-added" | "task-completed" | "task-reopened"
+  | "navigation" | "entry-confirmed" | "task-added" | "task-completed" | "task-reopened"
   | "task-updated" | "task-dismissed" | "task-restored"
   | "chinese-logged" | "workout-started" | "set-completed"
   | "workout-completed" | "personal-record" | "volleyball-logged"
@@ -41,6 +41,7 @@ const micro = (kind: CueDefinition["micro"], category: SoundCategory = "action")
 
 export const cueRegistry: Record<FeedbackCue, CueDefinition> = {
   navigation: micro("tick", "interface"),
+  "entry-confirmed": { category: "interface", cooldownMs: 70, gain: 0.18, priority: 1, micro: "tick" },
   "task-added": micro("rise"),
   "task-completed": { category: "action", cooldownMs: 90, gain: 0.58, priority: 2, assetUrl: completeUrl },
   "task-reopened": micro("fall"),

@@ -69,10 +69,10 @@ The Finance pillar contains:
 1. Dashboard
 2. Transactions
 3. Budget
-4. Accounts
+4. Reports
 5. Goals
-6. Investments
-7. Reports
+6. Accounts
+7. Investments
 8. Monthly Review / Close Month
 
 ---
@@ -81,7 +81,12 @@ The Finance pillar contains:
 
 ## Quick Entry
 
-The Transactions page has an always-visible Quick Add form at the top.
+The Transactions page opens with the ledger so recent activity remains the
+primary focus. Its always-visible Quick Add form sits below the ledger.
+
+On desktop, Transactions behaves as a locked workspace: the page itself stays
+still while ledger rows scroll inside their panel. Quick Entry remains visible
+at the bottom and can be temporarily hidden to expand the ledger.
 
 No popup is required for normal transaction entry.
 
@@ -133,7 +138,8 @@ This reduces repetitive entry.
 
 ## Transaction Table
 
-Below Quick Add is a spreadsheet-style transaction table.
+The page begins with a spreadsheet-style transaction table. Newest records sit
+at the bottom, where they remain adjacent to Quick Entry.
 
 It should support:
 

@@ -11,13 +11,14 @@ interface Props {
   categories: FinanceCategory[];
   editing?: FinanceTransaction | null;
   todayKey: string;
-  onSave: (input: FinanceTransactionInput) => Promise<void>;
+  onSave: (input: FinanceTransactionInput, method: "keyboard" | "button") => Promise<void>;
   onCancelEdit?: () => void;
+  onHide?: () => void;
 }
 
 function flowFor(type: Exclude<FinanceTransactionType, "adjustment">): FinanceCategoryFlow { return type === "transfer" ? "saving" : type; }
 
-export default function TransactionComposer({ accounts, transactions, categories, editing, todayKey, onSave, onCancelEdit }: Props) {
+export default function TransactionComposer({ accounts, transactions, categories, editing, todayKey, onSave, onCancelEdit, onHide }: Props) {
   const initialType = editing?.type === "adjustment" ? "income" : editing?.type ?? "expense";
   const [type, setType] = useState<Exclude<FinanceTransactionType, "adjustment">>(initialType);
   const [amount, setAmount] = useState(editing ? String(editing.amount) : "");
@@ -32,6 +33,7 @@ export default function TransactionComposer({ accounts, transactions, categories
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const amountRef = useRef<HTMLInputElement>(null);
+  const submitMethodRef = useRef<"keyboard" | "button">("button");
   const memory = useMemo(() => merchantSuggestions(transactions), [transactions]);
   const typeCategories = categories.filter((item) => item.flowType === flowFor(type));
   const preferredName = type === "expense" ? "Groceries" : type === "income" ? "NEO" : type === "investment" ? "Vanguard Brokerage" : "HYSA";
@@ -81,20 +83,21 @@ export default function TransactionComposer({ accounts, transactions, categories
     const target = event.target as HTMLElement;
     if (target instanceof HTMLButtonElement || target instanceof HTMLTextAreaElement || (target.getAttribute("role") === "combobox" && target.getAttribute("aria-expanded") === "true")) return;
     event.preventDefault();
+    submitMethodRef.current = "keyboard";
     event.currentTarget.requestSubmit();
   }
 
   async function submit(event: FormEvent) {
     event.preventDefault(); setSaving(true); setError("");
     try {
-      await onSave({ date, amount: Number(amount), type, merchant, accountId: type === "transfer" || type === "investment" ? undefined : Number(accountId || accounts[0]?.id) || undefined, fromAccountId: Number(fromAccountId) || undefined, toAccountId: Number(toAccountId) || undefined, categoryId: selectedCategoryId, category: selectedCategory?.name, notes, investmentHolding: holding });
+      await onSave({ date, amount: Number(amount), type, merchant, accountId: type === "transfer" || type === "investment" ? undefined : Number(accountId || accounts[0]?.id) || undefined, fromAccountId: Number(fromAccountId) || undefined, toAccountId: Number(toAccountId) || undefined, categoryId: selectedCategoryId, category: selectedCategory?.name, notes, investmentHolding: holding }, submitMethodRef.current);
       reset();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not save transaction."); }
-    finally { setSaving(false); }
+    finally { setSaving(false); submitMethodRef.current = "button"; }
   }
 
   return <form className={`finance-transaction-composer finance-panel ${editing ? "is-editing" : ""}`} onSubmit={submit} onKeyDown={submitFromKeyboard}>
-    <header><div><span className="text-label">{editing ? "Editing transaction" : "Quick entry"}</span><h2>{editing ? editing.merchant : "Record money in seconds."}</h2></div>{editing && <button type="button" onClick={() => { reset(); onCancelEdit?.(); }}>Cancel edit</button>}</header>
+    <header><div><span className="text-label">{editing ? "Editing transaction" : "Quick entry"}</span><h2>{editing ? editing.merchant : "Record money in seconds."}</h2></div><div className="finance-composer-header-actions">{editing && <button type="button" onClick={() => { reset(); onCancelEdit?.(); }}>Cancel edit</button>}<button type="button" onClick={onHide}>Hide entry</button></div></header>
     <div className="finance-type-switch">{financeTransactionTypes.map((item) => <button key={item.value} type="button" className={type === item.value ? "is-selected" : ""} onClick={() => chooseType(item.value)}>{item.label}</button>)}</div>
     <div className={`finance-composer-entry ${type === "transfer" ? "is-transfer" : type === "investment" ? "is-investment" : ""}`}>
       <label><span>Date</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
@@ -102,7 +105,7 @@ export default function TransactionComposer({ accounts, transactions, categories
       <label className="finance-amount-field"><span>Amount</span><div><i>$</i><input ref={amountRef} inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" /></div></label>
       {type === "transfer" ? <><label><span>From</span><select value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label><span>To</span><select value={toAccountId} onChange={(event) => { setToAccountId(event.target.value); const account = accounts.find((item) => item.id === Number(event.target.value)); if (account?.name.toLocaleLowerCase().includes("hysa")) { const hysa = categories.find((item) => item.flowType === "saving" && item.name === "HYSA"); setCategoryId(String(hysa?.id ?? "")); } }}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></> : type === "investment" ? <><label><span>From</span><select value={fromAccountId} onChange={(event) => setFromAccountId(event.target.value)}><option value="">Choose source</option>{contributionSources.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label><span>Investment account</span><select value={toAccountId} onChange={(event) => setToAccountId(event.target.value)}><option value="">Choose destination</option>{investmentAccounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></> : <label><span>Account</span><select value={accountId || String(accounts[0]?.id ?? "")} onChange={(event) => setAccountId(event.target.value)}><option value="">Choose</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
       <label className="finance-entry-notes"><span>Notes</span><input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional context" /></label>
-      <button className="finance-save-transaction" type="submit" aria-keyshortcuts="Enter" disabled={saving || accounts.length === 0}>{saving ? "Saving…" : editing ? "Update" : "Add"}<span>↵</span></button>
+      <button className="finance-save-transaction" type="submit" aria-keyshortcuts="Enter" disabled={saving || accounts.length === 0} onClick={() => { submitMethodRef.current = "button"; }}>{saving ? "Saving…" : editing ? "Update" : "Add"}<span>↵</span></button>
     </div>
     <div className="finance-composer-supporting">
       <FinanceCategoryCombobox categories={typeCategories} selectedId={selectedCategoryId} onChange={(id) => setCategoryId(String(id))} />
