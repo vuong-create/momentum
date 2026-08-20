@@ -9,6 +9,7 @@ import {
   logCookedRecipe,
   scheduleRecipeMeal,
   undoCookingPlanCompletion,
+  updateCookingMealNote,
   visibleCookingPlans,
 } from "./cookingPlannerService";
 import {
@@ -119,6 +120,10 @@ describe("cooking services", () => {
     expect(result.xpAwarded).toBe(10);
     expect((await db.cookingMealLogs.get(result.logId))?.recipeId).toBe(recipeId);
     expect(getXPBreakdown(await db.xpEvents.toArray()).totalXP).toBe(10);
+    await updateCookingMealNote(result.logId, "  Less salt next time.  ");
+    expect((await db.cookingMealLogs.get(result.logId))?.notes).toBe("Less salt next time.");
+    await updateCookingMealNote(result.logId, "   ");
+    expect((await db.cookingMealLogs.get(result.logId))?.notes).toBeUndefined();
   });
 
   it("derives recipe history from spontaneous and planned meals without drifting", async () => {

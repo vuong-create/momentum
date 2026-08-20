@@ -9,8 +9,8 @@ import useActivityUndo from "../activities/hooks/useActivityUndo";
 import { restoreSoftDeletedActivity, softDeletePlannedActivity } from "../activities/services/activityService";
 import { getActivityStatus } from "../activities/services/activityLifecycle";
 import { getXPBreakdown } from "../xp/XPService";
-import CookingDecide from "./components/CookingDecide";
 import CookingGroceries from "./components/CookingGroceries";
+import CookingJournal from "./components/CookingJournal";
 import CookingRecipes from "./components/CookingRecipes";
 import CookingWeek from "./components/CookingWeek";
 import { getCookingActivityIdentity, type QuickMealType } from "./cookingCatalog";
@@ -21,6 +21,7 @@ import {
   scheduleRecipeMeal,
   softDeleteCookingMealLog,
   undoCookingPlanCompletion,
+  updateCookingMealNote,
   visibleCookingMealLogs,
   visibleCookingPlans,
 } from "./services/cookingPlannerService";
@@ -47,13 +48,13 @@ import { getRecipeCookingHistory } from "./services/recipeHistoryService";
 
 import "./cooking.css";
 
-type CookingView = "week" | "recipes" | "groceries" | "decide";
+type CookingView = "week" | "recipes" | "groceries" | "journal";
 
 const tabs: Array<{ id: CookingView; label: string; mark: string }> = [
   { id: "week", label: "This Week", mark: "◷" },
   { id: "recipes", label: "Cookbook", mark: "▤" },
   { id: "groceries", label: "Groceries", mark: "⌑" },
-  { id: "decide", label: "What Should I Make?", mark: "?" },
+  { id: "journal", label: "Kitchen Journal", mark: "◉" },
 ];
 
 function toDateKey(date: Date) {
@@ -70,6 +71,7 @@ export default function CookingPage() {
   const undo = useActivityUndo();
   const [view, setView] = useState<CookingView>(getInitialView);
   const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
+  const [requestedRecipeId, setRequestedRecipeId] = useState<number | null>(null);
   const allRecipes = useLiveQuery(() => db.cookingRecipes.toArray(), []) ?? [];
   const allGroceries = useLiveQuery(() => db.groceryItems.toArray(), []) ?? [];
   const allPlans = useLiveQuery(() => db.plannedActivities.toArray(), []) ?? [];
@@ -182,11 +184,11 @@ export default function CookingPage() {
         <div className="cooking-header-stats"><span><strong>{weekPlans.length}</strong><small>meals this week</small></span><span><strong>{groceries.filter((item) => !item.checked).length}</strong><small>groceries left</small></span><span className="cooking-level"><strong>Lv {cookingXP.progression.level}</strong><small>{cookingXP.xp} Cooking XP</small><i><span style={{ width: `${cookingXP.progression.percentage}%` }} /></i></span></div>
       </header>
 
-      <nav className="cooking-tabs" aria-label="Cooking sections">{tabs.map((tab) => <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}{tab.id === "groceries" && groceries.filter((item) => !item.checked).length > 0 && <i>{groceries.filter((item) => !item.checked).length}</i>}</button>)}</nav>
+      <nav className="cooking-tabs" aria-label="Cooking sections">{tabs.map((tab) => <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => { setRequestedRecipeId(null); selectView(tab.id); }}><span>{tab.mark}</span>{tab.label}{tab.id === "groceries" && groceries.filter((item) => !item.checked).length > 0 && <i>{groceries.filter((item) => !item.checked).length}</i>}</button>)}</nav>
 
       <main className="cooking-content">
         {view === "week" && <CookingWeek now={experience.now} recipes={recipes} plans={weekPlans} recentMeals={recentMeals} unclassifiedCount={unclassifiedCookingCount} onPlanRecipe={(id, date) => { const recipe = recipes.find((item) => item.id === id)!; return handlePlanRecipe(recipe, date); }} onPlanQuick={async (type: QuickMealType, label, date) => { const id = await scheduleQuickMeal(type, label, date); experience.playFeedback("meal-planned"); undo.show({ message: `${label} added to Planner`, undo: () => softDeletePlannedActivity(id) }); }} onComplete={handleCompletePlan} onRemove={handleRemovePlan} onOpen={(activity) => setSelectedActivityId(activity.id ?? null)} onOpenRecipes={() => selectView("recipes")} />}
-        {view === "recipes" && <CookingRecipes recipes={recipes} todayKey={todayKey} historyByRecipeId={historyByRecipeId} onCreate={handleCreateRecipe} onUpdate={handleUpdateRecipe} onDelete={handleDeleteRecipe} onToggleFavorite={async (recipe) => { await toggleRecipeFavorite(recipe.id!); experience.playFeedback("task-updated"); }} onPlan={handlePlanRecipe} onCookToday={handleCookToday} onAddGroceries={async (recipe, servings) => {
+        {view === "recipes" && <CookingRecipes recipes={recipes} todayKey={todayKey} historyByRecipeId={historyByRecipeId} requestedRecipeId={requestedRecipeId} onCreate={handleCreateRecipe} onUpdate={handleUpdateRecipe} onDelete={handleDeleteRecipe} onToggleFavorite={async (recipe) => { await toggleRecipeFavorite(recipe.id!); experience.playFeedback("task-updated"); }} onPlan={handlePlanRecipe} onCookToday={handleCookToday} onAddGroceries={async (recipe, servings) => {
           const before = await db.groceryItems.toArray();
           await addRecipeIngredientsToGroceries({ recipeId: recipe.id!, recipeName: recipe.name, ingredients: recipe.ingredients, defaultServings: recipe.defaultServings, servings });
           experience.playFeedback("task-added");
@@ -201,7 +203,7 @@ export default function CookingPage() {
           selectView("groceries");
         }} />}
         {view === "groceries" && <CookingGroceries items={groceries} onAdd={handleAddGrocery} onToggle={async (item) => { await toggleGroceryItem(item.id!); experience.playFeedback(item.checked ? "task-reopened" : "grocery-checked"); }} onChangeCategory={(item, category: GroceryCategory) => updateGroceryItemCategory(item.id!, category)} onDelete={handleDeleteGrocery} onClearCompleted={handleClearCompleted} />}
-        {view === "decide" && <CookingDecide recipes={recipes} todayKey={todayKey} onPlan={handlePlanRecipe} onOpenRecipes={() => selectView("recipes")} />}
+        {view === "journal" && <CookingJournal logs={visibleMealLogs} plans={plans} recipes={recipes} onOpenRecipe={(recipeId) => { setRequestedRecipeId(recipeId); selectView("recipes"); }} onSaveNote={async (logId, notes) => { await updateCookingMealNote(logId, notes); experience.playFeedback("task-updated"); }} />}
       </main>
       <ActivityDetailsPanel activityId={selectedActivityId} onClose={() => setSelectedActivityId(null)} onMutation={undo.show} />
       <ActivityUndoToast notice={undo.notice} onDismiss={undo.dismiss} onUndo={undo.undo} />

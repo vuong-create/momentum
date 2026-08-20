@@ -475,6 +475,7 @@ export interface CookingMealLog {
   title: string;
   date: string;
   servings?: number;
+  notes?: string;
   plannedActivityId?: number;
   activityEventId?: number;
   xpEventId?: number;

@@ -16,13 +16,14 @@ type CookingRecipesProps = {
   onCookToday: (recipe: CookingRecipe) => Promise<void>;
   onAddGroceries: (recipe: CookingRecipe, servings: number) => Promise<void>;
   historyByRecipeId: Map<number, RecipeCookingHistory>;
+  requestedRecipeId?: number | null;
 };
 
-export default function CookingRecipes({ recipes, todayKey, onCreate, onUpdate, onDelete, onToggleFavorite, onPlan, onCookToday, onAddGroceries, historyByRecipeId }: CookingRecipesProps) {
+export default function CookingRecipes({ recipes, todayKey, onCreate, onUpdate, onDelete, onToggleFavorite, onPlan, onCookToday, onAddGroceries, historyByRecipeId, requestedRecipeId }: CookingRecipesProps) {
   const [query, setQuery] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [groupBySection, setGroupBySection] = useState(false);
-  const [selected, setSelected] = useState<CookingRecipe | null | undefined>(undefined);
+  const [selected, setSelected] = useState<CookingRecipe | null | undefined>(() => requestedRecipeId ? recipes.find(({ id }) => id === requestedRecipeId) : undefined);
   const [planningId, setPlanningId] = useState<number | null>(null);
   const [planDate, setPlanDate] = useState(todayKey);
   const filtered = useMemo(() => {
