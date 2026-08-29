@@ -15,6 +15,7 @@ import FinanceGoals from "./components/FinanceGoals";
 import FinanceMonthlyCloseModal from "./components/FinanceMonthlyCloseModal";
 import FinanceOverview from "./components/FinanceOverview";
 import FinanceReports from "./components/FinanceReports";
+import FinanceRecurringModal from "./components/FinanceRecurringModal";
 import FinanceTransactions from "./components/FinanceTransactions";
 import TransactionComposer from "./components/TransactionComposer";
 import { getAccountBalance, visibleFinanceAccounts, visibleFinanceTransactions } from "./services/financeCalculations";
@@ -25,6 +26,7 @@ import { createFinanceAccount, createFinanceTransaction, restoreFinanceAccount, 
 import { createFinanceGoal, restoreFinanceGoal, softDeleteFinanceGoal, updateFinanceGoal, visibleFinanceGoals, type FinanceGoalInput } from "./services/financeGoalService";
 import { restoreNetWorthSnapshot, saveManualNetWorthSnapshot, softDeleteNetWorthSnapshot, upsertMonthlyNetWorthSnapshot, visibleNetWorthSnapshots } from "./services/financeSnapshotService";
 import { importFinanceCsv, revertFinanceImport, type FinanceCsvPreview, type FinanceImportOptions } from "./services/financeImportService";
+import { confirmFinanceRecurring, createFinanceRecurring, dueFinanceRecurring, setFinanceRecurringActive, skipFinanceRecurring, softDeleteFinanceRecurring, updateFinanceRecurring, visibleFinanceRecurring, type FinanceRecurringInput } from "./services/financeRecurringService";
 
 import "./finance.css";
 
@@ -47,12 +49,14 @@ export default function FinancePage() {
   const [balanceAccount, setBalanceAccount] = useState<FinanceAccount | null>(null);
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [recurringOpen, setRecurringOpen] = useState(false);
   const [closingMonth, setClosingMonth] = useState<string | null>(null);
   const [balancesHidden, setBalancesHidden] = useState(() => localStorage.getItem("momentum.finance.hideBalances") === "true");
   const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
   const [quickEntryHidden, setQuickEntryHidden] = useState(false);
   const allAccounts = useLiveQuery(() => db.financeAccounts.toArray(), []) ?? [];
   const allTransactions = useLiveQuery(() => db.financeTransactions.toArray(), []) ?? [];
+  const allRecurring = useLiveQuery(() => db.financeRecurringTransactions.toArray(), []) ?? [];
   const allCategories = useLiveQuery(() => db.financeCategories.toArray(), []) ?? [];
   const budgetMonths = useLiveQuery(() => db.financeBudgetMonths.toArray(), []) ?? [];
   const budgetAllocations = useLiveQuery(() => db.financeBudgetAllocations.toArray(), []) ?? [];
@@ -61,6 +65,7 @@ export default function FinancePage() {
   const allSnapshots = useLiveQuery(() => db.financeNetWorthSnapshots.toArray(), []) ?? [];
   const accounts = visibleFinanceAccounts(allAccounts);
   const transactions = visibleFinanceTransactions(allTransactions);
+  const recurring = visibleFinanceRecurring(allRecurring);
   const categories = visibleFinanceCategories(allCategories);
   const snapshots = visibleNetWorthSnapshots(allSnapshots);
   const goals = visibleFinanceGoals(allGoals); const reviews = visibleFinanceReviews(allReviews);
@@ -103,7 +108,7 @@ export default function FinancePage() {
     <nav className="finance-tabs" aria-label="Finance sections">{tabs.map((tab) => <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}</button>)}</nav>
     <main className="finance-content">
       {view === "overview" && <FinanceOverview accounts={accounts} transactions={transactions} categories={allCategories} budgetRows={currentBudgetRows} now={experience.now} balancesHidden={balancesHidden} onToggleBalances={toggleBalances} onAddAccount={() => setAccountModal("new")} onOpenTransactions={() => selectView("transactions")} />}
-      {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} onImport={() => setImportOpen(true)} onEdit={editTransaction} onDelete={removeTransaction} onSetVisibility={async (item, hidden) => { if (!item.id) return; await setFinanceTransactionLedgerVisibility(item.id, hidden); experience.playFeedback(hidden ? "task-dismissed" : "task-restored"); undo.show({ message: hidden ? "Transaction hidden from ledger" : "Transaction restored to ledger", undo: () => setFinanceTransactionLedgerVisibility(item.id!, !hidden) }); }} />}
+      {view === "transactions" && <FinanceTransactions accounts={accounts} categories={allCategories} transactions={transactions} recurringCount={recurring.length} recurringDueCount={dueFinanceRecurring(recurring, todayKey).length} onRecurring={() => setRecurringOpen(true)} onImport={() => setImportOpen(true)} onEdit={editTransaction} onDelete={removeTransaction} onSetVisibility={async (item, hidden) => { if (!item.id) return; await setFinanceTransactionLedgerVisibility(item.id, hidden); experience.playFeedback(hidden ? "task-dismissed" : "task-restored"); undo.show({ message: hidden ? "Transaction hidden from ledger" : "Transaction restored to ledger", undo: () => setFinanceTransactionLedgerVisibility(item.id!, !hidden) }); }} />}
       {view === "transactions" && (!quickEntryHidden ? <TransactionComposer key={editingTransaction?.id ?? "new"} accounts={accounts} transactions={transactions} categories={categories} editing={editingTransaction} todayKey={todayKey} onSave={saveTransaction} onCancelEdit={() => setEditingTransaction(null)} onHide={() => { setEditingTransaction(null); setQuickEntryHidden(true); }} /> : <button className="finance-quick-entry-restore" type="button" onClick={() => setQuickEntryHidden(false)}>＋ Show Quick Entry</button>)}
       {view === "budget" && <FinanceBudget now={experience.now} categories={categories} months={budgetMonths} allocations={budgetAllocations} transactions={transactions} reviews={reviews} onSetAllocation={async (budgetMonth, categoryId, amount) => { await reopenForChange([budgetMonth]); await setBudgetAllocation(budgetMonth, categoryId, amount); experience.playFeedback("task-updated"); }} onCopyPrevious={async (budgetMonth) => { await reopenForChange([budgetMonth]); const count = await copyPreviousBudget(budgetMonth); experience.playFeedback("task-restored"); return count; }} onManageCategories={() => setCategoryManagerOpen(true)} onCloseMonth={setClosingMonth} onReopenMonth={async (budgetMonth) => { await reopenFinanceMonth(budgetMonth); experience.playFeedback("task-restored"); }} />}
       {view === "goals" && <FinanceGoals now={experience.now} accounts={accounts} transactions={transactions} goals={goals} onCreate={async (input: FinanceGoalInput) => { const id = await createFinanceGoal(input); experience.playFeedback("task-added"); undo.show({ message: `${input.name.trim()} goal created`, undo: () => softDeleteFinanceGoal(id) }); }} onUpdate={async (id, input) => { const previous = { ...allGoals.find((item) => item.id === id)! }; await updateFinanceGoal(id, input); experience.playFeedback("task-updated"); undo.show({ message: "Goal updated", undo: () => db.financeGoals.put(previous) }); }} onDelete={async (goal: FinanceGoal) => { await softDeleteFinanceGoal(goal.id!); experience.playFeedback("task-dismissed"); undo.show({ message: "Goal archived", undo: () => restoreFinanceGoal(goal.id!) }); }} />}
@@ -114,6 +119,7 @@ export default function FinancePage() {
     {balanceAccount?.id && <FinanceBalanceModal account={balanceAccount} currentBalance={getAccountBalance(balanceAccount, transactions)} todayKey={todayKey} onClose={() => setBalanceAccount(null)} onSave={async (targetBalance, date, notes) => { await reopenForChange([date.slice(0, 7)]); const result = await setFinanceAccountBalance(balanceAccount.id!, targetBalance, date, notes); experience.playFeedback("finance-snapshot"); undo.show({ message: `${balanceAccount.name} balance adjusted`, undo: () => softDeleteFinanceTransaction(result.id) }); }} />}
     {categoryManagerOpen && <FinanceCategoryManager categories={allCategories} onClose={() => setCategoryManagerOpen(false)} onAddCategory={async (name, flowType) => { await createFinanceCategory(name, flowType); experience.playFeedback("task-added"); }} onRenameCategory={renameFinanceCategory} onMoveCategory={moveFinanceCategory} onArchiveCategory={archiveFinanceCategory} onRestoreCategory={restoreFinanceCategory} />}
     {importOpen && <FinanceImportModal accounts={accounts} categories={categories} onClose={() => setImportOpen(false)} onImport={async (preview: FinanceCsvPreview, options: FinanceImportOptions) => { const result = await importFinanceCsv(preview, categories, options); experience.playFeedback("finance-income"); undo.show({ message: `${result.importedCount} transactions imported`, undo: () => revertFinanceImport(result.batchId) }); }} />}
+    {recurringOpen && <FinanceRecurringModal accounts={accounts} categories={categories} items={recurring} todayKey={todayKey} onClose={() => setRecurringOpen(false)} onCreate={async (input: FinanceRecurringInput) => { await createFinanceRecurring(input); experience.playFeedback("task-added"); }} onUpdate={async (id, input) => { await updateFinanceRecurring(id, input); experience.playFeedback("task-updated"); }} onToggle={async (id, active) => { await setFinanceRecurringActive(id, active); experience.playFeedback(active ? "task-restored" : "task-dismissed"); }} onDelete={async (id) => { await softDeleteFinanceRecurring(id); experience.playFeedback("task-dismissed"); }} onConfirm={async (id) => { const item = recurring.find((entry) => entry.id === id); if (item) await reopenForChange([item.nextDate.slice(0, 7)]); await confirmFinanceRecurring(id); experience.playFeedback(item?.type === "income" ? "finance-income" : "finance-transaction"); }} onSkip={async (id) => { await skipFinanceRecurring(id); experience.playFeedback("task-dismissed"); }} />}
     {closingMonth && <FinanceMonthlyCloseModal month={closingMonth} allocations={budgetAllocations} categories={categories} transactions={transactions} onClose={() => setClosingMonth(null)} onConfirm={async (rollovers, reflections) => { await closeFinanceMonth({ month: closingMonth, accounts, transactions, categories, budgetMonths, allocations: budgetAllocations, rollovers, reflections }); experience.playFeedback("finance-snapshot"); undo.show({ message: `${closingMonth} closed`, undo: () => reopenFinanceMonth(closingMonth) }); }} />}
     <ActivityUndoToast notice={undo.notice} onDismiss={undo.dismiss} onUndo={undo.undo} />
   </div>;

@@ -1,5 +1,11 @@
 # Momentum — Data Architecture
 
+**Current local schema:** Version 34
+
+Version 34 adds `financeRecurringTransactions`. These records describe schedules
+only; confirmed occurrences are written to `financeTransactions`, keeping all
+financial calculations anchored to the ledger.
+
 **Status:** 🟢 Architecture Defined
 **Next Step:** `09 App Architecture.md`
 

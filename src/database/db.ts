@@ -596,6 +596,30 @@ export interface FinanceTransaction {
   deletedAt?: string;
 }
 
+export type FinanceRecurrenceFrequency = "weekly" | "monthly" | "yearly";
+
+export interface FinanceRecurringTransaction {
+  id?: number;
+  type: Exclude<FinanceTransactionType, "adjustment">;
+  merchant: string;
+  amount: number;
+  accountId?: number;
+  fromAccountId?: number;
+  toAccountId?: number;
+  categoryId?: number;
+  category?: string;
+  notes?: string;
+  investmentHolding?: string;
+  frequency: FinanceRecurrenceFrequency;
+  nextDate: string;
+  endDate?: string;
+  active: boolean;
+  lastProcessedDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
 export interface FinanceCategory {
   id?: number;
   name: string;
@@ -774,6 +798,7 @@ class MomentumDatabase extends Dexie {
   cookingMealLogs!: Table<CookingMealLog>;
   financeAccounts!: Table<FinanceAccount>;
   financeTransactions!: Table<FinanceTransaction>;
+  financeRecurringTransactions!: Table<FinanceRecurringTransaction>;
   financeCategories!: Table<FinanceCategory>;
   financeSubcategories!: Table<FinanceSubcategory>;
   financeBudgetMonths!: Table<FinanceBudgetMonth>;
@@ -1219,6 +1244,11 @@ class MomentumDatabase extends Dexie {
         "++id, &key, startDate, endDate, active, updatedAt, deletedAt",
       athleticsPlannedSessions:
         "++id, blockId, plannedActivityId, date, weekNumber, kind, status, updatedAt, deletedAt",
+    });
+
+    this.version(34).stores({
+      financeRecurringTransactions:
+        "++id, type, frequency, nextDate, active, updatedAt, deletedAt",
     });
   }
 }
