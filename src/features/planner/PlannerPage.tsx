@@ -41,6 +41,7 @@ import PlannerTemplates from "./components/PlannerTemplates";
 import PlannerMonthOverview from "./components/PlannerMonthOverview";
 import DayPresetManager from "./components/DayPresetManager";
 import TaskLedger from "./components/TaskLedger";
+import { getTrainingSessionIdFromActivity } from "../athletics/services/trainingBlockService";
 
 import "./planner.css";
 
@@ -138,6 +139,11 @@ export default function PlannerPage() {
   }
 
   async function completeActivity(activity: PlannerActivity) {
+    const trainingSessionId = getTrainingSessionIdFromActivity(activity);
+    if (trainingSessionId) {
+      navigate(`/athletics?session=${trainingSessionId}`);
+      return;
+    }
     const willComplete = !activity.completed;
 
     await planner.completeActivity(activity);

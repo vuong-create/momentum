@@ -6,6 +6,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useNavigate } from "react-router-dom";
 
 import {
   homePillars,
@@ -51,6 +52,7 @@ import {
 import type { ActivityDetailsPatch } from "../types";
 import type { ActivityUndoNotice } from "./ActivityUndoToast";
 import RecurrenceControls from "./RecurrenceControls";
+import { getTrainingSessionIdFromActivity } from "../../athletics/services/trainingBlockService";
 import {
   applyRecurrenceToActivity,
   captureRecurrenceSeries,
@@ -126,6 +128,7 @@ function ActivityDetailsForm({
   onMutation,
 }: ActivityDetailsFormProps) {
   const experience = useExperience();
+  const navigate = useNavigate();
   const todayKey = toDateKey(experience.now);
   const titleRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(activity.title);
@@ -295,6 +298,13 @@ function ActivityDetailsForm({
 
   async function handleToggleCompletion() {
     if (!activity.id) return;
+
+    const trainingSessionId = getTrainingSessionIdFromActivity(activity);
+    if (trainingSessionId) {
+      onClose();
+      navigate(`/athletics?session=${trainingSessionId}`);
+      return;
+    }
 
     await togglePlannedActivity(activity.id);
     experience.playFeedback(

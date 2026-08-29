@@ -1,7 +1,7 @@
 # Momentum — Athletics Pillar
 
-**Status:** 🟢 Foundation Implemented
-**Next Step:** Real-World Training QA and Refinement
+**Status:** 🟢 Athletics V2 Training Blocks Implemented
+**Next Step:** September 2026 Real-World Training QA
 
 ---
 
@@ -66,10 +66,80 @@ Athletics uses **weekly consistency**, not a daily workout streak.
 Primary sections:
 
 1. Dashboard
-2. Workout
-3. Templates
-4. History
-5. Progress
+2. Calendar
+3. Workout
+4. Templates
+5. History
+6. Progress
+
+---
+
+# 3.1 Structured Training Blocks
+
+Athletics supports time-bounded programs containing structured sessions rather
+than representing every workout as an unstructured task.
+
+A training block stores:
+
+* Start and end dates
+* Weekly phases and coaching guidance
+* Gym, volleyball, and recovery days
+* Exercise prescriptions
+* Explosive versus hypertrophy categories
+* Exercise alternatives
+* Planner task links
+
+The September 2026 block runs across four complete Monday–Sunday weeks from
+August 31 through September 27. September 28–30 remain an intentional
+transition period.
+
+Installing a block is additive, previewed, and duplicate-safe. Existing tasks,
+templates, workouts, and history are never overwritten.
+
+## Planner Relationship
+
+The Athletics planned session owns the workout prescription. Its linked
+Planner activity owns the current scheduled date.
+
+This means:
+
+* Moving a session in Planner also moves it on the Athletics calendar
+* Home and Planner display the same Athletics commitment
+* Selecting the task opens the structured Athletics session
+* A task completes only when the workout is finished or volleyball is logged
+* Completing the workout cannot award duplicate task XP
+* Overdue sessions remain Missed until moved, completed, or explicitly skipped
+
+Recovery days remain visible in the training calendar but do not create noisy
+Planner tasks.
+
+## Saturday Volleyball Decision
+
+Saturday begins as Recovery. It can be changed to Sand Volleyball from its day
+detail.
+
+When volleyball is selected, the preceding Lower B session becomes a
+reduced-volume workout:
+
+* Explosive work retains its prescribed low-fatigue volume
+* Four hypertrophy sets become three
+* Three hypertrophy sets become two
+* Two hypertrophy sets become one
+
+Switching Saturday back to Recovery restores normal Friday volume, except in
+Week 4 where the planned deload remains active.
+
+## September Progression
+
+* Week 1 — Baseline: working weights and 2–3 reps in reserve
+* Week 2 — Progress: add repetitions inside each range
+* Week 3 — Overload: hardest week and 1–2 reps in reserve
+* Week 4 — Reduced Fatigue: 30–40% less lifting volume
+
+Hypertrophy work uses double progression. Planned workouts carry previous
+weights and reps forward, while History and Progress preserve completed
+performances. Explosive exercises use simple quality-focused set completion so
+speed work does not become unnecessary data entry.
 
 ---
 

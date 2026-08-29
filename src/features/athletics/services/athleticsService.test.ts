@@ -13,6 +13,7 @@ import {
   scheduleAthleticsTemplate,
   softDeleteAthleticsWorkout,
   startTemplateWorkout,
+  setWorkoutExerciseCompletion,
   updateWorkoutSet,
   visibleAthleticsTemplates,
 } from "./athleticsService";
@@ -90,6 +91,19 @@ describe("athletics service", () => {
     expect((await db.athleticsWorkouts.get(workoutId))?.status).toBe("completed");
     expect(summary.totalXP).toBe(20);
     expect(summary.contributions.find(({ pillar }) => pillar === "athletics")?.xp).toBe(20);
+  });
+
+  it("marks every set in an exercise complete or reopened together", async () => {
+    await ensureStarterTemplates();
+    const push = (await db.athleticsTemplates.where("name").equals("Push").first())!;
+    const workoutId = await startTemplateWorkout(push.id!, "2026-08-03");
+    const exerciseId = (await db.athleticsWorkouts.get(workoutId))!.exercises[0].id;
+
+    await setWorkoutExerciseCompletion(workoutId, exerciseId, true);
+    expect((await db.athleticsWorkouts.get(workoutId))!.exercises[0].sets.every((set) => set.completed)).toBe(true);
+
+    await setWorkoutExerciseCompletion(workoutId, exerciseId, false);
+    expect((await db.athleticsWorkouts.get(workoutId))!.exercises[0].sets.every((set) => !set.completed && !set.completedAt)).toBe(true);
   });
 
   it("completes the matching Planner activity instead of creating duplicate XP", async () => {
