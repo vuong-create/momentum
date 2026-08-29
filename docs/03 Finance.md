@@ -141,6 +141,9 @@ This reduces repetitive entry.
 The page begins with a spreadsheet-style transaction table. Newest records sit
 at the bottom, where they remain adjacent to Quick Entry.
 
+Rows are intentionally compact so the ledger supports fast scanning without
+turning normal text into tiny, difficult controls.
+
 It should support:
 
 * Search
@@ -153,6 +156,13 @@ It should support:
 * Account filtering
 * Tag filtering
 * Transaction type filtering
+* Read-only data validation for likely duplicates, invalid records, missing
+  account/category links, and possible merchant naming variations
+* Full CSV export for independent analysis, including signed amounts and hidden
+  ledger status
+
+Validation is an audit only. It never edits, merges, deletes, or automatically
+corrects financial data.
 
 This section should intentionally feel more spreadsheet-like because detailed financial analysis is desirable.
 
