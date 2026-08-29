@@ -1369,14 +1369,18 @@ Primary records:
 
 ## Implemented local-first representation
 
-The Dexie implementation stores two authoritative document-style records:
+The Dexie implementation stores four authoritative document-style records:
 
 * `AthleticsTemplate` embeds its ordered template exercises and default set counts.
 * `AthleticsWorkout` embeds the exercises and sets actually performed, plus linked Planner, activity event, XP event, and detected PR references.
+* `AthleticsTrainingBlock` defines a dated multi-week program and its phase guidance.
+* `AthleticsPlannedSession` stores each calendar session, its ordered exercise prescription, optional exercise choice, Saturday decision, reduction state, and linked Planner activity.
 
 This is the IndexedDB representation of the conceptual records below. The embedded session snapshot preserves workout history when a template is edited, avoids partial workout writes, and keeps one completed training action connected to Planner and XP without duplicating the real-world activity.
 
 Gym and volleyball sessions share the `AthleticsWorkout` collection and are distinguished by `kind`. Progress, monthly totals, previous values, PR history, and heatmap intensity are derived from completed non-deleted workouts.
+
+Structured training sessions remain plans until performed. The linked `PlannedActivity` provides scheduling and Home/Planner visibility, while the training session owns the workout prescription. Starting a gym session creates an `AthleticsWorkout` snapshot; finishing it completes the linked activity. Volleyball follows the same one-action rule. A missed session remains visible until the user moves, skips, or completes it.
 
 ---
 
@@ -3120,3 +3124,20 @@ corresponding bonus remains an auditable, deduplicated `XPEvent`.
 
 Schema 26–28 backups migrate by adding the new tables empty. This preserves old
 backups without fabricating historical weekly results or milestone moments.
+
+---
+
+# 110. Schema Version 33 — Athletics Training Blocks
+
+Schema Version 33 adds `athleticsTrainingBlocks` and
+`athleticsPlannedSessions` without changing existing workout, Planner, or XP
+records.
+
+The first installed block is the September 2026 program spanning August 31
+through September 27. Installation is additive and duplicate-safe. It creates
+linked Planner activities only for actionable Monday–Friday sessions; recovery
+and full-rest days remain visible in Athletics without cluttering the task list.
+
+Schema 26–32 backups migrate by adding both collections empty. Restoring an
+older backup therefore preserves all existing data without inventing a training
+plan the user did not install.

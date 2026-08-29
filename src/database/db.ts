@@ -280,6 +280,10 @@ export interface AthleticsWorkoutExercise {
   id: string;
   name: string;
   sets: AthleticsSet[];
+  category?: AthleticsExerciseCategory;
+  tracking?: AthleticsExerciseTracking;
+  targetLabel?: string;
+  repRange?: string;
 }
 
 export interface AthleticsPersonalRecord {
@@ -307,6 +311,59 @@ export interface AthleticsWorkout {
   activityEventId?: number;
   xpEventId?: number;
   personalRecords: AthleticsPersonalRecord[];
+  deletedAt?: string;
+}
+
+export type AthleticsExerciseCategory = "explosive" | "hypertrophy";
+export type AthleticsExerciseTracking = "load-reps" | "completion";
+export type AthleticsTrainingSessionKind = "gym" | "volleyball" | "recovery";
+export type AthleticsTrainingSessionStatus = "planned" | "skipped";
+export type AthleticsSaturdayChoice = "recovery" | "volleyball";
+
+export interface AthleticsPlannedExercise {
+  id: string;
+  name: string;
+  alternatives?: string[];
+  category: AthleticsExerciseCategory;
+  tracking: AthleticsExerciseTracking;
+  prescribedSets: number;
+  repRange?: string;
+  targetLabel: string;
+  perSide?: boolean;
+}
+
+export interface AthleticsTrainingBlock {
+  id?: number;
+  key: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  goal: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface AthleticsPlannedSession {
+  id?: number;
+  blockId: number;
+  plannedActivityId?: number;
+  date: string;
+  weekNumber: number;
+  phaseName: string;
+  phaseGuidance: string;
+  kind: AthleticsTrainingSessionKind;
+  name: string;
+  focus: string;
+  exercises: AthleticsPlannedExercise[];
+  volleyballType?: VolleyballSessionType;
+  saturdayChoice?: AthleticsSaturdayChoice;
+  reducedVolume?: boolean;
+  status: AthleticsTrainingSessionStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
   deletedAt?: string;
 }
 
@@ -710,6 +767,8 @@ class MomentumDatabase extends Dexie {
   chineseMediaResources!: Table<ChineseMediaResource>;
   athleticsTemplates!: Table<AthleticsTemplate>;
   athleticsWorkouts!: Table<AthleticsWorkout>;
+  athleticsTrainingBlocks!: Table<AthleticsTrainingBlock>;
+  athleticsPlannedSessions!: Table<AthleticsPlannedSession>;
   cookingRecipes!: Table<CookingRecipe>;
   groceryItems!: Table<GroceryItem>;
   cookingMealLogs!: Table<CookingMealLog>;
@@ -1153,6 +1212,13 @@ class MomentumDatabase extends Dexie {
     this.version(32).stores({
       libraryWatchItems:
         "++id, title, mediaType, status, sortOrder, updatedAt, deletedAt",
+    });
+
+    this.version(33).stores({
+      athleticsTrainingBlocks:
+        "++id, &key, startDate, endDate, active, updatedAt, deletedAt",
+      athleticsPlannedSessions:
+        "++id, blockId, plannedActivityId, date, weekNumber, kind, status, updatedAt, deletedAt",
     });
   }
 }

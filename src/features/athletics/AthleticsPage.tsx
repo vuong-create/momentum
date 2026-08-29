@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useSearchParams } from "react-router-dom";
 
 import {
   db,
   type AthleticsSet,
   type AthleticsWorkout,
+  type AthleticsPlannedSession,
   type VolleyballSessionType,
 } from "../../database/db";
 import useExperience from "../../experience/useExperience";
@@ -14,6 +16,7 @@ import { softDeletePlannedActivity } from "../activities/services/activityServic
 import { getXPBreakdown } from "../xp/XPService";
 import AthleticsDashboard from "./components/AthleticsDashboard";
 import AthleticsHistory from "./components/AthleticsHistory";
+import AthleticsTrainingCalendar from "./components/AthleticsTrainingCalendar";
 import AthleticsProgress from "./components/AthleticsProgress";
 import AthleticsTemplates from "./components/AthleticsTemplates";
 import WorkoutLogger from "./components/WorkoutLogger";
@@ -34,19 +37,32 @@ import {
   softDeleteAthleticsWorkout,
   startCustomWorkout,
   startTemplateWorkout,
+  startPlannedTrainingSession,
+  logPlannedVolleyballSession,
+  setWorkoutExerciseCompletion,
+  updatePlannedExerciseChoice,
   updateAthleticsTemplate,
   updateWorkoutSet,
   visibleAthleticsTemplates,
   visibleAthleticsWorkouts,
   type AthleticsTemplateInput,
 } from "./services/athleticsService";
+import {
+  installSeptember2026TrainingBlock,
+  moveTrainingSession,
+  setSaturdayTrainingChoice,
+  skipTrainingSession,
+  visibleTrainingBlocks,
+  visibleTrainingSessions,
+} from "./services/trainingBlockService";
 
 import "./athletics.css";
 
-type AthleticsView = "dashboard" | "workout" | "templates" | "history" | "progress";
+type AthleticsView = "dashboard" | "calendar" | "workout" | "templates" | "history" | "progress";
 
 const tabs: Array<{ id: AthleticsView; label: string; mark: string }> = [
   { id: "dashboard", label: "Dashboard", mark: "A" },
+  { id: "calendar", label: "Calendar", mark: "C" },
   { id: "workout", label: "Workout", mark: "W" },
   { id: "templates", label: "Templates", mark: "T" },
   { id: "history", label: "History", mark: "H" },
@@ -59,23 +75,31 @@ function getInitialView(): AthleticsView {
 }
 
 export default function AthleticsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const experience = useExperience();
   const undo = useActivityUndo();
   const [view, setView] = useState<AthleticsView>(getInitialView);
   const [finishing, setFinishing] = useState(false);
   const [loggingVolleyball, setLoggingVolleyball] = useState<VolleyballSessionType | null>(null);
+  const [installingBlock, setInstallingBlock] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const routedSessionId = Number(searchParams.get("session")) || null;
   const allTemplates = useLiveQuery(() => db.athleticsTemplates.toArray(), []) ?? [];
   const allWorkouts = useLiveQuery(() => db.athleticsWorkouts.toArray(), []) ?? [];
   const plannedActivities = useLiveQuery(() => db.plannedActivities.toArray(), []) ?? [];
+  const allTrainingBlocks = useLiveQuery(() => db.athleticsTrainingBlocks.toArray(), []) ?? [];
+  const allPlannedSessions = useLiveQuery(() => db.athleticsPlannedSessions.toArray(), []) ?? [];
   const xpEvents = useLiveQuery(() => db.xpEvents.toArray(), []) ?? [];
   const templates = visibleAthleticsTemplates(allTemplates);
   const workouts = visibleAthleticsWorkouts(allWorkouts);
+  const trainingBlocks = visibleTrainingBlocks(allTrainingBlocks);
+  const trainingSessions = visibleTrainingSessions(allPlannedSessions);
+  const activeTrainingBlock = trainingBlocks.find((item) => item.active) ?? trainingBlocks.at(-1);
   const activeWorkout = workouts.find((workout) => workout.status === "active") ?? null;
   const athleticsXP = getXPBreakdown(xpEvents).contributions.find(({ pillar }) => pillar === "athletics")!;
-  const completedThisMonth = useMemo(() => {
-    const month = `${experience.now.getFullYear()}-${String(experience.now.getMonth() + 1).padStart(2, "0")}`;
-    return workouts.filter((workout) => workout.status === "completed" && workout.date.startsWith(month)).length;
-  }, [experience.now, workouts]);
+  const month = `${experience.now.getFullYear()}-${String(experience.now.getMonth() + 1).padStart(2, "0")}`;
+  const completedThisMonth = workouts.filter((workout) => workout.status === "completed" && workout.date.startsWith(month)).length;
+  const displayView: AthleticsView = routedSessionId ? "calendar" : view;
 
   useEffect(() => { void ensureStarterTemplates(); }, []);
 
@@ -127,6 +151,12 @@ export default function AthleticsPage() {
     }
   }
 
+  async function handleCompleteExercise(exerciseId: string, completed: boolean) {
+    if (!activeWorkout?.id) return;
+    await setWorkoutExerciseCompletion(activeWorkout.id, exerciseId, completed);
+    experience.playFeedback(completed ? "set-completed" : "task-reopened");
+  }
+
   async function handleLogVolleyball(type: VolleyballSessionType) {
     if (loggingVolleyball) return;
     setLoggingVolleyball(type);
@@ -140,6 +170,25 @@ export default function AthleticsPage() {
     } finally {
       setLoggingVolleyball(null);
     }
+  }
+
+  async function handleInstallBlock() {
+    if (installingBlock) return; setInstallingBlock(true);
+    try { await installSeptember2026TrainingBlock(); experience.playFeedback("task-added"); }
+    finally { setInstallingBlock(false); }
+  }
+
+  async function handleStartPlannedSession(session: AthleticsPlannedSession) {
+    await startPlannedTrainingSession(session.id!); experience.playFeedback("workout-started"); setSelectedSessionId(null); setSearchParams({}); selectView("workout");
+  }
+
+  async function handleLogPlannedVolleyball(session: AthleticsPlannedSession) {
+    const result = await logPlannedVolleyballSession(session.id!); experience.playFeedback("volleyball-logged"); setSelectedSessionId(null); setSearchParams({});
+    undo.show({ message: `Volleyball logged · plan complete · +${result.xpAwarded} XP`, undo: () => softDeleteAthleticsWorkout(result.workoutId) });
+  }
+
+  function handleSelectSession(id: number | null) {
+    setSelectedSessionId(id); setSearchParams(id ? { session: String(id) } : {}, { replace: true });
   }
 
   async function handleRemoveWorkout(workout: AthleticsWorkout) {
@@ -193,7 +242,7 @@ export default function AthleticsPage() {
 
       <nav className="athletics-tabs" aria-label="Athletics sections">
         {tabs.map((tab) => (
-          <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}>
+          <button key={tab.id} type="button" className={displayView === tab.id ? "is-selected" : ""} onClick={() => { setSearchParams({}); selectView(tab.id); }}>
             <span>{tab.mark}</span>{tab.label}
             {tab.id === "workout" && activeWorkout && <i aria-label="Workout in progress" />}
           </button>
@@ -201,12 +250,13 @@ export default function AthleticsPage() {
       </nav>
 
       <main className="athletics-content">
-        {view === "dashboard" && <AthleticsDashboard templates={templates} workouts={workouts} plannedActivities={plannedActivities} now={experience.now} onStartTemplate={handleStartTemplate} onStartCustom={handleStartCustom} onLogVolleyball={handleLogVolleyball} onOpenWorkout={() => selectView("history")} onOpenTemplates={() => selectView("templates")} loggingVolleyball={loggingVolleyball} />}
-        {view === "workout" && activeWorkout && <WorkoutLogger workout={activeWorkout} onUpdateSet={handleUpdateSet} onRepeatSet={(exerciseId, setId) => repeatPreviousSet(activeWorkout.id!, exerciseId, setId)} onAddSet={(exerciseId) => addWorkoutSet(activeWorkout.id!, exerciseId)} onRemoveSet={(exerciseId, setId) => removeWorkoutSet(activeWorkout.id!, exerciseId, setId)} onAddExercise={(name) => addWorkoutExercise(activeWorkout.id!, name)} onRemoveExercise={(exerciseId) => removeWorkoutExercise(activeWorkout.id!, exerciseId)} onFinish={handleFinishWorkout} onCancel={async () => selectView("dashboard")} finishing={finishing} />}
-        {view === "workout" && !activeWorkout && <section className="athletics-no-workout"><span className="text-label">Workout</span><h2>Nothing active.</h2><p>Choose a remembered routine or begin with a blank page.</p><div>{templates.slice(0, 3).map((template) => <button key={template.id} type="button" onClick={() => handleStartTemplate(template.id!)}>{template.name}<span>→</span></button>)}<button type="button" onClick={handleStartCustom}>Custom<span>＋</span></button></div></section>}
-        {view === "templates" && <AthleticsTemplates templates={templates} now={experience.now} onCreate={handleCreateTemplate} onUpdate={handleUpdateTemplate} onDuplicate={handleDuplicateTemplate} onDelete={handleDeleteTemplate} onStart={handleStartTemplate} onSchedule={handleScheduleTemplate} />}
-        {view === "history" && <AthleticsHistory workouts={workouts} onRemove={handleRemoveWorkout} />}
-        {view === "progress" && <AthleticsProgress workouts={workouts} now={experience.now} pillarXP={athleticsXP.xp} progression={athleticsXP.progression} />}
+        {displayView === "dashboard" && <AthleticsDashboard templates={templates} workouts={workouts} plannedActivities={plannedActivities} now={experience.now} onStartTemplate={handleStartTemplate} onStartCustom={handleStartCustom} onLogVolleyball={handleLogVolleyball} onOpenWorkout={() => selectView("history")} onOpenTemplates={() => selectView("templates")} loggingVolleyball={loggingVolleyball} />}
+        {displayView === "calendar" && <AthleticsTrainingCalendar block={activeTrainingBlock} sessions={activeTrainingBlock?.id ? trainingSessions.filter((item) => item.blockId === activeTrainingBlock.id) : []} activities={plannedActivities} now={experience.now} selectedSessionId={routedSessionId ?? selectedSessionId} installing={installingBlock} onInstall={handleInstallBlock} onSelect={handleSelectSession} onStart={handleStartPlannedSession} onLogVolleyball={handleLogPlannedVolleyball} onSaturdayChoice={async (session, choice) => { await setSaturdayTrainingChoice(session.id!, choice); experience.playFeedback("task-updated"); }} onMove={async (session, date) => { await moveTrainingSession(session.id!, date); experience.playFeedback("task-updated"); }} onSkip={async (session) => { await skipTrainingSession(session.id!); experience.playFeedback("task-dismissed"); setSelectedSessionId(null); setSearchParams({}); }} onExerciseChoice={async (sessionId, exerciseId, name) => { await updatePlannedExerciseChoice(sessionId, exerciseId, name); experience.playFeedback("task-updated"); }} />}
+        {displayView === "workout" && activeWorkout && <WorkoutLogger workout={activeWorkout} onUpdateSet={handleUpdateSet} onCompleteExercise={handleCompleteExercise} onRepeatSet={(exerciseId, setId) => repeatPreviousSet(activeWorkout.id!, exerciseId, setId)} onAddSet={(exerciseId) => addWorkoutSet(activeWorkout.id!, exerciseId)} onRemoveSet={(exerciseId, setId) => removeWorkoutSet(activeWorkout.id!, exerciseId, setId)} onAddExercise={(name) => addWorkoutExercise(activeWorkout.id!, name)} onRemoveExercise={(exerciseId) => removeWorkoutExercise(activeWorkout.id!, exerciseId)} onFinish={handleFinishWorkout} onCancel={async () => selectView("dashboard")} finishing={finishing} />}
+        {displayView === "workout" && !activeWorkout && <section className="athletics-no-workout"><span className="text-label">Workout</span><h2>Nothing active.</h2><p>Choose a remembered routine or begin with a blank page.</p><div>{templates.slice(0, 3).map((template) => <button key={template.id} type="button" onClick={() => handleStartTemplate(template.id!)}>{template.name}<span>→</span></button>)}<button type="button" onClick={handleStartCustom}>Custom<span>＋</span></button></div></section>}
+        {displayView === "templates" && <AthleticsTemplates templates={templates} now={experience.now} onCreate={handleCreateTemplate} onUpdate={handleUpdateTemplate} onDuplicate={handleDuplicateTemplate} onDelete={handleDeleteTemplate} onStart={handleStartTemplate} onSchedule={handleScheduleTemplate} />}
+        {displayView === "history" && <AthleticsHistory workouts={workouts} onRemove={handleRemoveWorkout} />}
+        {displayView === "progress" && <AthleticsProgress workouts={workouts} now={experience.now} pillarXP={athleticsXP.xp} progression={athleticsXP.progression} />}
       </main>
       <ActivityUndoToast notice={undo.notice} onDismiss={undo.dismiss} onUndo={undo.undo} />
     </div>

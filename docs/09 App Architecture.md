@@ -1353,6 +1353,7 @@ features/athletics/
 AthleticsPage
 components/
   AthleticsDashboard
+  AthleticsTrainingCalendar
   WorkoutLogger
   AthleticsTemplates
   AthleticsHistory
@@ -1360,10 +1361,17 @@ components/
 services/
   athleticsService
   athleticsQueries
+  trainingBlockService
+  septemberTrainingBlock
 athleticsCatalog
 ```
 
 Workout logging must prioritize speed and minimal rerendering.
+
+Structured programs use Athletics as the prescription and completion owner,
+while linked Planner activities remain the scheduling source of truth. Home and
+Planner route structured sessions into Athletics instead of completing them
+directly, preventing partial workout records and duplicate XP.
 
 ---
 

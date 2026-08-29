@@ -45,6 +45,7 @@ import {
 } from "./quotes";
 import { createJournalEntry } from "../journal/services/journalService";
 import { toggleBuiltInQuote } from "../journal/services/quoteService";
+import { getTrainingSessionIdFromActivity } from "../athletics/services/trainingBlockService";
 
 import HomeTodo from "./components/HomeTodo";
 
@@ -332,6 +333,11 @@ export default function HomeDashboard() {
       return;
     }
 
+    const trainingSessionId = getTrainingSessionIdFromActivity(activity);
+    if (trainingSessionId) {
+      navigate(`/athletics?session=${trainingSessionId}`);
+      return;
+    }
     await toggleActivityLifecycle(activity.id);
   }
 

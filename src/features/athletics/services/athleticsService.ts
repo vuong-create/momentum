@@ -1,6 +1,7 @@
 import {
   db,
   type AthleticsPersonalRecord,
+  type AthleticsPlannedSession,
   type AthleticsSet,
   type AthleticsTemplate,
   type AthleticsTemplateExercise,
@@ -25,6 +26,7 @@ import {
   getVolleyballDefinition,
   starterAthleticsTemplates,
 } from "../athleticsCatalog";
+import { getEffectivePlannedExercises } from "./septemberTrainingBlock";
 
 export type AthleticsTemplateInput = {
   name: string;
@@ -343,6 +345,29 @@ export async function updateWorkoutSet(
   await db.athleticsWorkouts.update(id, { exercises, updatedAt: now });
 }
 
+export async function setWorkoutExerciseCompletion(
+  id: number,
+  exerciseId: string,
+  completed: boolean
+) {
+  const workout = await requireActiveWorkout(id);
+  const now = new Date().toISOString();
+  const exercises = workout.exercises.map((exercise) =>
+    exercise.id === exerciseId
+      ? {
+          ...exercise,
+          sets: exercise.sets.map((set) => ({
+            ...set,
+            completed,
+            completedAt: completed ? now : undefined,
+          })),
+        }
+      : exercise
+  );
+
+  await db.athleticsWorkouts.update(id, { exercises, updatedAt: now });
+}
+
 export async function repeatPreviousSet(
   id: number,
   exerciseId: string,
@@ -463,7 +488,12 @@ async function linkCompletionXP(
   spontaneousXP: number,
   actionType: string
 ) {
-  const plan = await findWorkoutPlan(workout);
+  const linkedPlan = workout.plannedActivityId
+    ? await db.plannedActivities.get(workout.plannedActivityId)
+    : undefined;
+  const plan = linkedPlan && isActivityVisible(linkedPlan) && getActivityStatus(linkedPlan) !== "completed"
+    ? linkedPlan
+    : await findWorkoutPlan(workout);
   if (plan?.id) {
     const completion = await completePlannedActivity(plan.id);
     const xpEvent = await db.xpEvents
@@ -534,7 +564,8 @@ export async function completeAthleticsWorkout(
 
 export async function logVolleyballSession(
   type: VolleyballSessionType,
-  date = toDateKey(new Date())
+  date = toDateKey(new Date()),
+  plannedActivityId?: number,
 ): Promise<WorkoutCompletionResult> {
   return db.transaction(
     "rw",
@@ -555,6 +586,7 @@ export async function logVolleyballSession(
         startedAt: now,
         completedAt: now,
         updatedAt: now,
+        plannedActivityId,
         personalRecords: [],
       });
       const workout = (await db.athleticsWorkouts.get(workoutId))!;
@@ -573,6 +605,69 @@ export async function logVolleyballSession(
       };
     }
   );
+}
+
+function buildPlannedWorkoutExercises(
+  session: AthleticsPlannedSession,
+  previousWorkouts: AthleticsWorkout[],
+) {
+  return getEffectivePlannedExercises(session.exercises, Boolean(session.reducedVolume)).map((exercise) => {
+    const previous = findPreviousExercise(previousWorkouts, exercise.name);
+    const minimumReps = Number(exercise.repRange?.match(/^\d+/)?.[0] ?? 0);
+    return {
+      id: makeLocalId("workout-exercise"),
+      name: exercise.name,
+      category: exercise.category,
+      tracking: exercise.tracking,
+      targetLabel: exercise.targetLabel,
+      repRange: exercise.repRange,
+      sets: Array.from({ length: exercise.prescribedSets }, (_, index) => {
+        const previousSet = previous?.sets[index] ?? previous?.sets.at(-1);
+        return {
+          id: makeLocalId("set"),
+          weight: exercise.tracking === "load-reps" ? previousSet?.weight ?? 0 : 0,
+          reps: exercise.tracking === "load-reps" ? previousSet?.reps ?? minimumReps : minimumReps,
+          completed: false,
+        };
+      }),
+    };
+  });
+}
+
+export async function startPlannedTrainingSession(sessionId: number) {
+  const session = await db.athleticsPlannedSessions.get(sessionId);
+  if (!session || session.deletedAt || session.status === "skipped" || session.kind !== "gym") throw new Error("Planned gym session not found.");
+  const active = await db.athleticsWorkouts.where("status").equals("active").filter((workout) => !workout.deletedAt).first();
+  if (active?.id) return active.id;
+  const activity = session.plannedActivityId ? await db.plannedActivities.get(session.plannedActivityId) : undefined;
+  const previousWorkouts = await db.athleticsWorkouts.toArray(); const now = new Date().toISOString();
+  return db.athleticsWorkouts.add({
+    kind: "gym",
+    name: session.name,
+    date: activity?.scheduledDate ?? session.date,
+    status: "active",
+    plannedActivityId: session.plannedActivityId,
+    exercises: buildPlannedWorkoutExercises(session, previousWorkouts),
+    notes: `${session.phaseName} · ${session.focus}${session.reducedVolume ? " · Reduced volume" : ""}`,
+    startedAt: now,
+    updatedAt: now,
+    personalRecords: [],
+  });
+}
+
+export async function logPlannedVolleyballSession(sessionId: number) {
+  const session = await db.athleticsPlannedSessions.get(sessionId);
+  if (!session || session.deletedAt || session.status === "skipped" || session.kind !== "volleyball") throw new Error("Planned volleyball session not found.");
+  const activity = session.plannedActivityId ? await db.plannedActivities.get(session.plannedActivityId) : undefined;
+  return logVolleyballSession(session.volleyballType ?? "practice", activity?.scheduledDate ?? session.date, session.plannedActivityId);
+}
+
+export async function updatePlannedExerciseChoice(sessionId: number, exerciseId: string, name: string) {
+  const session = await db.athleticsPlannedSessions.get(sessionId);
+  if (!session || session.deletedAt) throw new Error("Training session not found.");
+  const exercise = session.exercises.find((item) => item.id === exerciseId);
+  if (!exercise || !exercise.alternatives?.includes(name)) throw new Error("Exercise option not found.");
+  await db.athleticsPlannedSessions.update(sessionId, { exercises: session.exercises.map((item) => item.id === exerciseId ? { ...item, name } : item), updatedAt: new Date().toISOString() });
 }
 
 export async function scheduleAthleticsTemplate(
