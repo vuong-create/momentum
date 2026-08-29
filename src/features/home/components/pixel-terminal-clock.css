@@ -22,6 +22,15 @@
   animation: terminal-colon 2s steps(1, end) infinite;
 }
 
+.pixel-terminal-time small {
+  align-self: flex-end;
+  margin: 0 0 .22em .42em;
+  color: rgba(255, 255, 255, .46);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  letter-spacing: .14em;
+}
+
 .pixel-terminal-time b {
   width: .16em;
   height: .72em;

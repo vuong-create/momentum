@@ -1,5 +1,10 @@
 # Momentum — App Architecture
 
+Finance recurring schedules are owned by
+`features/finance/services/financeRecurringService.ts`. The service validates and
+advances schedules, while `FinanceRecurringModal` remains the review-oriented UI.
+Occurrences only become ledger records after explicit confirmation.
+
 **Status:** 🟢 Technical Direction Defined
 **Next Step:** Build Foundation
 

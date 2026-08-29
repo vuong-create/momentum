@@ -993,7 +993,7 @@ Potential future additions include:
 * Better merchant rules
 * More report comparisons
 * More advanced financial forecasting
-* Automatic recurring transactions
+* Bank-synced automatic transactions (manual recurring schedules are implemented with review-before-posting)
 * Custom report dashboards
 * Improved investment analytics
 * More sophisticated backup/export
@@ -1147,3 +1147,11 @@ Rollover cash-out remains a later enhancement because it creates a real account
 transfer and should be designed together with the backup and audit contract.
 
 **Finance 3 Version 1 Workflow: IMPLEMENTED**
+
+## Recurring transactions
+
+Recurring expenses, income, transfers, and investments can be scheduled weekly,
+monthly, or yearly. Momentum surfaces due occurrences for review; it never adds
+one to the ledger automatically. A due item can be confirmed, skipped, paused,
+edited, or removed. Confirming creates the normal ledger transaction and advances
+the schedule, so reports and budgets continue to use one transaction source of truth.
