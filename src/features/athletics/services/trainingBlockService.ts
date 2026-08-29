@@ -6,7 +6,7 @@ import {
   type AthleticsTrainingBlock,
   type PlannedActivity,
 } from "../../../database/db";
-import { cancelPlannedActivity, createPlannedActivity, movePlannedActivity } from "../../activities/services/activityService";
+import { cancelPlannedActivity, completePlannedActivity, createPlannedActivity, movePlannedActivity, reopenPlannedActivity } from "../../activities/services/activityService";
 import { getActivityDisplayStatus, getActivityStatus, isActivityVisible } from "../../activities/services/activityLifecycle";
 import {
   lowerAExercises,
@@ -129,6 +129,47 @@ export async function skipTrainingSession(sessionId: number) {
 export async function moveTrainingSession(sessionId: number, date: string) {
   const session = await db.athleticsPlannedSessions.get(sessionId); if (!session?.plannedActivityId) throw new Error("This session is not linked to Planner.");
   await movePlannedActivity(session.plannedActivityId, date);
+}
+
+export async function completeTrainingSession(sessionId: number) {
+  const session = await db.athleticsPlannedSessions.get(sessionId);
+  if (!session?.plannedActivityId || session.deletedAt || session.kind === "recovery" || session.status === "skipped") throw new Error("This training session cannot be completed.");
+  return completePlannedActivity(session.plannedActivityId);
+}
+
+export async function reopenTrainingSession(sessionId: number) {
+  const session = await db.athleticsPlannedSessions.get(sessionId);
+  if (!session?.plannedActivityId || session.deletedAt) throw new Error("This training session cannot be reopened.");
+  return reopenPlannedActivity(session.plannedActivityId);
+}
+
+export interface TrainingBlockTemplateUpdate {
+  focus: string;
+  exercises: AthleticsPlannedExercise[];
+}
+
+export async function updateTrainingBlockTemplate(
+  blockId: number,
+  sessionName: string,
+  input: TrainingBlockTemplateUpdate,
+) {
+  const [sessions, activities] = await Promise.all([
+    db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray(),
+    db.plannedActivities.toArray(),
+  ]);
+  const targets = sessions.filter((session) => session.kind === "gym" && session.name === sessionName && session.status !== "skipped" && !session.deletedAt && getActivityStatus(activities.find((activity) => activity.id === session.plannedActivityId) ?? { completed: false } as PlannedActivity) !== "completed");
+  const focus = input.focus.trim() || sessionName;
+  const exercises = input.exercises.filter((item) => item.name.trim()).map((item) => ({ ...item, name: item.name.trim(), prescribedSets: Math.max(1, Math.round(item.prescribedSets)), targetLabel: `${Math.max(1, Math.round(item.prescribedSets))} × ${item.repRange?.trim() || "complete"}`, alternatives: item.alternatives?.includes(item.name.trim()) ? item.alternatives : undefined }));
+  if (!exercises.length) throw new Error("Keep at least one exercise in the template.");
+  const now = new Date().toISOString();
+
+  await db.transaction("rw", db.athleticsPlannedSessions, db.plannedActivities, async () => {
+    for (const session of targets) {
+      await db.athleticsPlannedSessions.update(session.id!, { focus, exercises: cloneExercises(exercises), updatedAt: now });
+      if (session.plannedActivityId) await db.plannedActivities.update(session.plannedActivityId, { title: `${session.name} · ${focus}`, notes: `${session.phaseName} · ${session.phaseGuidance}${session.notes ? `\n${session.notes}` : ""}`, updatedAt: now });
+    }
+  });
+  return targets.length;
 }
 
 export async function getTrainingSessionByActivity(activityId: number) {

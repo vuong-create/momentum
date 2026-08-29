@@ -7,29 +7,27 @@
 
 # 1. Purpose
 
-The Athletics pillar is a fast, low-friction workout and volleyball tracker.
+The Athletics pillar is a focused training-block calendar.
 
 Its purpose is to answer:
 
-> **Am I training consistently, and am I getting stronger?**
+> **What is today’s session, and did I complete it?**
 
-Momentum should make workout logging easier than using notes or manually maintaining a spreadsheet.
-
-The pillar should collect useful training data without turning every workout into a data-entry session.
+Momentum should keep a time-bounded program visible and accountable without
+turning training into another data-entry system.
 
 Core philosophy:
 
-> **Log workouts quickly → Momentum calculates progress automatically.**
+> **Build the block → follow the calendar → check off the work.**
 
 ---
 
 # 2. Core Principles
 
-## Fast Logging
+## Completion, Not Set Logging
 
-Logging a set should take approximately one tap whenever possible.
-
-Buttons, remembered values, and workout templates should reduce typing.
+A planned gym or volleyball session completes with one check. Momentum does not
+require individual weight, rep, or set logging in the primary flow.
 
 ## Track Training, Not Everything
 
@@ -37,12 +35,9 @@ Athletics focuses on:
 
 * Gym workouts
 * Exercises
-* Sets
-* Weight
-* Reps
 * Volleyball
 * Training consistency
-* PRs
+* Block phases and fatigue management
 
 It does not track:
 
@@ -65,12 +60,12 @@ Athletics uses **weekly consistency**, not a daily workout streak.
 
 Primary sections:
 
-1. Dashboard
-2. Calendar
-3. Workout
-4. Templates
-5. History
-6. Progress
+1. Block
+2. Templates
+
+The prior Dashboard, live Workout logger, History, and Progress screens are no
+longer part of the primary interface. Existing historical records remain stored
+for compatibility and are not deleted.
 
 ---
 
@@ -106,8 +101,8 @@ This means:
 * Moving a session in Planner also moves it on the Athletics calendar
 * Home and Planner display the same Athletics commitment
 * Selecting the task opens the structured Athletics session
-* A task completes only when the workout is finished or volleyball is logged
-* Completing the workout cannot award duplicate task XP
+* A task completes only from the structured Athletics session
+* Checking the session once completes Planner and awards Athletics XP once
 * Overdue sessions remain Missed until moved, completed, or explicitly skipped
 
 Recovery days remain visible in the training calendar but do not create noisy
@@ -136,10 +131,17 @@ Week 4 where the planned deload remains active.
 * Week 3 — Overload: hardest week and 1–2 reps in reserve
 * Week 4 — Reduced Fatigue: 30–40% less lifting volume
 
-Hypertrophy work uses double progression. Planned workouts carry previous
-weights and reps forward, while History and Progress preserve completed
-performances. Explosive exercises use simple quality-focused set completion so
-speed work does not become unnecessary data entry.
+Hypertrophy guidance remains visible in the session prescription, but Momentum
+tracks session completion rather than individual loads and repetitions.
+
+## Block Template Editing
+
+Upper A, Lower A, Upper B, and Lower B are editable from the Templates section.
+The user can change the session focus, exercises, athletic versus hypertrophy
+classification, set count, and repetition or distance target.
+
+Saving a template updates remaining incomplete sessions in the active block.
+Completed sessions remain unchanged so the historical plan is never rewritten.
 
 ---
 

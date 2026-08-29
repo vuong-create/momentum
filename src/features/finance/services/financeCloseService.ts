@@ -17,11 +17,40 @@ export interface FinanceCloseReadiness {
   rolloverCandidates: Array<{ categoryId: number; categoryName: string; amount: number }>;
 }
 
+export interface FinanceRolloverAuditIssue {
+  month: string;
+  nextMonth: string;
+  categoryId: number;
+  expected: number;
+  actual: number;
+}
+
 function nowISO() { return new Date().toISOString(); }
 function money(value: number) { return Math.round(Math.max(0, Number(value) || 0) * 100) / 100; }
 function monthEndDate(month: string) { const [year, number] = month.split("-").map(Number); return new Date(year, number, 0, 12); }
 
 export function visibleFinanceReviews(reviews: FinanceMonthlyReview[]) { return reviews.filter((review) => Boolean(review.closedAt)).sort((a, b) => a.month.localeCompare(b.month)); }
+
+export function auditFinanceRolloverChain(
+  reviews: FinanceMonthlyReview[],
+  allocations: FinanceBudgetAllocation[],
+) {
+  const closed = visibleFinanceReviews(reviews);
+  const issues: FinanceRolloverAuditIssue[] = [];
+
+  for (const review of closed) {
+    const expected = new Map(review.rollovers.map((item) => [item.categoryId, money(item.amount)]));
+    const nextAllocations = allocations.filter((item) => !item.deletedAt && item.month === review.nextMonth && item.categoryId);
+    const categoryIds = new Set([...expected.keys(), ...nextAllocations.filter((item) => item.rolloverAmount > 0).map((item) => item.categoryId!)]);
+    for (const categoryId of categoryIds) {
+      const expectedAmount = expected.get(categoryId) ?? 0;
+      const actualAmount = money(nextAllocations.find((item) => item.categoryId === categoryId)?.rolloverAmount ?? 0);
+      if (expectedAmount !== actualAmount) issues.push({ month: review.month, nextMonth: review.nextMonth, categoryId, expected: expectedAmount, actual: actualAmount });
+    }
+  }
+
+  return { closedMonths: closed.length, decisions: closed.reduce((total, review) => total + review.rollovers.length, 0), issues, valid: issues.length === 0 };
+}
 
 export function getFinanceCloseReadiness(month: string, allocations: FinanceBudgetAllocation[], categories: FinanceCategory[], transactions: FinanceTransaction[]): FinanceCloseReadiness {
   const rows = calculateBudgetRows(month, allocations, categories, transactions);
