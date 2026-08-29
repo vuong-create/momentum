@@ -1352,12 +1352,8 @@ features/athletics/
 
 AthleticsPage
 components/
-  AthleticsDashboard
   AthleticsTrainingCalendar
-  WorkoutLogger
-  AthleticsTemplates
-  AthleticsHistory
-  AthleticsProgress
+  AthleticsBlockTemplates
 services/
   athleticsService
   athleticsQueries
@@ -1366,12 +1362,16 @@ services/
 athleticsCatalog
 ```
 
-Workout logging must prioritize speed and minimal rerendering.
+The primary Athletics interface is intentionally limited to the active Block
+calendar and its Templates. Legacy workout, history, and progress records remain
+in storage for backward compatibility but are not exposed as competing daily
+workflows.
 
 Structured programs use Athletics as the prescription and completion owner,
 while linked Planner activities remain the scheduling source of truth. Home and
 Planner route structured sessions into Athletics instead of completing them
-directly, preventing partial workout records and duplicate XP.
+directly. A single session check-off completes the linked activity and awards XP;
+it does not require or create an individual set-by-set workout log.
 
 ---
 

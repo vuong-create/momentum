@@ -7,9 +7,12 @@ import { getActivityStatus } from "../../activities/services/activityLifecycle";
 import { startPlannedTrainingSession } from "./athleticsService";
 import { getEffectivePlannedExercises } from "./septemberTrainingBlock";
 import {
+  completeTrainingSession,
   getTrainingSessionDisplayStatus,
   installSeptember2026TrainingBlock,
+  reopenTrainingSession,
   setSaturdayTrainingChoice,
+  updateTrainingBlockTemplate,
 } from "./trainingBlockService";
 
 beforeEach(async () => {
@@ -71,5 +74,31 @@ describe("September Athletics training block", () => {
     const session = (await db.athleticsPlannedSessions.where("date").equals("2026-09-01").first())!;
     const activities = await db.plannedActivities.toArray();
     expect(getTrainingSessionDisplayStatus(session, activities, "2026-09-02")).toBe("missed");
+  });
+
+  it("checks off a planned session without requiring an individual workout log", async () => {
+    await installSeptember2026TrainingBlock();
+    const session = (await db.athleticsPlannedSessions.where("date").equals("2026-09-01").first())!;
+    await completeTrainingSession(session.id!);
+    expect(getActivityStatus((await db.plannedActivities.get(session.plannedActivityId!))!)).toBe("completed");
+    expect(await db.athleticsWorkouts.count()).toBe(0);
+    expect(await db.xpEvents.count()).toBe(1);
+
+    await reopenTrainingSession(session.id!);
+    expect(getActivityStatus((await db.plannedActivities.get(session.plannedActivityId!))!)).toBe("planned");
+  });
+
+  it("updates a block template only across remaining sessions", async () => {
+    await installSeptember2026TrainingBlock();
+    const upperSessions = (await db.athleticsPlannedSessions.toArray()).filter((item) => item.name === "Upper A");
+    await completeTrainingSession(upperSessions[0].id!);
+    const exercises = upperSessions[0].exercises.slice(0, 2).map((item, index) => ({ ...item, name: index ? "Neutral-Grip Pulldown" : "Incline Machine Press", alternatives: undefined }));
+    const updated = await updateTrainingBlockTemplate(upperSessions[0].blockId, "Upper A", { focus: "Revised upper session", exercises });
+
+    expect(updated).toBe(3);
+    expect((await db.athleticsPlannedSessions.get(upperSessions[0].id!))?.focus).toBe("Chest + Back Hypertrophy");
+    expect((await db.athleticsPlannedSessions.get(upperSessions[1].id!))?.focus).toBe("Revised upper session");
+    expect((await db.athleticsPlannedSessions.get(upperSessions[1].id!))?.exercises.map((item) => item.name)).toEqual(["Incline Machine Press", "Neutral-Grip Pulldown"]);
+    expect((await db.plannedActivities.get(upperSessions[1].plannedActivityId!))?.title).toBe("Upper A · Revised upper session");
   });
 });
