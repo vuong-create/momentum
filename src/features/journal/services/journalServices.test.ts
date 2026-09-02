@@ -193,7 +193,7 @@ describe("journal services", () => {
   });
 
   it("stores built-in and personal quotes in one collection", async () => {
-    await toggleBuiltInQuote({ id: "test", text: "Keep going.", author: "Someone" });
+    await toggleBuiltInQuote({ id: "test", text: "持之以恆", author: "Chinese idiom", source: "chí zhī yǐ héng · Continue with steady perseverance." });
     const personalId = await createPersonalQuote({
       text: "A personal line",
       author: "Evan",
@@ -203,6 +203,7 @@ describe("journal services", () => {
     const quotes = visibleQuotes(await db.savedQuotes.toArray());
     expect(quotes).toHaveLength(2);
     expect(quotes[0]).toMatchObject({ favorite: true, isBuiltIn: false });
+    expect(quotes[1]).toMatchObject({ source: expect.stringContaining("chí zhī yǐ héng"), isBuiltIn: true });
   });
 
   it("tracks a book through reading and finished shelves", async () => {

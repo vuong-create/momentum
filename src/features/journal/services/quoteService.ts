@@ -5,6 +5,7 @@ type BuiltInQuoteInput = {
   id: string;
   text: string;
   author: string;
+  source?: string;
 };
 
 export async function toggleBuiltInQuote(input: BuiltInQuoteInput) {
@@ -23,6 +24,7 @@ export async function toggleBuiltInQuote(input: BuiltInQuoteInput) {
     await db.savedQuotes.update(existing.id, {
       text: input.text,
       author: input.author,
+      source: input.source,
       deletedAt: undefined,
       updatedAt: now,
       savedAt: now,
@@ -33,6 +35,7 @@ export async function toggleBuiltInQuote(input: BuiltInQuoteInput) {
       quoteKey: input.id,
       text: input.text,
       author: input.author,
+      source: input.source,
       savedAt: now,
       createdAt: now,
       updatedAt: now,

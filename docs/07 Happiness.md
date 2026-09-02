@@ -496,6 +496,16 @@ The primary quote experience belongs inside Happiness / Journal.
 
 Home should not become cluttered.
 
+## Current Home daily words
+
+Home presents one daily reflection and one independent Traditional Chinese
+idiom. Both rotate deterministically by local date, work fully offline, and can
+be saved independently into the shared Library Quotes collection. Saved idioms
+retain their characters, pinyin, and concise English meaning in the quote source
+field. The packaged libraries are deliberately curated rather than fetched at
+runtime, preventing network failures, attribution drift, and distracting content
+changes during the day.
+
 ---
 
 # 30. No Mood Tracking
