@@ -43,6 +43,7 @@ import {
   getDailyQuote,
   type MomentumQuote,
 } from "./quotes";
+import { getDailyChineseIdiom, idiomAsQuote } from "./chineseIdioms";
 import { createJournalEntry } from "../journal/services/journalService";
 import { toggleBuiltInQuote } from "../journal/services/quoteService";
 import { getTrainingSessionIdFromActivity } from "../athletics/services/trainingBlockService";
@@ -154,11 +155,16 @@ export default function HomeDashboard() {
     ) ?? [];
 
   const quote = getDailyQuote(todayKey);
+  const idiom = getDailyChineseIdiom(todayKey);
+  const idiomQuote = idiomAsQuote(idiom);
 
   const quoteSaved = savedQuotes.some(
     (savedQuote) =>
       savedQuote.quoteKey === quote.id &&
       !savedQuote.deletedAt
+  );
+  const idiomSaved = savedQuotes.some(
+    (savedQuote) => savedQuote.quoteKey === idiom.id && !savedQuote.deletedAt
   );
 
   const xpSummary = useMemo(
@@ -447,38 +453,10 @@ export default function HomeDashboard() {
         />
       </header>
 
-      <section className="living-home-atmosphere" aria-label="Daily reflection">
-        {experience.greeting && (
-          <span className="living-home-greeting">
-            {experience.greeting}
-          </span>
-        )}
-
-        <div className="daily-quote">
-          <blockquote className="font-quote">
-            “{quote.text}”
-          </blockquote>
-
-          <div className="daily-quote-footer">
-            <cite className="font-quote">
-              — {quote.author}
-            </cite>
-
-            <button
-              type="button"
-              className={[
-                "daily-quote-save",
-                quoteSaved
-                  ? "daily-quote-save-active"
-                  : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              onClick={() => toggleQuote(quote)}
-            >
-              {quoteSaved ? "♥ Saved" : "♡ Save"}
-            </button>
-          </div>
+      <section className="living-home-atmosphere" aria-label="Daily words">
+        <header className="daily-words-heading"><span className="living-home-label">Daily words</span>{experience.greeting && <strong>{experience.greeting}</strong>}</header>
+        <div className="daily-words"><article className="daily-quote"><div><blockquote className="font-quote">“{quote.text}”</blockquote><cite className="font-quote">— {quote.author}</cite></div><button type="button" aria-label={`${quoteSaved ? "Remove" : "Save"} quote by ${quote.author}`} className={`daily-quote-save${quoteSaved ? " daily-quote-save-active" : ""}`} onClick={() => toggleQuote(quote)}>{quoteSaved ? "♥ Saved" : "♡ Save"}</button></article>
+          <article className="daily-idiom"><div className="daily-idiom-mark" aria-hidden="true">語</div><div><strong lang="zh-Hant">{idiom.text}</strong><span>{idiom.pinyin}</span><p>{idiom.meaning}</p></div><button type="button" aria-label={`${idiomSaved ? "Remove" : "Save"} Chinese idiom ${idiom.text}`} className={`daily-quote-save${idiomSaved ? " daily-quote-save-active" : ""}`} onClick={() => toggleQuote(idiomQuote)}>{idiomSaved ? "♥ Saved" : "♡ Save"}</button></article>
         </div>
       </section>
 

@@ -1961,6 +1961,12 @@ createdAt
 
 Built-in and user-created quotes use the same data structure.
 
+Home's Traditional Chinese idioms also use this structure when saved. `text`
+stores the Traditional characters, `author` identifies the item as a Chinese
+idiom, and `source` preserves pinyin plus the English meaning. The rotating
+packaged libraries are application data and do not create database records until
+the user explicitly saves an item.
+
 ---
 
 # 67A. Personal Library Book

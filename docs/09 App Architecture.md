@@ -1723,6 +1723,11 @@ Examples:
 
 * Import recipe from URL
 * Fetch quote libraries
+
+Home quote and idiom rotation is currently local-first. `features/home/quotes.ts`
+and `features/home/chineseIdioms.ts` own the packaged libraries and deterministic
+daily selectors; `features/journal/services/quoteService.ts` remains the single
+save path into Library Quotes.
 * Retrieve external content
 * More advanced integrations
 
