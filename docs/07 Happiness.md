@@ -64,15 +64,24 @@ The system prioritizes meaningful memories over graphs and statistics.
 
 # 3. Navigation
 
-Library contains seven lightweight sections:
+Library contains eight lightweight sections:
 
 1. Write
 2. Journal
 3. Books
-4. Watchlist
-5. Wish List
-6. Look Back
-7. Quotes
+4. To Do Later
+5. Watchlist
+6. Wish List
+7. Look Back
+8. Quotes
+
+### To Do Later
+
+To Do Later is a quiet holding place for tasks that matter but do not need a
+date yet. A task moves there through its existing edit view and remains the same
+underlying planned activity, preserving its pillar, notes, activity kind, and
+history. From Library it can be completed, moved to Today, assigned a date, or
+opened for editing.
 
 ---
 
@@ -922,6 +931,7 @@ Implemented in the first Journal milestone:
 * Saved Momentum quotes, personal quotes, and favorites
 * Personal Library with reading states and a physical bookshelf view
 * Optional book reflection link into Journal
+* To Do Later for shared tasks intentionally held without a date
 * Watchlist for movies and shows with progress, links, notes, and finished history
 * Wish List for considered items, optional links and notes, and acquired history
 
@@ -931,7 +941,7 @@ deferred; Apple Photos already covers that role well enough for now.
 Implemented in the Library evolution milestone:
 
 * Library becomes the visible pillar name while `/journal` remains the stable route
-* Write, Journal, Books, Watchlist, Wish List, Look Back, and Quotes remain focused subsections
+* Write, Journal, Books, To Do Later, Watchlist, Wish List, Look Back, and Quotes remain focused subsections
 * Optional Reflection, Gratitude, Memory, Growth, Ideas, and Books categories
 * Category badges, filtering, and editing
 * Prompt gallery with category filtering and generated writing templates

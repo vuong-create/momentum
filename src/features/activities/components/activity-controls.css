@@ -86,6 +86,10 @@
   color: var(--color-warning);
 }
 
+.activity-status-later {
+  color: #aaa0c4;
+}
+
 .activity-details-close {
   width: 28px;
   min-height: 28px;

@@ -41,10 +41,12 @@ import {
   resolveActivityScheduledDate,
 } from "../services/activityLifecycle";
 import {
+  deferPlannedActivity,
   dismissPlannedActivity,
   getPlannedActivity,
   restoreDismissedActivity,
   restoreSoftDeletedActivity,
+  restorePlannedActivitySchedule,
   softDeletePlannedActivity,
   togglePlannedActivity,
   updateActivityDetails,
@@ -133,7 +135,7 @@ function ActivityDetailsForm({
   const titleRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(activity.title);
   const [scheduledDate, setScheduledDate] = useState(
-    activity.planningWeekStart
+    activity.planningWeekStart || activity.deferredAt
       ? ""
       : resolveActivityScheduledDate(activity, todayKey) ?? todayKey
   );
@@ -172,6 +174,7 @@ function ActivityDetailsForm({
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
 
   const status = getActivityDisplayStatus(activity, todayKey);
+  const statusLabel = activity.deferredAt ? "later" : status;
   const quickDates = getQuickDates(scheduledDate || todayKey);
 
   useEffect(() => {
@@ -191,6 +194,7 @@ function ActivityDetailsForm({
       title: activity.title,
       scheduledDate: activity.scheduledDate,
       planningWeekStart: activity.planningWeekStart,
+      deferredAt: activity.deferredAt,
       scheduledTime: activity.scheduledTime,
       pillar: activity.pillar,
       activityKind: activity.activityKind,
@@ -331,6 +335,18 @@ function ActivityDetailsForm({
     onClose();
   }
 
+  async function handleDefer() {
+    if (!activity.id) return;
+
+    await deferPlannedActivity(activity.id);
+    experience.playFeedback("task-updated");
+    onMutation({
+      message: "Moved to To Do Later",
+      undo: () => restorePlannedActivitySchedule(activity),
+    });
+    onClose();
+  }
+
   async function handleDelete() {
     if (!activity.id) return;
 
@@ -383,8 +399,8 @@ function ActivityDetailsForm({
       <header className="activity-details-header">
         <div>
           <span className="text-label">Activity details</span>
-          <span className={`activity-status activity-status-${status}`}>
-            {status}
+          <span className={`activity-status activity-status-${statusLabel}`}>
+            {statusLabel}
           </span>
         </div>
         <button
@@ -432,9 +448,9 @@ function ActivityDetailsForm({
             value={scheduledDate}
             onChange={(event) => setScheduledDate(event.target.value)}
           />
-          {activity.planningWeekStart && !scheduledDate && (
+          {(activity.planningWeekStart || activity.deferredAt) && !scheduledDate && (
             <small className="activity-date-unscheduled">
-              Unscheduled this week
+              {activity.deferredAt ? "Saved in To Do Later" : "Unscheduled this week"}
             </small>
           )}
         </fieldset>
@@ -578,6 +594,11 @@ function ActivityDetailsForm({
           {!activity.completed && (
             <button type="button" onClick={handleDismiss}>
               Dismiss
+            </button>
+          )}
+          {!activity.completed && !activity.deferredAt && (
+            <button type="button" onClick={handleDefer}>
+              Move to To Do Later
             </button>
           )}
           {activity.recurrenceRuleId && !activity.completed && (

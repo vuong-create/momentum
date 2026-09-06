@@ -14,6 +14,7 @@ import { getTotalXP } from "../../xp/XPService";
 import {
   completePlannedActivity,
   createPlannedActivity,
+  deferPlannedActivity,
   dismissPlannedActivity,
   duplicatePlannedActivity,
   getPlannedActivity,
@@ -27,6 +28,7 @@ import {
   setPlannedActivityOrder,
   unschedulePlannedActivity,
   updateActivityDetails,
+  visibleDeferredActivities,
 } from "./activityService";
 
 beforeEach(async () => {
@@ -78,6 +80,47 @@ describe("activity service", () => {
       sortOrder: 42,
     });
     expect(unscheduled?.scheduledDate).toBeUndefined();
+  });
+
+  it("moves an activity to To Do Later and preserves its identity when scheduled again", async () => {
+    const activityId = await createPlannedActivity({
+      title: "Learn how to make dumplings",
+      scheduledDate: "2026-08-05",
+      pillar: "cooking",
+      notes: "Try a weekend class",
+    });
+
+    const original = (await getPlannedActivity(activityId))!;
+    await deferPlannedActivity(activityId);
+
+    const deferred = (await getPlannedActivity(activityId))!;
+    expect(deferred).toMatchObject({
+      id: activityId,
+      title: original.title,
+      pillar: "cooking",
+      notes: "Try a weekend class",
+      day: "To Do Later",
+      deferredAt: expect.any(String),
+    });
+    expect(deferred.scheduledDate).toBeUndefined();
+    expect(deferred.planningWeekStart).toBeUndefined();
+    expect(visibleDeferredActivities([deferred])).toHaveLength(1);
+
+    await movePlannedActivity(activityId, "2026-08-09");
+    const rescheduled = (await getPlannedActivity(activityId))!;
+    expect(rescheduled).toMatchObject({
+      id: activityId,
+      scheduledDate: "2026-08-09",
+      day: "Sunday",
+    });
+    expect(rescheduled.deferredAt).toBeUndefined();
+
+    await restorePlannedActivitySchedule(deferred);
+    expect(await getPlannedActivity(activityId)).toMatchObject({
+      id: activityId,
+      day: "To Do Later",
+      deferredAt: deferred.deferredAt,
+    });
   });
 
   it("duplicates into a requested date or unscheduled week", async () => {
