@@ -453,8 +453,7 @@ export default function HomeDashboard() {
         />
       </header>
 
-      <section className="living-home-atmosphere" aria-label="Daily words">
-        <header className="daily-words-heading"><span className="living-home-label">Daily words</span>{experience.greeting && <strong>{experience.greeting}</strong>}</header>
+      <section className="living-home-atmosphere" aria-label="Daily reflection">
         <div className="daily-words"><article className="daily-quote"><div><blockquote className="font-quote">“{quote.text}”</blockquote><cite className="font-quote">— {quote.author}</cite></div><button type="button" aria-label={`${quoteSaved ? "Remove" : "Save"} quote by ${quote.author}`} className={`daily-quote-save${quoteSaved ? " daily-quote-save-active" : ""}`} onClick={() => toggleQuote(quote)}>{quoteSaved ? "♥ Saved" : "♡ Save"}</button></article>
           <article className="daily-idiom"><div className="daily-idiom-mark" aria-hidden="true">語</div><div><strong lang="zh-Hant">{idiom.text}</strong><span>{idiom.pinyin}</span><p>{idiom.meaning}</p></div><button type="button" aria-label={`${idiomSaved ? "Remove" : "Save"} Chinese idiom ${idiom.text}`} className={`daily-quote-save${idiomSaved ? " daily-quote-save-active" : ""}`} onClick={() => toggleQuote(idiomQuote)}>{idiomSaved ? "♥ Saved" : "♡ Save"}</button></article>
         </div>

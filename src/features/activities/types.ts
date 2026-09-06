@@ -33,6 +33,7 @@ export type ActivityDetailsPatch = Partial<
     | "rescheduleCount"
     | "lastRescheduledAt"
     | "planningWeekStart"
+    | "deferredAt"
     | "scheduledTime"
     | "important"
     | "notes"

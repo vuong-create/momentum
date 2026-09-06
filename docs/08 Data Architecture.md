@@ -149,6 +149,16 @@ Scheduled items include:
 
 * `scheduledDate`
 
+Tasks intentionally held without a date use:
+
+* `deferredAt`
+
+This powers Library's **To Do Later** view without copying the task into a
+second table. Scheduling the task clears `deferredAt`; undo restores its exact
+prior state. Week-specific unscheduled tasks continue to use
+`planningWeekStart`, keeping the planner inbox and long-term holding list
+separate.
+
 Records where timing matters may also contain:
 
 * `scheduledTime`
@@ -1998,7 +2008,7 @@ deletedAt
 
 `status` is one of `want-to-read`, `reading`, or `finished`. The bookshelf is a view of finished book records, not a separate shelf database. The optional Journal link avoids duplicating reflection text into an unrelated memory model.
 
-The current local schema stores Journal entries, quotes, Library books, Wish List items, and Watchlist items in Dexie with soft deletion for recoverable undo. Photos remain reserved for the shared Media implementation.
+The current local schema stores Journal entries, quotes, Library books, Wish List items, and Watchlist items in Dexie with soft deletion for recoverable undo. To Do Later does not add a Library table; it reads deferred records from `plannedActivities`. Photos remain reserved for the shared Media implementation.
 
 ---
 

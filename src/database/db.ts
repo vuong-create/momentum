@@ -60,6 +60,7 @@ export interface PlannedActivity {
   rescheduleCount?: number;
   lastRescheduledAt?: string;
   planningWeekStart?: string;
+  deferredAt?: string;
   scheduledTime?: string;
   sortOrder?: number;
 

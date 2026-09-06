@@ -64,7 +64,10 @@ function sortIncomplete(
       if (first.scheduledTime) return -1;
       if (second.scheduledTime) return 1;
 
-      return (first.id ?? 0) - (second.id ?? 0);
+      const firstOrder = first.sortOrder ?? first.id ?? 0;
+      const secondOrder = second.sortOrder ?? second.id ?? 0;
+
+      return secondOrder - firstOrder;
     });
 }
 

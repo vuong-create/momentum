@@ -100,6 +100,7 @@ export async function updateActivityDetails(
     patch.title,
     patch.scheduledDate,
     patch.planningWeekStart,
+    patch.deferredAt,
     patch.scheduledTime,
     patch.pillar,
     patch.activityKind,
@@ -119,6 +120,7 @@ export async function updateActivityDetails(
   if (patch.scheduledDate) {
     normalizedPatch.scheduledDate = patch.scheduledDate;
     normalizedPatch.planningWeekStart = undefined;
+    normalizedPatch.deferredAt = undefined;
     if (scheduledDateChanged) {
       normalizedPatch.originalScheduledDate =
         activity.originalScheduledDate ?? activity.scheduledDate ?? patch.scheduledDate;
@@ -130,6 +132,7 @@ export async function updateActivityDetails(
     }
   } else if (patch.planningWeekStart) {
     normalizedPatch.scheduledDate = undefined;
+    normalizedPatch.deferredAt = undefined;
   }
 
   await db.plannedActivities.update(id, {
@@ -162,6 +165,7 @@ export async function movePlannedActivity(
     lastRescheduledAt:
       activity.scheduledDate && isNewDate ? now : activity.lastRescheduledAt,
     planningWeekStart: undefined,
+    deferredAt: undefined,
     day: getDayName(scheduledDate),
     sortOrder,
     recurrenceOverride: Boolean(activity.recurrenceRuleId),
@@ -181,9 +185,12 @@ export async function restorePlannedActivitySchedule(
     rescheduleCount: snapshot.rescheduleCount,
     lastRescheduledAt: snapshot.lastRescheduledAt,
     planningWeekStart: snapshot.planningWeekStart,
+    deferredAt: snapshot.deferredAt,
     day: snapshot.scheduledDate
       ? getDayName(snapshot.scheduledDate)
-      : "Unscheduled",
+      : snapshot.deferredAt
+        ? "To Do Later"
+        : "Unscheduled",
     sortOrder: snapshot.sortOrder,
     recurrenceOverride: snapshot.recurrenceOverride,
     updatedAt: new Date().toISOString(),
@@ -200,11 +207,40 @@ export async function unschedulePlannedActivity(
   await db.plannedActivities.update(id, {
     scheduledDate: undefined,
     planningWeekStart,
+    deferredAt: undefined,
     day: "Unscheduled",
     sortOrder,
     recurrenceOverride: Boolean(activity.recurrenceRuleId),
     updatedAt: new Date().toISOString(),
   });
+}
+
+export async function deferPlannedActivity(id: number) {
+  const activity = await requireActivity(id);
+  const now = new Date().toISOString();
+
+  await db.plannedActivities.update(id, {
+    scheduledDate: undefined,
+    planningWeekStart: undefined,
+    deferredAt: now,
+    day: "To Do Later",
+    sortOrder: Date.now(),
+    recurrenceOverride: Boolean(activity.recurrenceRuleId),
+    updatedAt: now,
+  });
+}
+
+export function visibleDeferredActivities(activities: PlannedActivity[]) {
+  return activities
+    .filter((activity) =>
+      Boolean(activity.deferredAt) &&
+      !activity.deletedAt &&
+      getActivityStatus(activity) === "planned"
+    )
+    .sort((first, second) =>
+      (second.deferredAt ?? "").localeCompare(first.deferredAt ?? "") ||
+      (second.id ?? 0) - (first.id ?? 0)
+    );
 }
 
 export async function duplicatePlannedActivity(
@@ -277,6 +313,7 @@ export async function movePlannedActivities(
                 ? now.toISOString()
                 : activity?.lastRescheduledAt,
             planningWeekStart: undefined,
+            deferredAt: undefined,
             day: getDayName(scheduledDate),
             sortOrder: baseOrder + index,
             recurrenceOverride: Boolean(activity?.recurrenceRuleId),

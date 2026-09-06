@@ -1422,6 +1422,7 @@ components/
   JournalLookBack
   JournalQuotes
   JournalLibrary
+  JournalTodoLater
   JournalWatchlist
   JournalWishlist
 services/
@@ -1440,6 +1441,11 @@ The user-facing pillar is **Library**, while the established `/journal` route,
 feature folder, and database table remain stable to avoid a cosmetic rename
 causing migration risk. Prompt definitions live as static product configuration;
 entries store only an optional category and prompt ID alongside their own text.
+
+`JournalTodoLater` is intentionally a Library view over shared
+`plannedActivities`, not a journal-owned service or table. Deferral and
+rescheduling remain activity-service operations so Home, Planner, the task
+ledger, recurrence, and XP continue to reference the same task.
 
 ---
 
@@ -1977,6 +1983,7 @@ Current milestone status:
 * Look Back and unified quote collection implemented
 * Personal Library and bookshelf implemented
 * Library pillar naming, optional categories, and prompt-generated templates implemented
+* To Do Later implemented as a Library view over deferred shared activities
 * Watchlist implemented with movie/show states, resumable progress, and finished history
 * Photo memories remain intentionally deferred
 

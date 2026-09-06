@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { db, type JournalEntry, type LibraryBook, type LibraryWatchItem, type LibraryWishlistItem, type SavedQuote } from "../../database/db";
+import { db, type JournalEntry, type LibraryBook, type LibraryWatchItem, type LibraryWishlistItem, type PlannedActivity, type SavedQuote } from "../../database/db";
 import useExperience from "../../experience/useExperience";
+import ActivityDetailsPanel from "../activities/components/ActivityDetailsPanel";
 import ActivityUndoToast from "../activities/components/ActivityUndoToast";
 import useActivityUndo from "../activities/hooks/useActivityUndo";
 import JournalEntryModal from "./components/JournalEntryModal";
@@ -11,6 +12,7 @@ import JournalLibrary from "./components/JournalLibrary";
 import JournalLookBack from "./components/JournalLookBack";
 import JournalQuotes from "./components/JournalQuotes";
 import JournalToday from "./components/JournalToday";
+import JournalTodoLater from "./components/JournalTodoLater";
 import JournalWatchlist from "./components/JournalWatchlist";
 import JournalWishlist from "./components/JournalWishlist";
 import {
@@ -47,15 +49,17 @@ import {
   type WishlistItemInput,
 } from "./services/wishlistService";
 import { createWatchItem, restoreWatchItem, setWatchItemStatus, softDeleteWatchItem, updateWatchItem, visibleWatchItems, type WatchItemInput } from "./services/watchlistService";
+import { completePlannedActivity, movePlannedActivity, reopenPlannedActivity, restorePlannedActivitySchedule, visibleDeferredActivities } from "../activities/services/activityService";
 
 import "./journal.css";
 
-type JournalView = "today" | "journal" | "library" | "watchlist" | "wishlist" | "look-back" | "quotes";
+type JournalView = "today" | "journal" | "library" | "todo-later" | "watchlist" | "wishlist" | "look-back" | "quotes";
 
 const journalTabs: { id: JournalView; label: string }[] = [
   { id: "today", label: "Write" },
   { id: "journal", label: "Journal" },
   { id: "library", label: "Books" },
+  { id: "todo-later", label: "To Do Later" },
   { id: "watchlist", label: "Watchlist" },
   { id: "wishlist", label: "Wish List" },
   { id: "look-back", label: "Look Back" },
@@ -67,21 +71,33 @@ function getInitialView(): JournalView {
   return journalTabs.some((tab) => tab.id === stored) ? stored as JournalView : "today";
 }
 
+function toDateKey(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 export default function JournalPage() {
   const experience = useExperience();
   const undo = useActivityUndo();
   const [view, setView] = useState<JournalView>(getInitialView);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+  const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
   const allEntries = useLiveQuery(() => db.journalEntries.toArray(), []) ?? [];
   const allQuotes = useLiveQuery(() => db.savedQuotes.toArray(), []) ?? [];
   const allBooks = useLiveQuery(() => db.libraryBooks.toArray(), []) ?? [];
   const allWatchItems = useLiveQuery(() => db.libraryWatchItems.toArray(), []) ?? [];
   const allWishlistItems = useLiveQuery(() => db.libraryWishlistItems.toArray(), []) ?? [];
+  const allActivities = useLiveQuery(() => db.plannedActivities.toArray(), []) ?? [];
   const entries = visibleJournalEntries(allEntries);
   const quotes = visibleQuotes(allQuotes);
   const books = visibleLibraryBooks(allBooks);
   const watchItems = visibleWatchItems(allWatchItems);
   const wishlistItems = visibleWishlistItems(allWishlistItems);
+  const laterActivities = visibleDeferredActivities(allActivities);
+  const todayKey = toDateKey(experience.now);
 
   function selectView(nextView: JournalView) {
     setView(nextView);
@@ -225,6 +241,26 @@ export default function JournalPage() {
     experience.playFeedback(status === "finished" ? "task-completed" : "library-saved");
   }
 
+  async function moveLaterActivity(activity: PlannedActivity, dateKey: string) {
+    if (!activity.id) return;
+    await movePlannedActivity(activity.id, dateKey);
+    experience.playFeedback("task-updated");
+    undo.show({
+      message: dateKey === todayKey ? "Moved to Today" : "Activity scheduled",
+      undo: () => restorePlannedActivitySchedule(activity),
+    });
+  }
+
+  async function completeLaterActivity(activity: PlannedActivity) {
+    if (!activity.id) return;
+    await completePlannedActivity(activity.id);
+    experience.playFeedback("task-completed");
+    undo.show({
+      message: "Activity completed",
+      undo: () => reopenPlannedActivity(activity.id!),
+    });
+  }
+
   const closeEntry = useCallback(() => setSelectedEntry(null), []);
 
   return (
@@ -243,6 +279,7 @@ export default function JournalPage() {
           <button key={tab.id} type="button" className={view === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}>
             {tab.label}
             {tab.id === "library" && books.length > 0 && <span>{books.length}</span>}
+            {tab.id === "todo-later" && laterActivities.length > 0 && <span>{laterActivities.length}</span>}
             {tab.id === "watchlist" && watchItems.length > 0 && <span>{watchItems.length}</span>}
             {tab.id === "wishlist" && wishlistItems.length > 0 && <span>{wishlistItems.length}</span>}
             {tab.id === "quotes" && quotes.length > 0 && <span>{quotes.length}</span>}
@@ -254,6 +291,7 @@ export default function JournalPage() {
         {view === "today" && <JournalToday now={experience.now} savedQuotes={allQuotes} onSave={saveNewEntry} onToggleQuote={async (quote) => { await toggleBuiltInQuote(quote); experience.playFeedback("library-saved"); }} />}
         {view === "journal" && <JournalHistory entries={entries} onOpen={setSelectedEntry} />}
         {view === "library" && <JournalLibrary books={books} onSave={saveBook} onDelete={deleteBook} onJournalize={journalizeBook} />}
+        {view === "todo-later" && <JournalTodoLater activities={laterActivities} todayKey={todayKey} onMove={moveLaterActivity} onComplete={completeLaterActivity} onOpen={setSelectedActivityId} />}
         {view === "watchlist" && <JournalWatchlist items={watchItems} onSave={saveWatchItem} onDelete={deleteWatchItem} onStatusChange={changeWatchStatus} />}
         {view === "wishlist" && <JournalWishlist items={wishlistItems} onSave={saveWishlistItem} onDelete={deleteWishlistItem} onStatusChange={changeWishlistStatus} />}
         {view === "look-back" && <JournalLookBack entries={entries} now={experience.now} onOpen={setSelectedEntry} />}
@@ -261,6 +299,7 @@ export default function JournalPage() {
       </main>
 
       <JournalEntryModal entry={selectedEntry} onClose={closeEntry} onSave={saveEntry} onDelete={deleteEntry} />
+      <ActivityDetailsPanel activityId={selectedActivityId} onClose={() => setSelectedActivityId(null)} onMutation={undo.show} />
       <ActivityUndoToast notice={undo.notice} onDismiss={undo.dismiss} onUndo={undo.undo} />
     </div>
   );
