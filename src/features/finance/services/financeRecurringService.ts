@@ -1,8 +1,15 @@
-import { db, type FinanceRecurrenceFrequency, type FinanceRecurringTransaction } from "../../../database/db";
+import {
+  db,
+  type FinanceRecurrenceFrequency,
+  type FinanceRecurrenceUnit,
+  type FinanceRecurringTransaction,
+} from "../../../database/db";
 import { createFinanceTransaction, validateTransaction, type FinanceTransactionInput } from "./financeService";
 
 export interface FinanceRecurringInput extends Omit<FinanceTransactionInput, "date" | "tags"> {
   frequency: FinanceRecurrenceFrequency;
+  customInterval?: number;
+  customUnit?: FinanceRecurrenceUnit;
   nextDate: string;
   endDate?: string;
 }
@@ -10,21 +17,71 @@ export interface FinanceRecurringInput extends Omit<FinanceTransactionInput, "da
 function nowISO() { return new Date().toISOString(); }
 function dateKey(date: Date) { return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-"); }
 
-export function advanceRecurringDate(date: string, frequency: FinanceRecurrenceFrequency) {
+function addCalendarMonths(date: string, count: number) {
   const [year, month, day] = date.split("-").map(Number);
-  if (frequency === "weekly") { const next = new Date(year, month - 1, day, 12); next.setDate(next.getDate() + 7); return dateKey(next); }
-  if (frequency === "yearly") { const lastDay = new Date(year + 1, month, 0).getDate(); return `${year + 1}-${String(month).padStart(2, "0")}-${String(Math.min(day, lastDay)).padStart(2, "0")}`; }
-  const nextMonthIndex = month;
+  const nextMonthIndex = month - 1 + count;
   const nextYear = year + Math.floor(nextMonthIndex / 12);
-  const nextMonth = nextMonthIndex % 12;
+  const nextMonth = ((nextMonthIndex % 12) + 12) % 12;
   const lastDay = new Date(nextYear, nextMonth + 1, 0).getDate();
   return `${nextYear}-${String(nextMonth + 1).padStart(2, "0")}-${String(Math.min(day, lastDay)).padStart(2, "0")}`;
+}
+
+function addCalendarYears(date: string, count: number) {
+  const [year, month, day] = date.split("-").map(Number);
+  const nextYear = year + count;
+  const lastDay = new Date(nextYear, month, 0).getDate();
+  return `${nextYear}-${String(month).padStart(2, "0")}-${String(Math.min(day, lastDay)).padStart(2, "0")}`;
+}
+
+export function advanceRecurringDate(
+  date: string,
+  frequency: FinanceRecurrenceFrequency,
+  customInterval = 1,
+  customUnit: FinanceRecurrenceUnit = "months"
+) {
+  const interval = Math.max(1, Math.floor(customInterval));
+  const [year, month, day] = date.split("-").map(Number);
+  const unit = frequency === "custom"
+    ? customUnit
+    : frequency === "weekly"
+      ? "weeks"
+      : frequency === "yearly"
+        ? "years"
+        : "months";
+
+  if (unit === "months") return addCalendarMonths(date, interval);
+  if (unit === "years") return addCalendarYears(date, interval);
+
+  const next = new Date(year, month - 1, day, 12);
+  next.setDate(next.getDate() + interval * (unit === "weeks" ? 7 : 1));
+  return dateKey(next);
+}
+
+export function recurringFrequencyLabel(
+  frequency: FinanceRecurrenceFrequency,
+  customInterval?: number,
+  customUnit?: FinanceRecurrenceUnit
+) {
+  if (frequency !== "custom") {
+    return frequency.charAt(0).toUpperCase() + frequency.slice(1);
+  }
+
+  const interval = Math.max(1, Math.floor(customInterval ?? 1));
+  const unit = customUnit ?? "months";
+  const unitLabel = interval === 1 ? unit.slice(0, -1) : unit;
+  return `Every ${interval} ${unitLabel}`;
 }
 
 function normalize(input: FinanceRecurringInput, existing?: FinanceRecurringTransaction): FinanceRecurringTransaction {
   validateTransaction({ ...input, date: input.nextDate });
   if (!input.nextDate) throw new Error("Choose the next payment date.");
   if (input.endDate && input.endDate < input.nextDate) throw new Error("The end date must be after the next payment.");
+  if (
+    input.frequency === "custom" &&
+    (!Number.isInteger(input.customInterval) || (input.customInterval ?? 0) < 1)
+  ) {
+    throw new Error("Custom frequency must repeat at least every 1 unit.");
+  }
   const timestamp = nowISO();
   return {
     ...existing,
@@ -39,6 +96,8 @@ function normalize(input: FinanceRecurringInput, existing?: FinanceRecurringTran
     notes: input.notes?.trim() || undefined,
     investmentHolding: input.type === "investment" ? input.investmentHolding?.trim() || undefined : undefined,
     frequency: input.frequency,
+    customInterval: input.frequency === "custom" ? input.customInterval : undefined,
+    customUnit: input.frequency === "custom" ? input.customUnit ?? "months" : undefined,
     nextDate: input.nextDate,
     endDate: input.endDate || undefined,
     active: existing?.active ?? true,
@@ -61,7 +120,12 @@ export async function softDeleteFinanceRecurring(id: number) { await db.financeR
 
 async function advanceOccurrence(id: number, processedDate: string) {
   const item = await db.financeRecurringTransactions.get(id); if (!item || item.deletedAt) throw new Error("Recurring item not found.");
-  const nextDate = advanceRecurringDate(processedDate, item.frequency);
+  const nextDate = advanceRecurringDate(
+    processedDate,
+    item.frequency,
+    item.customInterval,
+    item.customUnit
+  );
   const active = item.active && (!item.endDate || nextDate <= item.endDate);
   await db.financeRecurringTransactions.update(id, { nextDate, active, lastProcessedDate: processedDate, updatedAt: nowISO() });
   return { nextDate, active };
