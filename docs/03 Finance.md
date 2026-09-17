@@ -144,6 +144,10 @@ at the bottom, where they remain adjacent to Quick Entry.
 Rows are intentionally compact so the ledger supports fast scanning without
 turning normal text into tiny, difficult controls.
 
+Income, transfer, and investment rows use a slightly heavier text weight than
+ordinary expenses. Their color accents remain restrained; weight provides the
+primary scanning cue without turning the ledger into a bright status board.
+
 It should support:
 
 * Search
@@ -1151,7 +1155,9 @@ transfer and should be designed together with the backup and audit contract.
 ## Recurring transactions
 
 Recurring expenses, income, transfers, and investments can be scheduled weekly,
-monthly, or yearly. Momentum surfaces due occurrences for review; it never adds
-one to the ledger automatically. A due item can be confirmed, skipped, paused,
-edited, or removed. Confirming creates the normal ledger transaction and advances
-the schedule, so reports and budgets continue to use one transaction source of truth.
+monthly, yearly, or with a custom interval such as every 10 days, 2 weeks, 3
+months, or 2 years. Amount entry preserves decimal typing and stores values to
+the cent. Momentum surfaces due occurrences for review; it never adds one to the
+ledger automatically. A due item can be confirmed, skipped, paused, edited, or
+removed. Confirming creates the normal ledger transaction and advances the
+schedule, so reports and budgets continue to use one transaction source of truth.

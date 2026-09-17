@@ -4,7 +4,10 @@
 
 Version 34 adds `financeRecurringTransactions`. These records describe schedules
 only; confirmed occurrences are written to `financeTransactions`, keeping all
-financial calculations anchored to the ledger.
+financial calculations anchored to the ledger. Standard schedules store a
+weekly, monthly, or yearly frequency. Custom schedules additionally store an
+integer interval and a day, week, month, or year unit. These optional fields do
+not require a schema migration because they are not indexed.
 
 **Status:** 🟢 Architecture Defined
 **Next Step:** `09 App Architecture.md`

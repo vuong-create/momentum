@@ -597,7 +597,13 @@ export interface FinanceTransaction {
   deletedAt?: string;
 }
 
-export type FinanceRecurrenceFrequency = "weekly" | "monthly" | "yearly";
+export type FinanceRecurrenceFrequency =
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "custom";
+
+export type FinanceRecurrenceUnit = "days" | "weeks" | "months" | "years";
 
 export interface FinanceRecurringTransaction {
   id?: number;
@@ -612,6 +618,8 @@ export interface FinanceRecurringTransaction {
   notes?: string;
   investmentHolding?: string;
   frequency: FinanceRecurrenceFrequency;
+  customInterval?: number;
+  customUnit?: FinanceRecurrenceUnit;
   nextDate: string;
   endDate?: string;
   active: boolean;
