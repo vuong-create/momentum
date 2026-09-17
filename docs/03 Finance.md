@@ -144,9 +144,9 @@ at the bottom, where they remain adjacent to Quick Entry.
 Rows are intentionally compact so the ledger supports fast scanning without
 turning normal text into tiny, difficult controls.
 
-Income, transfer, and investment rows use a slightly heavier text weight than
-ordinary expenses. Their color accents remain restrained; weight provides the
-primary scanning cue without turning the ledger into a bright status board.
+Income, transfer, and investment rows use a heavier text weight and a soft,
+type-colored row wash to stand apart from ordinary expenses. The tint remains
+restrained enough to preserve the ledger's dark, spreadsheet-like character.
 
 It should support:
 
