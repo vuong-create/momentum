@@ -665,6 +665,8 @@ export interface FinanceBudgetAllocation {
   subcategoryId?: number;
   baseAmount: number;
   rolloverAmount: number;
+  manualAdjustmentAmount?: number;
+  manualAdjustmentAt?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;

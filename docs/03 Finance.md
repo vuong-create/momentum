@@ -687,107 +687,66 @@ It should combine polished visual design with meaningful numerical detail.
 
 ## Dashboard Hierarchy
 
-### 1. Net Worth
+### 1. Monthly allocation
 
-Current Net Worth is displayed prominently.
+The lead card summarizes spending, investing, and long-term saving for the
+current month. Its change value compares with the same calendar day in the
+previous month, avoiding misleading comparisons with a completed month.
 
-Also show useful change information such as:
+The adjoining six-month chart shows income and expense flow. Net worth and
+account history remain in Reports because account balances are not assumed to
+be live.
 
-* Change this month
-* Change this year
+### 2. This month
 
-No artificial Financial Health score is needed.
+A compact strip shows income, expenses, investments, long-term saving, and the
+current expense plan. These are derived from ledger and budget records rather
+than duplicated dashboard values.
 
-Actual financial numbers are more useful.
+### 3. Month pace
 
-### 2. This Month
+Month Pace compares the percentage of the calendar month elapsed with the
+percentage of the expense plan used. It also derives:
 
-Show:
+* Remaining planned spending
+* Current daily average
+* Projected month-end spending
+* A calm status: On pace, Running warm, Over plan, or No plan yet
 
-* Income
-* Expenses
-* Saved / Invested
-* Savings Rate
+The projection is informational and never changes the budget.
 
-### 3. Budget Health
+### 4. Needs attention
 
-Show overall monthly budget status.
+This compact read-only panel surfaces over-plan and near-limit categories,
+uncategorized current-month expenses, and ledger validation findings. It never
+repairs or rewrites records automatically.
 
-Also highlight important categories and categories requiring attention.
+### 5. Every category at a glance
 
-Budget progress bars should be visually prominent.
+All expense categories appear in a dense two-column matrix with actual,
+planned, remaining, and utilization values. All, Active, and Near limit views
+change presentation only. Categories without activity remain available but are
+visually quieter.
 
-### 4. Accounts
+### 6. Upcoming recurring activity
 
-Accounts use a compact table instead of individual cards.
+The next four active recurring schedules show their due date, frequency,
+merchant, type, and amount. Overdue schedules are called out softly. Recurring
+items remain schedules until explicitly confirmed into the ledger.
 
-Example:
+### 7. Recent transactions
 
-| Account     | Type       | Balance |
-| ----------- | ---------- | ------: |
-| Checking    | Checking   |  $4,250 |
-| HYSA        | Savings    | $18,500 |
-| Vanguard    | Investment | $24,800 |
-| 401(k)      | Retirement | $31,200 |
-| Credit Card | Credit     |   -$620 |
-
-The table should feel clean but data-rich.
-
-### 5. Goals
-
-Dashboard shows the **top 3 active financial goals**.
-
-Goals use visual progress bars.
-
-A **View All** action opens the complete Goals section.
-
-### 6. Recent Transactions
-
-Dashboard displays the **10 most recent transactions**.
-
-Suggested columns:
-
-* Date
-* Merchant
-* Category
-* Amount
-
-A **View All** action opens Transactions.
-
-### 7. Dashboard Visualizations
-
-Three primary visual sections:
-
-#### Budget by Category
-
-Shows budget vs. actual spending for categories.
-
-Over-budget categories receive strong visual warnings.
-
-#### Spending by Category
-
-Shows the current month's spending distribution.
-
-#### Income vs. Spending
-
-Shows approximately the previous six months.
-
-Net Worth history remains in Reports because current Net Worth is already prominent on the Dashboard.
+The Dashboard displays up to 12 recent visible transactions in a compact,
+chronological list with date, merchant, category, type, and amount. A **View
+All** action opens Transactions.
 
 ---
 
 # 22. Quick Actions
 
-Finance Dashboard includes easily accessible Quick Actions:
-
-* * Transaction
-* Budget
-* Close Month
-* Reports
-
-Selecting **+ Transaction** opens Transactions and immediately focuses the Quick Add form.
-
-The purpose is minimizing navigation friction.
+Overview links directly to the complete Budget, Transactions, and Recurring
+workspaces. Data entry stays in those dedicated views so the Dashboard remains
+optimized for reading.
 
 ---
 
@@ -1146,6 +1105,14 @@ Implemented:
 * Editing closed-month transactions, reconciliation, or budget plans reopens the month first so saved review metrics never become stale
 * Transaction ledger displays Notes between Category and Account for faster scanning
 * Opening Finance is idempotent: the current monthly snapshot is only rewritten when its calculated account position actually changes
+* Category current-balance adjustments are stored as explicit plan metadata and never create, rewrite, or delete ledger transactions
+* Resetting an adjustment restores the balance derived from base plan, generated rollover, and actual activity
+* Positive adjusted expense balances participate in the normal month-close rollover flow and remain optional at confirmation
+* Reports label the combined amount as Plan left and use specific Budget left, Contribution left, Transfer left, and Income variance language
+* Reports expose each category's base plan, rolled-in balance, manual adjustment, available amount, and actual activity
+* Rollover Story separates the monthly base plan, incoming rollover, manual adjustments, and eligible or confirmed carry-forward
+* Top-merchant and month-over-month category movement panels add useful context without altering financial records
+* Account and net-worth history remain snapshot-based and should be read as manual history rather than live bank synchronization
 
 Rollover cash-out remains a later enhancement because it creates a real account
 transfer and should be designed together with the backup and audit contract.
