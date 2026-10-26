@@ -933,7 +933,8 @@ Implemented in the first Journal milestone:
 * Optional book reflection link into Journal
 * To Do Later for shared tasks intentionally held without a date
 * Watchlist for movies and shows with progress, links, notes, and finished history
-* Wish List for considered items, optional links and notes, and acquired history
+* Compact Wish List for considered items, optional links and notes, acquired
+  history, and quick soft deletion with undo
 
 Photo attachments, memory galleries, and media compression remain intentionally
 deferred; Apple Photos already covers that role well enough for now.

@@ -104,8 +104,19 @@ function WishlistModal({
 export default function JournalWishlist({ items, onSave, onDelete, onStatusChange }: JournalWishlistProps) {
   const [selectedItem, setSelectedItem] = useState<LibraryWishlistItem | null | undefined>(undefined);
   const [showAcquired, setShowAcquired] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const considering = useMemo(() => items.filter((item) => item.status === "considering"), [items]);
   const acquired = useMemo(() => items.filter((item) => item.status === "acquired"), [items]);
+
+  async function quickDelete(item: LibraryWishlistItem) {
+    if (!item.id || deletingId !== null) return;
+    setDeletingId(item.id);
+    try {
+      await onDelete(item);
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <div className="journal-wishlist">
@@ -125,7 +136,10 @@ export default function JournalWishlist({ items, onSave, onDelete, onStatusChang
               </button>
               <footer>
                 {item.url ? <a href={item.url} target="_blank" rel="noreferrer">{displayHost(item.url)} ↗</a> : <span>No link needed</span>}
-                <button type="button" onClick={() => onStatusChange(item, "acquired")}>Mark acquired</button>
+                <menu className="journal-wishlist-actions">
+                  <button type="button" onClick={() => onStatusChange(item, "acquired")}>Acquired</button>
+                  <button type="button" className="journal-wishlist-delete" disabled={deletingId === item.id} onClick={() => void quickDelete(item)} aria-label={`Delete ${item.name}`}>{deletingId === item.id ? "Deleting…" : "Delete"}</button>
+                </menu>
               </footer>
             </article>
           ))}
@@ -144,7 +158,10 @@ export default function JournalWishlist({ items, onSave, onDelete, onStatusChang
           {showAcquired && <div>{acquired.map((item) => (
             <article key={item.id}>
               <button type="button" onClick={() => setSelectedItem(item)}><span>✓</span><strong>{item.name}</strong><small>{item.acquiredAt ? new Date(item.acquiredAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Acquired"}</small></button>
-              <button type="button" onClick={() => onStatusChange(item, "considering")}>Return to list</button>
+              <menu className="journal-wishlist-actions">
+                <button type="button" onClick={() => onStatusChange(item, "considering")}>Return</button>
+                <button type="button" className="journal-wishlist-delete" disabled={deletingId === item.id} onClick={() => void quickDelete(item)} aria-label={`Delete ${item.name}`}>{deletingId === item.id ? "Deleting…" : "Delete"}</button>
+              </menu>
             </article>
           ))}</div>}
         </section>
