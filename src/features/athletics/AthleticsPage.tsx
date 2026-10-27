@@ -33,8 +33,8 @@ import "./athleticsBlocks.css";
 
 type AthleticsView = "calendar" | "templates";
 const tabs: Array<{ id: AthleticsView; label: string; mark: string }> = [
-  { id: "calendar", label: "Block", mark: "B" },
-  { id: "templates", label: "Templates", mark: "T" },
+  { id: "calendar", label: "Current Block", mark: "C" },
+  { id: "templates", label: "Build / Edit Block", mark: "B" },
 ];
 
 function getInitialView(): AthleticsView {
