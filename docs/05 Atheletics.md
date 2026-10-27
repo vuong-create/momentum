@@ -1,7 +1,7 @@
 # Momentum — Athletics Pillar
 
-**Status:** 🟢 Athletics V2 Training Blocks Implemented
-**Next Step:** September 2026 Real-World Training QA
+**Status:** 🟢 Athletics V3 Editable Training Blocks Implemented
+**Next Step:** Real-world scheduling and completion QA
 
 ---
 
@@ -134,14 +134,36 @@ Week 4 where the planned deload remains active.
 Hypertrophy guidance remains visible in the session prescription, but Momentum
 tracks session completion rather than individual loads and repetitions.
 
-## Block Template Editing
+## Templates and Scheduled Blocks
 
-Upper A, Lower A, Upper B, and Lower B are editable from the Templates section.
-The user can change the session focus, exercises, athletic versus hypertrophy
-classification, set count, and repetition or distance target.
+Momentum treats these as two related but separate records:
 
-Saving a template updates remaining incomplete sessions in the active block.
-Completed sessions remain unchanged so the historical plan is never rewritten.
+* A **reusable template** defines the weekly schedule, exercises, and phases.
+* A **scheduled block** is a dated copy connected to Planner tasks.
+
+Templates can be scheduled with a start date and duration. Scheduling creates
+the dated sessions and their linked Planner tasks without rewriting previous
+blocks. The Block screen can switch between current, upcoming, and historical
+blocks.
+
+The Templates screen can also edit the current scheduled block. Saving current
+block changes updates only incomplete sessions and their linked Planner tasks.
+Completed sessions remain locked so training history is never rewritten.
+
+Available save choices are:
+
+* Update current block only
+* Update the current block and its reusable template
+* Save the current block as a new reusable template
+
+## Weekly Completion
+
+Each week shows compact completion progress. Recovery days are intentionally
+excluded from the requirement; an optional Saturday volleyball session counts
+only when selected. When every actionable event in a week is complete, Momentum
+applies a calm completed-week treatment and plays the Weekly Clear cue once.
+This celebration does not create additional XP and is stored so it cannot fire
+repeatedly after reopening the app.
 
 ---
 

@@ -333,6 +333,38 @@ export interface AthleticsPlannedExercise {
   perSide?: boolean;
 }
 
+export interface AthleticsBlockTemplateDay {
+  id: string;
+  dayOffset: number;
+  kind: AthleticsTrainingSessionKind;
+  name: string;
+  focus: string;
+  exercises: AthleticsPlannedExercise[];
+  volleyballType?: VolleyballSessionType;
+  saturdayChoice?: AthleticsSaturdayChoice;
+  notes?: string;
+}
+
+export interface AthleticsBlockTemplatePhase {
+  weekNumber: number;
+  name: string;
+  guidance: string;
+  reducedVolume?: boolean;
+}
+
+export interface AthleticsBlockTemplate {
+  id?: number;
+  key: string;
+  name: string;
+  goal: string;
+  weekCount: number;
+  days: AthleticsBlockTemplateDay[];
+  phases: AthleticsBlockTemplatePhase[];
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
 export interface AthleticsTrainingBlock {
   id?: number;
   key: string;
@@ -341,6 +373,8 @@ export interface AthleticsTrainingBlock {
   endDate: string;
   goal: string;
   active: boolean;
+  templateId?: number;
+  celebratedWeeks?: number[];
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -363,6 +397,7 @@ export interface AthleticsPlannedSession {
   reducedVolume?: boolean;
   status: AthleticsTrainingSessionStatus;
   notes?: string;
+  templateDayId?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -802,6 +837,7 @@ class MomentumDatabase extends Dexie {
   chineseMediaResources!: Table<ChineseMediaResource>;
   athleticsTemplates!: Table<AthleticsTemplate>;
   athleticsWorkouts!: Table<AthleticsWorkout>;
+  athleticsBlockTemplates!: Table<AthleticsBlockTemplate>;
   athleticsTrainingBlocks!: Table<AthleticsTrainingBlock>;
   athleticsPlannedSessions!: Table<AthleticsPlannedSession>;
   cookingRecipes!: Table<CookingRecipe>;
@@ -1260,6 +1296,11 @@ class MomentumDatabase extends Dexie {
     this.version(34).stores({
       financeRecurringTransactions:
         "++id, type, frequency, nextDate, active, updatedAt, deletedAt",
+    });
+
+    this.version(35).stores({
+      athleticsBlockTemplates:
+        "++id, &key, updatedAt, deletedAt",
     });
   }
 }

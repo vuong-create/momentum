@@ -7,11 +7,17 @@ import { getActivityStatus } from "../../activities/services/activityLifecycle";
 import { startPlannedTrainingSession } from "./athleticsService";
 import { getEffectivePlannedExercises } from "./septemberTrainingBlock";
 import {
+  acknowledgeTrainingWeek,
   completeTrainingSession,
+  ensureAthleticsBlockTemplates,
+  getTrainingBlockDefinition,
   getTrainingSessionDisplayStatus,
   installSeptember2026TrainingBlock,
   reopenTrainingSession,
+  scheduleAthleticsTrainingBlock,
   setSaturdayTrainingChoice,
+  updateAthleticsBlockTemplate,
+  updateCurrentTrainingBlock,
   updateTrainingBlockTemplate,
 } from "./trainingBlockService";
 
@@ -100,5 +106,77 @@ describe("September Athletics training block", () => {
     expect((await db.athleticsPlannedSessions.get(upperSessions[1].id!))?.focus).toBe("Revised upper session");
     expect((await db.athleticsPlannedSessions.get(upperSessions[1].id!))?.exercises.map((item) => item.name)).toEqual(["Incline Machine Press", "Neutral-Grip Pulldown"]);
     expect((await db.plannedActivities.get(upperSessions[1].plannedActivityId!))?.title).toBe("Upper A · Revised upper session");
+  });
+
+  it("seeds one reusable template and links the existing September block without replacing history", async () => {
+    await installSeptember2026TrainingBlock();
+    const sessionsBefore = await db.athleticsPlannedSessions.toArray();
+    const [first, second] = await Promise.all([ensureAthleticsBlockTemplates(), ensureAthleticsBlockTemplates()]);
+    const block = await db.athleticsTrainingBlocks.where("key").equals("september-2026-training-block").first();
+
+    expect(first).toBe(second);
+    expect(await db.athleticsBlockTemplates.count()).toBe(1);
+    expect(block?.templateId).toBe(first);
+    expect(await db.athleticsPlannedSessions.toArray()).toEqual(sessionsBefore);
+  });
+
+  it("seeds the default template safely when initialization runs concurrently", async () => {
+    const [first, second] = await Promise.all([ensureAthleticsBlockTemplates(), ensureAthleticsBlockTemplates()]);
+    expect(first).toBe(second);
+    expect(await db.athleticsBlockTemplates.count()).toBe(1);
+  });
+
+  it("schedules a reusable template into dated sessions and Planner tasks", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "October Build", startDate: "2026-10-05", weekCount: 2 });
+    const block = await db.athleticsTrainingBlocks.get(result.blockId);
+    const sessions = await db.athleticsPlannedSessions.where("blockId").equals(result.blockId).toArray();
+    const tasks = await db.plannedActivities.toArray();
+
+    expect(result).toMatchObject({ sessionCount: 14, taskCount: 10 });
+    expect(block).toMatchObject({ name: "October Build", startDate: "2026-10-05", endDate: "2026-10-18", active: true, templateId });
+    expect(sessions).toHaveLength(14);
+    expect(sessions[0]).toMatchObject({ date: "2026-10-05", templateDayId: "monday-volleyball" });
+    expect(sessions.at(-1)).toMatchObject({ date: "2026-10-18", name: "Full Rest" });
+    expect(tasks).toHaveLength(10);
+    expect(tasks.every((task) => task.activityKind?.startsWith("athletics-plan-session:"))).toBe(true);
+  });
+
+  it("updates unfinished current-block sessions while keeping completed sessions frozen", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Editable Block", startDate: "2026-10-05", weekCount: 2 });
+    const block = (await db.athleticsTrainingBlocks.get(blockId))!;
+    const sessions = await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray();
+    const firstTuesday = sessions.find((session) => session.date === "2026-10-06")!;
+    const secondTuesday = sessions.find((session) => session.date === "2026-10-13")!;
+    await completeTrainingSession(firstTuesday.id!);
+    const input = getTrainingBlockDefinition(block, sessions);
+    input.name = "Adjusted Block";
+    input.days[1] = { ...input.days[1], name: "Upper Reset", focus: "Revised chest and back" };
+
+    const count = await updateCurrentTrainingBlock(blockId, input);
+    expect(count).toBe(13);
+    expect(await db.athleticsPlannedSessions.get(firstTuesday.id!)).toMatchObject({ name: "Upper A", focus: "Chest + Back Hypertrophy" });
+    expect(await db.athleticsPlannedSessions.get(secondTuesday.id!)).toMatchObject({ name: "Upper Reset", focus: "Revised chest and back" });
+    expect(await db.plannedActivities.get(secondTuesday.plannedActivityId!)).toMatchObject({ title: "Upper Reset · Revised chest and back", status: "planned" });
+  });
+
+  it("keeps template edits separate from a scheduled block until explicitly applied", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Stable Instance", startDate: "2026-10-05", weekCount: 1 });
+    const before = await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray();
+    const template = (await db.athleticsBlockTemplates.get(templateId))!;
+    await updateAthleticsBlockTemplate(templateId, { ...template, name: "Changed Future Template", days: template.days.map((day, index) => index === 0 ? { ...day, name: "Monday Speed" } : day) });
+
+    expect(await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray()).toEqual(before);
+    expect((await db.athleticsBlockTemplates.get(templateId))?.name).toBe("Changed Future Template");
+  });
+
+  it("acknowledges a completed week only once", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Clear Test", startDate: "2026-10-05", weekCount: 1 });
+    expect(await acknowledgeTrainingWeek(blockId, 1)).toBe(true);
+    expect(await acknowledgeTrainingWeek(blockId, 1)).toBe(false);
+    expect((await db.athleticsTrainingBlocks.get(blockId))?.celebratedWeeks).toEqual([1]);
   });
 });
