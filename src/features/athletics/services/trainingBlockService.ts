@@ -1,6 +1,7 @@
 import {
   db,
   type AthleticsBlockTemplate,
+  type AthleticsBlockTemplateActivity,
   type AthleticsBlockTemplateDay,
   type AthleticsBlockTemplatePhase,
   type AthleticsPlannedExercise,
@@ -22,7 +23,7 @@ import {
 
 export type TrainingSessionDisplayStatus = "planned" | "completed" | "missed" | "skipped" | "recovery";
 
-type SessionSeed = Pick<AthleticsPlannedSession, "date" | "weekNumber" | "phaseName" | "phaseGuidance" | "kind" | "name" | "focus" | "exercises" | "volleyballType" | "saturdayChoice" | "reducedVolume" | "notes" | "templateDayId">;
+type SessionSeed = Pick<AthleticsPlannedSession, "date" | "weekNumber" | "phaseName" | "phaseGuidance" | "kind" | "name" | "focus" | "exercises" | "volleyballType" | "saturdayChoice" | "reducedVolume" | "notes" | "templateDayId" | "templateActivityId">;
 
 function addDays(dateKey: string, days: number) {
   const date = new Date(`${dateKey}T12:00:00`); date.setDate(date.getDate() + days);
@@ -34,31 +35,48 @@ function cloneExercises(exercises: AthleticsPlannedExercise[]) {
   return exercises.map((item) => ({ ...item, alternatives: item.alternatives ? [...item.alternatives] : undefined }));
 }
 
+function templateActivity(id: string, input: Omit<AthleticsBlockTemplateActivity, "id">): AthleticsBlockTemplateActivity { return { id, ...input }; }
+
 function defaultTemplateDays(): AthleticsBlockTemplateDay[] {
-  return [
-    { id: "monday-volleyball", dayOffset: 0, kind: "volleyball", name: "Sand Volleyball", focus: "Reactive athleticism · jumping · change of direction · conditioning", exercises: [], volleyballType: "practice", notes: "Volleyball provides the primary reactive jumping and change-of-direction volume." },
-    { id: "tuesday-upper-a", dayOffset: 1, kind: "gym", name: "Upper A", focus: "Chest + Back Hypertrophy", exercises: cloneExercises(upperAExercises) },
-    { id: "wednesday-lower-a", dayOffset: 2, kind: "gym", name: "Lower A", focus: "Vertical Explosiveness + Quad Hypertrophy", exercises: cloneExercises(lowerAExercises), notes: "Explosive work comes first. Rest fully and stop when jump quality falls." },
-    { id: "thursday-upper-b", dayOffset: 3, kind: "gym", name: "Upper B", focus: "Shoulders + Arms + Upper Hypertrophy", exercises: cloneExercises(upperBExercises) },
-    { id: "friday-lower-b", dayOffset: 4, kind: "gym", name: "Lower B", focus: "Quickness + Posterior Chain Hypertrophy", exercises: cloneExercises(lowerBExercises), notes: "Explosive work comes first. Friday volume also drops whenever Saturday volleyball is selected." },
-    { id: "saturday-choice", dayOffset: 5, kind: "recovery", name: "Saturday Recovery", focus: "Recovery by default · optional Sand Volleyball", exercises: [], saturdayChoice: "recovery" },
-    { id: "sunday-rest", dayOffset: 6, kind: "recovery", name: "Full Rest", focus: "Recover and prepare for the next week", exercises: [] },
+  const activities: AthleticsBlockTemplateActivity[][] = [
+    [templateActivity("monday-volleyball", { kind: "volleyball", name: "Sand Volleyball", focus: "Reactive athleticism · jumping · change of direction · conditioning", exercises: [], volleyballType: "practice", notes: "Volleyball provides the primary reactive jumping and change-of-direction volume." })],
+    [templateActivity("tuesday-upper-a", { kind: "gym", name: "Upper A", focus: "Chest + Back Hypertrophy", exercises: cloneExercises(upperAExercises) })],
+    [templateActivity("wednesday-lower-a", { kind: "gym", name: "Lower A", focus: "Vertical Explosiveness + Quad Hypertrophy", exercises: cloneExercises(lowerAExercises), notes: "Explosive work comes first. Rest fully and stop when jump quality falls." })],
+    [templateActivity("thursday-upper-b", { kind: "gym", name: "Upper B", focus: "Shoulders + Arms + Upper Hypertrophy", exercises: cloneExercises(upperBExercises) })],
+    [templateActivity("friday-lower-b", { kind: "gym", name: "Lower B", focus: "Quickness + Posterior Chain Hypertrophy", exercises: cloneExercises(lowerBExercises), notes: "Explosive work comes first. Friday volume also drops whenever Saturday volleyball is selected." })],
+    [],
+    [],
   ];
+  return activities.map((items, dayOffset) => ({ id: `training-day-${dayOffset}`, dayOffset, activities: items }));
 }
 
 function defaultTemplatePhases(): AthleticsBlockTemplatePhase[] {
   return septemberTrainingPhases.map((phase) => ({ ...phase, reducedVolume: phase.weekNumber === 4 }));
 }
 
+function readDayActivities(day: AthleticsBlockTemplateDay): AthleticsBlockTemplateActivity[] {
+  if (Array.isArray(day.activities)) return day.activities;
+  if (!day.kind || day.kind === "recovery") return [];
+  return [{ id: day.id || `template-activity-${crypto.randomUUID()}`, kind: day.kind, name: day.name ?? "Training", focus: day.focus ?? "", exercises: day.exercises ?? [], volleyballType: day.volleyballType, saturdayChoice: day.saturdayChoice, notes: day.notes }];
+}
+
+function normalizeActivity(activity: AthleticsBlockTemplateActivity): AthleticsBlockTemplateActivity {
+  const kind = activity.kind === "recovery" ? "custom" : activity.kind;
+  return {
+    ...activity,
+    id: activity.id || `template-activity-${crypto.randomUUID()}`,
+    kind,
+    name: activity.name.trim() || (kind === "gym" ? "Workout" : kind === "volleyball" ? "Volleyball" : "Activity"),
+    focus: activity.focus.trim(),
+    exercises: kind === "gym" ? cloneExercises(activity.exercises.filter((exercise) => exercise.name.trim()).map((exercise) => ({ ...exercise, name: exercise.name.trim(), prescribedSets: Math.max(1, Math.round(exercise.prescribedSets)), repRange: exercise.repRange?.trim() || "complete", targetLabel: `${Math.max(1, Math.round(exercise.prescribedSets))} × ${exercise.repRange?.trim() || "complete"}${exercise.perSide ? " / side" : ""}` }))) : [],
+  };
+}
+
 function normalizeTemplateDays(days: AthleticsBlockTemplateDay[]) {
-  return days.map((day, index) => ({
-    ...day,
-    id: day.id || `template-day-${crypto.randomUUID()}`,
-    dayOffset: index,
-    name: day.name.trim() || (day.kind === "recovery" ? "Recovery" : "Training"),
-    focus: day.focus.trim(),
-    exercises: cloneExercises(day.exercises.filter((exercise) => exercise.name.trim()).map((exercise) => ({ ...exercise, name: exercise.name.trim(), prescribedSets: Math.max(1, Math.round(exercise.prescribedSets)), repRange: exercise.repRange?.trim() || "complete", targetLabel: `${Math.max(1, Math.round(exercise.prescribedSets))} × ${exercise.repRange?.trim() || "complete"}${exercise.perSide ? " / side" : ""}` }))),
-  }));
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = days[index];
+    return { id: day?.id || `template-day-${index}-${crypto.randomUUID()}`, dayOffset: index, activities: day ? readDayActivities(day).map(normalizeActivity) : [] };
+  });
 }
 
 function normalizePhases(phases: AthleticsBlockTemplatePhase[], weekCount: number) {
@@ -68,12 +86,15 @@ function normalizePhases(phases: AthleticsBlockTemplatePhase[], weekCount: numbe
   });
 }
 
-export function visibleAthleticsBlockTemplates(templates: AthleticsBlockTemplate[]) { return templates.filter((item) => !item.deletedAt).sort((a, b) => a.createdAt.localeCompare(b.createdAt)); }
+export function visibleAthleticsBlockTemplates(templates: AthleticsBlockTemplate[]) { return templates.filter((item) => !item.deletedAt).map((item) => ({ ...item, days: normalizeTemplateDays(item.days) })).sort((a, b) => a.createdAt.localeCompare(b.createdAt)); }
 
 export async function ensureAthleticsBlockTemplates() {
   return db.transaction("rw", db.athleticsBlockTemplates, db.athleticsTrainingBlocks, async () => {
     const existing = await db.athleticsBlockTemplates.where("key").equals("hypertrophy-volleyball-base").first();
-    if (existing?.id && !existing.deletedAt) return existing.id;
+    if (existing?.id && !existing.deletedAt) {
+      if (existing.days.some((day) => !Array.isArray(day.activities))) await db.athleticsBlockTemplates.update(existing.id, { days: normalizeTemplateDays(existing.days), updatedAt: new Date().toISOString() });
+      return existing.id;
+    }
     const timestamp = new Date().toISOString();
     const values = { key: "hypertrophy-volleyball-base", name: "Hypertrophy + Volleyball", goal: "Build muscle while improving explosiveness, quickness, first-step speed, and volleyball performance.", weekCount: 4, days: defaultTemplateDays(), phases: defaultTemplatePhases(), createdAt: existing?.createdAt ?? timestamp, updatedAt: timestamp, deletedAt: undefined };
     let id: number;
@@ -168,14 +189,15 @@ export async function scheduleAthleticsTrainingBlock(templateId: number, input: 
     for (let weekIndex = 0; weekIndex < weekCount; weekIndex += 1) {
       const phase = phases[weekIndex];
       for (const day of days) {
-        const sessionId = await db.athleticsPlannedSessions.add({ blockId, date: addDays(input.startDate, weekIndex * 7 + day.dayOffset), weekNumber: weekIndex + 1, phaseName: phase.name, phaseGuidance: phase.guidance, kind: day.kind, name: day.name, focus: day.focus, exercises: cloneExercises(day.exercises), volleyballType: day.volleyballType, saturdayChoice: day.saturdayChoice, reducedVolume: Boolean(phase.reducedVolume), status: "planned", notes: day.notes, templateDayId: day.id, createdAt: timestamp, updatedAt: timestamp });
-        if (day.kind !== "recovery") {
+        for (const activity of day.activities) {
+          const sessionId = await db.athleticsPlannedSessions.add({ blockId, date: addDays(input.startDate, weekIndex * 7 + day.dayOffset), weekNumber: weekIndex + 1, phaseName: phase.name, phaseGuidance: phase.guidance, kind: activity.kind, name: activity.name, focus: activity.focus, exercises: cloneExercises(activity.exercises), volleyballType: activity.volleyballType, saturdayChoice: activity.saturdayChoice, reducedVolume: Boolean(phase.reducedVolume), status: "planned", notes: activity.notes, templateDayId: day.id, templateActivityId: activity.id, createdAt: timestamp, updatedAt: timestamp });
           const session = (await db.athleticsPlannedSessions.get(sessionId))!;
           await createSessionActivity({ ...session, id: sessionId });
         }
       }
     }
-    return { blockId, sessionCount: weekCount * days.length, taskCount: weekCount * days.filter((day) => day.kind !== "recovery").length };
+    const activityCount = days.reduce((total, day) => total + day.activities.length, 0);
+    return { blockId, sessionCount: weekCount * activityCount, taskCount: weekCount * activityCount };
   });
 }
 
@@ -190,8 +212,8 @@ export function getTrainingBlockDefinition(block: AthleticsTrainingBlock, sessio
   const weekCount = Math.max(1, ...blockSessions.map((session) => session.weekNumber));
   const firstWeek = blockSessions.filter((session) => session.weekNumber === 1).sort((a, b) => a.date.localeCompare(b.date));
   const days = Array.from({ length: 7 }, (_, dayOffset) => {
-    const session = firstWeek.find((item) => Math.abs(daysBetween(block.startDate, item.date)) % 7 === dayOffset);
-    return session ? { id: session.templateDayId ?? `block-day-${dayOffset}`, dayOffset, kind: session.kind, name: session.name, focus: session.focus, exercises: cloneExercises(session.exercises), volleyballType: session.volleyballType, saturdayChoice: session.saturdayChoice, notes: session.notes } : { id: `block-day-${dayOffset}`, dayOffset, kind: "recovery" as const, name: "Recovery", focus: "Recover", exercises: [] };
+    const daySessions = firstWeek.filter((item) => Math.abs(daysBetween(block.startDate, item.date)) % 7 === dayOffset);
+    return { id: daySessions[0]?.templateDayId ?? `block-day-${dayOffset}`, dayOffset, activities: daySessions.filter((session) => session.kind !== "recovery").map((session) => ({ id: session.templateActivityId ?? `session-activity-${session.id}`, kind: session.kind, name: session.name, focus: session.focus, exercises: cloneExercises(session.exercises), volleyballType: session.volleyballType, saturdayChoice: session.saturdayChoice, notes: session.notes })) };
   });
   const phases = Array.from({ length: weekCount }, (_, index) => {
     const session = blockSessions.find((item) => item.weekNumber === index + 1);
@@ -203,23 +225,37 @@ export function getTrainingBlockDefinition(block: AthleticsTrainingBlock, sessio
 export async function updateCurrentTrainingBlock(blockId: number, input: AthleticsBlockDefinitionInput) {
   const block = await db.athleticsTrainingBlocks.get(blockId); if (!block || block.deletedAt) throw new Error("Training block not found.");
   const sessions = await db.athleticsPlannedSessions.where("blockId").equals(blockId).filter((session) => !session.deletedAt).toArray();
-  const activities = await db.plannedActivities.toArray(); const days = normalizeTemplateDays(input.days); const phases = normalizePhases(input.phases, Math.max(1, ...sessions.map((session) => session.weekNumber))); const timestamp = new Date().toISOString(); let updated = 0;
+  const plannerActivities = await db.plannedActivities.toArray(); const days = normalizeTemplateDays(input.days); const weekCount = Math.max(1, ...sessions.map((session) => session.weekNumber), input.weekCount); const phases = normalizePhases(input.phases, weekCount); const timestamp = new Date().toISOString(); let updated = 0;
   await db.transaction("rw", db.athleticsTrainingBlocks, db.athleticsPlannedSessions, db.plannedActivities, async () => {
-    await db.athleticsTrainingBlocks.update(blockId, { name: input.name.trim() || block.name, goal: input.goal.trim(), updatedAt: timestamp });
+    await db.athleticsTrainingBlocks.update(blockId, { name: input.name.trim() || block.name, goal: input.goal.trim(), endDate: addDays(block.startDate, weekCount * 7 - 1), updatedAt: timestamp });
+    const matched = new Set<string>();
     for (const session of sessions) {
-      const activity = activities.find((item) => item.id === session.plannedActivityId);
-      if (activity && getActivityStatus(activity) === "completed") continue;
-      const dayOffset = ((daysBetween(block.startDate, session.date) % 7) + 7) % 7; const day = days[dayOffset]; const phase = phases[session.weekNumber - 1] ?? phases.at(-1)!;
-      const patch = { phaseName: phase.name, phaseGuidance: phase.guidance, kind: day.kind, name: day.name, focus: day.focus, exercises: cloneExercises(day.exercises), volleyballType: day.volleyballType, saturdayChoice: day.saturdayChoice, reducedVolume: Boolean(phase.reducedVolume), notes: day.notes, templateDayId: day.id, status: "planned" as const, updatedAt: timestamp };
+      const plannerActivity = plannerActivities.find((item) => item.id === session.plannedActivityId);
+      const dayOffset = ((daysBetween(block.startDate, session.date) % 7) + 7) % 7; const day = days[dayOffset];
+      const desired = day.activities.find((item) => item.id === session.templateActivityId) ?? day.activities.find((item) => item.name === session.name && !matched.has(`${session.weekNumber}:${item.id}`));
+      if (plannerActivity && getActivityStatus(plannerActivity) === "completed") { if (desired) matched.add(`${session.weekNumber}:${desired.id}`); continue; }
+      if (!desired || session.weekNumber > weekCount) {
+        if (session.plannedActivityId && plannerActivity && isActivityVisible(plannerActivity)) await cancelPlannedActivity(session.plannedActivityId);
+        await db.athleticsPlannedSessions.update(session.id!, { deletedAt: timestamp, updatedAt: timestamp }); updated += 1; continue;
+      }
+      matched.add(`${session.weekNumber}:${desired.id}`);
+      const phase = phases[session.weekNumber - 1] ?? phases.at(-1)!;
+      const patch = { phaseName: phase.name, phaseGuidance: phase.guidance, kind: desired.kind, name: desired.name, focus: desired.focus, exercises: cloneExercises(desired.exercises), volleyballType: desired.volleyballType, saturdayChoice: desired.saturdayChoice, reducedVolume: Boolean(phase.reducedVolume), notes: desired.notes, templateDayId: day.id, templateActivityId: desired.id, status: "planned" as const, updatedAt: timestamp };
       await db.athleticsPlannedSessions.update(session.id!, patch); const updatedSession = { ...session, ...patch };
-      if (day.kind === "recovery") {
-        if (session.plannedActivityId && activity && isActivityVisible(activity)) await cancelPlannedActivity(session.plannedActivityId);
-      } else if (session.plannedActivityId && activity && !activity.deletedAt) {
-        await db.plannedActivities.update(session.plannedActivityId, { title: sessionActivityTitle(updatedSession), notes: sessionActivityNotes(updatedSession), pillar: "athletics", activityKind: activityKind(session.id!), difficulty: day.kind === "gym" ? "hard" : "medium", status: "planned", completed: false, completedAt: undefined, cancelledAt: undefined, dismissedAt: undefined, updatedAt: timestamp });
+      if (session.plannedActivityId && plannerActivity && !plannerActivity.deletedAt) {
+        await db.plannedActivities.update(session.plannedActivityId, { title: sessionActivityTitle(updatedSession), notes: sessionActivityNotes(updatedSession), pillar: "athletics", activityKind: activityKind(session.id!), difficulty: desired.kind === "gym" ? "hard" : "medium", status: "planned", completed: false, completedAt: undefined, cancelledAt: undefined, dismissedAt: undefined, updatedAt: timestamp });
       } else {
         await createSessionActivity({ ...updatedSession, id: session.id! });
       }
       updated += 1;
+    }
+    for (let weekIndex = 0; weekIndex < weekCount; weekIndex += 1) {
+      const phase = phases[weekIndex];
+      for (const day of days) for (const desired of day.activities) {
+        const matchKey = `${weekIndex + 1}:${desired.id}`; if (matched.has(matchKey)) continue;
+        const sessionId = await db.athleticsPlannedSessions.add({ blockId, date: addDays(block.startDate, weekIndex * 7 + day.dayOffset), weekNumber: weekIndex + 1, phaseName: phase.name, phaseGuidance: phase.guidance, kind: desired.kind, name: desired.name, focus: desired.focus, exercises: cloneExercises(desired.exercises), volleyballType: desired.volleyballType, saturdayChoice: desired.saturdayChoice, reducedVolume: Boolean(phase.reducedVolume), status: "planned", notes: desired.notes, templateDayId: day.id, templateActivityId: desired.id, createdAt: timestamp, updatedAt: timestamp });
+        const created = (await db.athleticsPlannedSessions.get(sessionId))!; await createSessionActivity({ ...created, id: sessionId }); updated += 1;
+      }
     }
   });
   return updated;
