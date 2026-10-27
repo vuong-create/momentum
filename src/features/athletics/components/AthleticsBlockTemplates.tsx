@@ -1,63 +1,49 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import type { AthleticsPlannedExercise, AthleticsPlannedSession, AthleticsTrainingBlock, PlannedActivity } from "../../../database/db";
-import { getActivityStatus } from "../../activities/services/activityLifecycle";
-import type { TrainingBlockTemplateUpdate } from "../services/trainingBlockService";
+import type { AthleticsBlockTemplate, AthleticsBlockTemplateDay, AthleticsPlannedExercise, AthleticsPlannedSession, AthleticsTrainingBlock, PlannedActivity } from "../../../database/db";
+import { getTrainingBlockDefinition, type AthleticsBlockDefinitionInput } from "../services/trainingBlockService";
 
 type Props = {
+  templates: AthleticsBlockTemplate[];
   block?: AthleticsTrainingBlock;
   sessions: AthleticsPlannedSession[];
   activities: PlannedActivity[];
-  onSave: (name: string, input: TrainingBlockTemplateUpdate) => Promise<number>;
+  onSaveTemplate: (id: number, input: AthleticsBlockDefinitionInput) => Promise<void>;
+  onCreateTemplate: (input: AthleticsBlockDefinitionInput) => Promise<number>;
+  onUpdateBlock: (id: number, input: AthleticsBlockDefinitionInput) => Promise<number>;
+  onSchedule: (templateId: number, input: { name: string; startDate: string; weekCount: number }) => Promise<void>;
 };
 
-function localId() { return `planned-exercise-${crypto.randomUUID()}`; }
+const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+function localId(prefix = "planned-exercise") { return `${prefix}-${crypto.randomUUID()}`; }
 function cloneExercises(exercises: AthleticsPlannedExercise[]) { return exercises.map((item) => ({ ...item, alternatives: item.alternatives ? [...item.alternatives] : undefined })); }
+function cloneDefinition(input: AthleticsBlockDefinitionInput): AthleticsBlockDefinitionInput { return { ...input, days: input.days.map((day) => ({ ...day, exercises: cloneExercises(day.exercises) })), phases: input.phases.map((phase) => ({ ...phase })) }; }
 
-function TemplateEditor({ session, remaining, onSave }: { session: AthleticsPlannedSession; remaining: number; onSave: Props["onSave"] }) {
-  const [focus, setFocus] = useState(session.focus);
-  const [exercises, setExercises] = useState(() => cloneExercises(session.exercises));
-  const [saving, setSaving] = useState(false);
-  const [notice, setNotice] = useState("");
-
-  function updateExercise(id: string, patch: Partial<AthleticsPlannedExercise>) {
-    setExercises((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
-  }
-
-  async function save() {
-    if (saving) return;
-    setSaving(true); setNotice("");
-    try {
-      const count = await onSave(session.name, { focus, exercises });
-      setNotice(`${count} remaining ${count === 1 ? "session" : "sessions"} updated.`);
-    } finally { setSaving(false); }
-  }
-
-  return <section className="athletics-template-editor">
-    <header><div><span className="text-label">Block template</span><h2>{session.name}</h2><p>Changes apply only to incomplete sessions. Completed training stays untouched.</p></div><span>{remaining} remaining</span></header>
-    <label className="athletics-template-focus"><span>Session focus</span><input value={focus} onChange={(event) => setFocus(event.target.value)} /></label>
-    <div className="athletics-template-exercises">{exercises.map((exercise, index) => <article key={exercise.id}>
-      <span>{String(index + 1).padStart(2, "0")}</span>
-      <label><small>Exercise</small><input value={exercise.name} onChange={(event) => updateExercise(exercise.id, { name: event.target.value, alternatives: undefined })} /></label>
-      <label><small>Type</small><select value={exercise.category} onChange={(event) => { const category = event.target.value as AthleticsPlannedExercise["category"]; updateExercise(exercise.id, { category, tracking: category === "explosive" ? "completion" : "load-reps" }); }}><option value="explosive">Athletic / Explosive</option><option value="hypertrophy">Strength / Hypertrophy</option></select></label>
-      <label><small>Sets</small><input type="number" min="1" max="12" value={exercise.prescribedSets} onChange={(event) => updateExercise(exercise.id, { prescribedSets: Number(event.target.value) })} /></label>
-      <label><small>Reps / distance</small><input value={exercise.repRange ?? ""} placeholder="6–10" onChange={(event) => updateExercise(exercise.id, { repRange: event.target.value })} /></label>
-      <button type="button" aria-label={`Remove ${exercise.name}`} onClick={() => setExercises((current) => current.filter((item) => item.id !== exercise.id))}>×</button>
-    </article>)}</div>
-    <button type="button" className="athletics-template-add" onClick={() => setExercises((current) => [...current, { id: localId(), name: "", alternatives: undefined, category: "hypertrophy", tracking: "load-reps", prescribedSets: 3, repRange: "8–12", targetLabel: "3 × 8–12" }])}>＋ Add exercise</button>
-    <footer>{notice && <span>{notice}</span>}<button type="button" disabled={saving || !exercises.some((item) => item.name.trim())} onClick={save}>{saving ? "Saving…" : "Apply to remaining sessions"}</button></footer>
+function DefinitionEditor({ initial, mode, templateName, onSave, onSaveBoth, onSaveAsTemplate }: { initial: AthleticsBlockDefinitionInput; mode: "template" | "block"; templateName?: string; onSave: (input: AthleticsBlockDefinitionInput) => Promise<string>; onSaveBoth?: (input: AthleticsBlockDefinitionInput) => Promise<string>; onSaveAsTemplate?: (input: AthleticsBlockDefinitionInput) => Promise<string> }) {
+  const [draft, setDraft] = useState(() => cloneDefinition(initial)); const [selectedDay, setSelectedDay] = useState(0); const [saving, setSaving] = useState(false); const [notice, setNotice] = useState("");
+  const day = draft.days[selectedDay] ?? draft.days[0];
+  function patchDay(patch: Partial<AthleticsBlockTemplateDay>) { setDraft((current) => ({ ...current, days: current.days.map((item, index) => index === selectedDay ? { ...item, ...patch } : item) })); }
+  function patchExercise(id: string, patch: Partial<AthleticsPlannedExercise>) { patchDay({ exercises: day.exercises.map((item) => item.id === id ? { ...item, ...patch } : item) }); }
+  function setWeekCount(value: number) { const weekCount = Math.min(12, Math.max(1, value || 1)); setDraft((current) => ({ ...current, weekCount, phases: Array.from({ length: weekCount }, (_, index) => current.phases[index] ?? { weekNumber: index + 1, name: `Week ${index + 1}`, guidance: "Train with intention and recover well." }) })); }
+  async function run(action: (input: AthleticsBlockDefinitionInput) => Promise<string>) { if (saving) return; setSaving(true); setNotice(""); try { setNotice(await action(draft)); } finally { setSaving(false); } }
+  return <section className="athletics-definition-editor">
+    <header><div><span className="text-label">{mode === "block" ? "Editing scheduled block" : "Reusable block template"}</span><h2>{draft.name}</h2><p>{mode === "block" ? "Completed sessions are locked. Changes synchronize only with incomplete Planner tasks." : "This definition is used when you schedule a new dated training block."}</p></div>{mode === "block" && templateName && <span>Based on {templateName}</span>}</header>
+    <div className="athletics-definition-overview"><label><span>Name</span><input value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} /></label><label><span>Goal</span><input value={draft.goal} onChange={(event) => setDraft((current) => ({ ...current, goal: event.target.value }))} /></label><label><span>Weeks</span><input type="number" min="1" max="12" disabled={mode === "block"} value={draft.weekCount} onChange={(event) => setWeekCount(Number(event.target.value))} /></label></div>
+    <section className="athletics-definition-phases"><header><span className="text-label">Progression</span><strong>{draft.weekCount} phases</strong></header><div>{draft.phases.map((phase, index) => <article key={phase.weekNumber}><span>Week {index + 1}</span><input aria-label={`Week ${index + 1} phase name`} value={phase.name} onChange={(event) => setDraft((current) => ({ ...current, phases: current.phases.map((item, phaseIndex) => phaseIndex === index ? { ...item, name: event.target.value } : item) }))} /><input aria-label={`Week ${index + 1} guidance`} value={phase.guidance} onChange={(event) => setDraft((current) => ({ ...current, phases: current.phases.map((item, phaseIndex) => phaseIndex === index ? { ...item, guidance: event.target.value } : item) }))} /><label><input type="checkbox" checked={Boolean(phase.reducedVolume)} onChange={(event) => setDraft((current) => ({ ...current, phases: current.phases.map((item, phaseIndex) => phaseIndex === index ? { ...item, reducedVolume: event.target.checked } : item) }))} /> Reduced</label></article>)}</div></section>
+    <div className="athletics-definition-body"><nav aria-label="Weekly training schedule">{draft.days.map((item, index) => <button key={item.id} type="button" className={selectedDay === index ? "is-selected" : ""} onClick={() => setSelectedDay(index)}><span>{dayNames[index]}</span><strong>{item.name}</strong><small>{item.kind === "gym" ? `${item.exercises.length} exercises` : item.kind}</small></button>)}</nav><section className="athletics-day-editor"><header><div><span className="text-label">{dayNames[selectedDay]}</span><h3>{day.name}</h3></div><select value={day.kind} onChange={(event) => { const kind = event.target.value as AthleticsBlockTemplateDay["kind"]; patchDay({ kind, exercises: kind === "gym" ? day.exercises : [], volleyballType: kind === "volleyball" ? "practice" : undefined, saturdayChoice: undefined }); }}><option value="gym">Gym workout</option><option value="volleyball">Volleyball</option><option value="recovery">Recovery / rest</option></select></header><div className="athletics-day-fields"><label><span>Session name</span><input value={day.name} onChange={(event) => patchDay({ name: event.target.value })} /></label><label><span>Focus</span><input value={day.focus} onChange={(event) => patchDay({ focus: event.target.value })} /></label><label><span>Notes</span><input value={day.notes ?? ""} onChange={(event) => patchDay({ notes: event.target.value })} /></label></div>{day.kind === "gym" && <><div className="athletics-template-exercises">{day.exercises.map((exercise, index) => <article key={exercise.id}><span>{String(index + 1).padStart(2, "0")}</span><label><small>Exercise</small><input value={exercise.name} onChange={(event) => patchExercise(exercise.id, { name: event.target.value, alternatives: undefined })} /></label><label><small>Type</small><select value={exercise.category} onChange={(event) => { const category = event.target.value as AthleticsPlannedExercise["category"]; patchExercise(exercise.id, { category, tracking: category === "explosive" ? "completion" : "load-reps" }); }}><option value="explosive">Athletic / Explosive</option><option value="hypertrophy">Strength / Hypertrophy</option></select></label><label><small>Sets</small><input type="number" min="1" max="12" value={exercise.prescribedSets} onChange={(event) => patchExercise(exercise.id, { prescribedSets: Number(event.target.value) })} /></label><label><small>Reps / distance</small><input value={exercise.repRange ?? ""} onChange={(event) => patchExercise(exercise.id, { repRange: event.target.value })} /></label><button type="button" aria-label={`Remove ${exercise.name}`} onClick={() => patchDay({ exercises: day.exercises.filter((item) => item.id !== exercise.id) })}>×</button></article>)}</div><button type="button" className="athletics-template-add" onClick={() => patchDay({ exercises: [...day.exercises, { id: localId(), name: "", category: "hypertrophy", tracking: "load-reps", prescribedSets: 3, repRange: "8–12", targetLabel: "3 × 8–12" }] })}>＋ Add exercise</button></>}</section></div>
+    <footer>{notice && <span>{notice}</span>}{mode === "block" && onSaveAsTemplate && <button type="button" onClick={() => void run(onSaveAsTemplate)}>Save as new template</button>}{mode === "block" && onSaveBoth && <button type="button" onClick={() => void run(onSaveBoth)}>Update block + template</button>}<button type="button" className="is-primary" disabled={saving} onClick={() => void run(onSave)}>{saving ? "Saving…" : mode === "block" ? "Update current block" : "Save reusable template"}</button></footer>
   </section>;
 }
 
-export default function AthleticsBlockTemplates({ block, sessions, activities, onSave }: Props) {
-  const templates = sessions.filter((item, index, all) => item.kind === "gym" && all.findIndex((candidate) => candidate.name === item.name && candidate.kind === "gym") === index);
-  const [selectedName, setSelectedName] = useState(templates[0]?.name ?? "");
-  const selected = templates.find((item) => item.name === selectedName) ?? templates[0];
-  if (!block || !selected) return <section className="athletics-template-empty"><span className="text-label">Templates</span><h2>Add a training block first.</h2><p>Your reusable block sessions will appear here.</p></section>;
-  const remaining = sessions.filter((item) => item.kind === "gym" && item.name === selected.name && item.status !== "skipped" && getActivityStatus(activities.find((activity) => activity.id === item.plannedActivityId) ?? { completed: false } as PlannedActivity) !== "completed").length;
-
-  return <section className="athletics-block-templates">
-    <nav aria-label="Block workout templates">{templates.map((template) => <button key={template.name} type="button" className={template.name === selected.name ? "is-selected" : ""} onClick={() => setSelectedName(template.name)}><strong>{template.name}</strong><span>{template.exercises.length} exercises</span></button>)}</nav>
-    <TemplateEditor key={`${selected.name}:${selected.updatedAt}`} session={selected} remaining={remaining} onSave={onSave} />
+export default function AthleticsBlockTemplates({ templates, block, sessions, onSaveTemplate, onCreateTemplate, onUpdateBlock, onSchedule }: Props) {
+  const [mode, setMode] = useState<"template" | "block">("block"); const [templateId, setTemplateId] = useState(templates[0]?.id ?? 0); const template = templates.find((item) => item.id === templateId) ?? templates[0]; const [scheduleOpen, setScheduleOpen] = useState(false); const [startDate, setStartDate] = useState(""); const [blockName, setBlockName] = useState(""); const [scheduleWeeks, setScheduleWeeks] = useState(template?.weekCount ?? 4); const [scheduling, setScheduling] = useState(false);
+  const blockDefinition = useMemo(() => block ? getTrainingBlockDefinition(block, sessions) : null, [block, sessions]);
+  const templateDefinition = template ? { name: template.name, goal: template.goal, weekCount: template.weekCount, days: template.days, phases: template.phases } : null;
+  const linkedTemplate = templates.find((item) => item.id === block?.templateId);
+  const selectedMode = mode === "block" && !blockDefinition ? "template" : mode;
+  if (!templateDefinition && !blockDefinition) return <section className="athletics-template-empty"><span className="text-label">Templates</span><h2>No block template yet.</h2><p>Momentum will prepare a reusable starting point without changing your training history.</p></section>;
+  return <section className="athletics-template-workspace"><header><div><span className="text-label">Design once · schedule intentionally</span><h2>Training architecture</h2><p>Edit the reusable plan or safely adjust the incomplete portion of your current block.</p></div><div className="athletics-template-mode"><button type="button" className={selectedMode === "block" ? "is-selected" : ""} disabled={!blockDefinition} onClick={() => setMode("block")}>Current block</button><button type="button" className={selectedMode === "template" ? "is-selected" : ""} onClick={() => setMode("template")}>Reusable templates</button></div></header>
+    {selectedMode === "template" && template && templateDefinition && <><div className="athletics-template-library"><select value={template.id} onChange={(event) => { const id = Number(event.target.value); const selected = templates.find((item) => item.id === id); setTemplateId(id); setScheduleWeeks(selected?.weekCount ?? 4); setBlockName(selected?.name ?? ""); }}>{templates.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button type="button" onClick={() => { setBlockName(template.name); setScheduleWeeks(template.weekCount); setScheduleOpen((current) => !current); }}>＋ Schedule this template</button></div>{scheduleOpen && <section className="athletics-schedule-block"><div><span className="text-label">Create dated block</span><h3>Schedule {template.name}</h3></div><label><span>Block name</span><input value={blockName} onChange={(event) => setBlockName(event.target.value)} /></label><label><span>Starts</span><input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><label><span>Weeks</span><input type="number" min="1" max="12" value={scheduleWeeks} onChange={(event) => setScheduleWeeks(Number(event.target.value))} /></label><button type="button" disabled={scheduling || !startDate} onClick={async () => { setScheduling(true); try { await onSchedule(template.id!, { name: blockName || template.name, startDate, weekCount: scheduleWeeks }); setScheduleOpen(false); } finally { setScheduling(false); } }}>{scheduling ? "Scheduling…" : "Create block + Planner tasks"}</button></section>}<DefinitionEditor key={`template-${template.id}-${template.updatedAt}`} initial={templateDefinition} mode="template" onSave={async (input) => { await onSaveTemplate(template.id!, input); return "Reusable template saved."; }} /></>}
+    {selectedMode === "block" && block && blockDefinition && <DefinitionEditor key={`block-${block.id}-${block.updatedAt}`} initial={blockDefinition} mode="block" templateName={linkedTemplate?.name} onSave={async (input) => { const count = await onUpdateBlock(block.id!, input); return `${count} incomplete sessions synchronized with Planner.`; }} onSaveBoth={linkedTemplate ? async (input) => { await onSaveTemplate(linkedTemplate.id!, input); const count = await onUpdateBlock(block.id!, input); return `Template saved and ${count} incomplete sessions synchronized.`; } : undefined} onSaveAsTemplate={async (input) => { await onCreateTemplate({ ...input, name: `${input.name} Template` }); return "Current block saved as a reusable template."; }} />}
   </section>;
 }
