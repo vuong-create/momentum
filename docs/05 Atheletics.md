@@ -60,8 +60,8 @@ Athletics uses **weekly consistency**, not a daily workout streak.
 
 Primary sections:
 
-1. Block
-2. Templates
+1. Current Block
+2. Build / Edit Block
 
 The prior Dashboard, live Workout logger, History, and Progress screens are no
 longer part of the primary interface. Existing historical records remain stored
@@ -138,23 +138,28 @@ tracks session completion rather than individual loads and repetitions.
 
 Momentum treats these as two related but separate records:
 
-* A **reusable template** defines the weekly schedule, exercises, and phases.
+* A **saved block** defines the weekly schedule, activities, exercises, and phases.
 * A **scheduled block** is a dated copy connected to Planner tasks.
 
-Templates can be scheduled with a start date and duration. Scheduling creates
+Saved blocks can be scheduled with a start date and duration. Scheduling creates
 the dated sessions and their linked Planner tasks without rewriting previous
-blocks. The Block screen can switch between current, upcoming, and historical
-blocks.
+blocks. The Current Block screen uses arrows to move between current, upcoming,
+and historical blocks.
 
-The Templates screen can also edit the current scheduled block. Saving current
-block changes updates only incomplete sessions and their linked Planner tasks.
+Build / Edit Block uses a seven-day editor. Every day can contain multiple
+workouts, volleyball sessions, or custom activities. Gym workouts contain their
+own editable exercise lists. A day with no activities is a recovery day.
+
+The builder can also apply changes to the current scheduled block. Saving
+current-block changes updates only incomplete sessions and their linked Planner tasks.
 Completed sessions remain locked so training history is never rewritten.
 
 Available save choices are:
 
-* Update current block only
-* Update the current block and its reusable template
-* Save the current block as a new reusable template
+* Create a new saved block
+* Save changes to an existing block
+* Save and apply the linked block to the current schedule
+* Schedule the finished block and populate Planner
 
 ## Weekly Completion
 

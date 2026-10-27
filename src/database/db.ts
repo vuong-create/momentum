@@ -317,7 +317,7 @@ export interface AthleticsWorkout {
 
 export type AthleticsExerciseCategory = "explosive" | "hypertrophy";
 export type AthleticsExerciseTracking = "load-reps" | "completion";
-export type AthleticsTrainingSessionKind = "gym" | "volleyball" | "recovery";
+export type AthleticsTrainingSessionKind = "gym" | "volleyball" | "custom" | "recovery";
 export type AthleticsTrainingSessionStatus = "planned" | "skipped";
 export type AthleticsSaturdayChoice = "recovery" | "volleyball";
 
@@ -333,13 +333,26 @@ export interface AthleticsPlannedExercise {
   perSide?: boolean;
 }
 
-export interface AthleticsBlockTemplateDay {
+export interface AthleticsBlockTemplateActivity {
   id: string;
-  dayOffset: number;
   kind: AthleticsTrainingSessionKind;
   name: string;
   focus: string;
   exercises: AthleticsPlannedExercise[];
+  volleyballType?: VolleyballSessionType;
+  saturdayChoice?: AthleticsSaturdayChoice;
+  notes?: string;
+}
+
+export interface AthleticsBlockTemplateDay {
+  id: string;
+  dayOffset: number;
+  activities: AthleticsBlockTemplateActivity[];
+  /** Legacy single-activity fields remain optional for safe local-data migration. */
+  kind?: AthleticsTrainingSessionKind;
+  name?: string;
+  focus?: string;
+  exercises?: AthleticsPlannedExercise[];
   volleyballType?: VolleyballSessionType;
   saturdayChoice?: AthleticsSaturdayChoice;
   notes?: string;
@@ -398,6 +411,7 @@ export interface AthleticsPlannedSession {
   status: AthleticsTrainingSessionStatus;
   notes?: string;
   templateDayId?: string;
+  templateActivityId?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;

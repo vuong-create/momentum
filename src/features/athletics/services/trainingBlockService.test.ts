@@ -133,11 +133,11 @@ describe("September Athletics training block", () => {
     const sessions = await db.athleticsPlannedSessions.where("blockId").equals(result.blockId).toArray();
     const tasks = await db.plannedActivities.toArray();
 
-    expect(result).toMatchObject({ sessionCount: 14, taskCount: 10 });
+    expect(result).toMatchObject({ sessionCount: 10, taskCount: 10 });
     expect(block).toMatchObject({ name: "October Build", startDate: "2026-10-05", endDate: "2026-10-18", active: true, templateId });
-    expect(sessions).toHaveLength(14);
-    expect(sessions[0]).toMatchObject({ date: "2026-10-05", templateDayId: "monday-volleyball" });
-    expect(sessions.at(-1)).toMatchObject({ date: "2026-10-18", name: "Full Rest" });
+    expect(sessions).toHaveLength(10);
+    expect(sessions[0]).toMatchObject({ date: "2026-10-05", templateDayId: "training-day-0", templateActivityId: "monday-volleyball" });
+    expect(sessions.at(-1)).toMatchObject({ date: "2026-10-16", name: "Lower B" });
     expect(tasks).toHaveLength(10);
     expect(tasks.every((task) => task.activityKind?.startsWith("athletics-plan-session:"))).toBe(true);
   });
@@ -152,10 +152,10 @@ describe("September Athletics training block", () => {
     await completeTrainingSession(firstTuesday.id!);
     const input = getTrainingBlockDefinition(block, sessions);
     input.name = "Adjusted Block";
-    input.days[1] = { ...input.days[1], name: "Upper Reset", focus: "Revised chest and back" };
+    input.days[1] = { ...input.days[1], activities: input.days[1].activities.map((activity) => ({ ...activity, name: "Upper Reset", focus: "Revised chest and back" })) };
 
     const count = await updateCurrentTrainingBlock(blockId, input);
-    expect(count).toBe(13);
+    expect(count).toBe(9);
     expect(await db.athleticsPlannedSessions.get(firstTuesday.id!)).toMatchObject({ name: "Upper A", focus: "Chest + Back Hypertrophy" });
     expect(await db.athleticsPlannedSessions.get(secondTuesday.id!)).toMatchObject({ name: "Upper Reset", focus: "Revised chest and back" });
     expect(await db.plannedActivities.get(secondTuesday.plannedActivityId!)).toMatchObject({ title: "Upper Reset · Revised chest and back", status: "planned" });
@@ -170,6 +170,48 @@ describe("September Athletics training block", () => {
 
     expect(await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray()).toEqual(before);
     expect((await db.athleticsBlockTemplates.get(templateId))?.name).toBe("Changed Future Template");
+  });
+
+  it("allows multiple activities on one day and creates one Planner task for each", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const template = (await db.athleticsBlockTemplates.get(templateId))!;
+    const monday = template.days[0];
+    await updateAthleticsBlockTemplate(templateId, {
+      ...template,
+      days: template.days.map((day, index) => index === 0 ? { ...monday, activities: [...monday.activities, { id: "monday-mobility", kind: "custom", name: "Mobility Reset", focus: "Shoulders and hips", exercises: [] }] } : day),
+    });
+
+    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "Double Monday", startDate: "2026-10-05", weekCount: 1 });
+    const mondaySessions = (await db.athleticsPlannedSessions.where("blockId").equals(result.blockId).toArray()).filter((session) => session.date === "2026-10-05");
+    expect(result).toMatchObject({ sessionCount: 6, taskCount: 6 });
+    expect(mondaySessions.map((session) => session.name)).toEqual(["Sand Volleyball", "Mobility Reset"]);
+    expect(await Promise.all(mondaySessions.map((session) => db.plannedActivities.get(session.plannedActivityId!)))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: "Sand Volleyball", scheduledDate: "2026-10-05" }),
+      expect.objectContaining({ title: "Mobility Reset · Shoulders and hips", scheduledDate: "2026-10-05" }),
+    ]));
+  });
+
+  it("adds and removes unfinished day activities while keeping Planner synchronized", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Sync Builder", startDate: "2026-10-05", weekCount: 2 });
+    const block = (await db.athleticsTrainingBlocks.get(blockId))!;
+    const original = await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray();
+    const withMobility = getTrainingBlockDefinition(block, original);
+    withMobility.days[0].activities.push({ id: "monday-mobility", kind: "custom", name: "Mobility Reset", focus: "Move well", exercises: [] });
+    await updateCurrentTrainingBlock(blockId, withMobility);
+
+    const added = (await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray()).filter((session) => session.templateActivityId === "monday-mobility" && !session.deletedAt);
+    expect(added).toHaveLength(2);
+    expect(await Promise.all(added.map((session) => db.plannedActivities.get(session.plannedActivityId!)))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: "Mobility Reset · Move well", status: "planned" }),
+      expect.objectContaining({ title: "Mobility Reset · Move well", status: "planned" }),
+    ]));
+
+    const withoutMobility = getTrainingBlockDefinition(block, await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray());
+    withoutMobility.days[0].activities = withoutMobility.days[0].activities.filter((activity) => activity.id !== "monday-mobility");
+    await updateCurrentTrainingBlock(blockId, withoutMobility);
+    expect((await Promise.all(added.map((session) => db.athleticsPlannedSessions.get(session.id!)))).every((session) => Boolean(session?.deletedAt))).toBe(true);
+    expect((await Promise.all(added.map((session) => db.plannedActivities.get(session.plannedActivityId!)))).every((activity) => getActivityStatus(activity!) === "cancelled")).toBe(true);
   });
 
   it("acknowledges a completed week only once", async () => {
