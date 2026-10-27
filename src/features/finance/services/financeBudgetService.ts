@@ -2,6 +2,7 @@ import { db, type FinanceBudgetAllocation, type FinanceBudgetMonth, type Finance
 
 function nowISO() { return new Date().toISOString(); }
 function money(value: number) { return Math.round(Math.max(0, Number(value) || 0) * 100) / 100; }
+function signedMoney(value: number) { return Math.round((Number(value) || 0) * 100) / 100; }
 export function previousMonthKey(month: string) { const [year, number] = month.split("-").map(Number); const date = new Date(year, number - 2, 1); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; }
 export function shiftMonthKey(month: string, offset: number) { const [year, number] = month.split("-").map(Number); const date = new Date(year, number - 1 + offset, 1); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; }
 
@@ -20,6 +21,21 @@ export async function setBudgetAllocation(month: string, categoryId: number, bas
   const timestamp = nowISO();
   if (current?.id) { await db.financeBudgetAllocations.update(current.id, { baseAmount: money(baseAmount), deletedAt: undefined, updatedAt: timestamp }); return current.id; }
   return db.financeBudgetAllocations.add({ month, categoryId, baseAmount: money(baseAmount), rolloverAmount: 0, createdAt: timestamp, updatedAt: timestamp });
+}
+
+export async function setBudgetCategoryBalance(month: string, categoryId: number, targetBalance: number | null) {
+  const category = await db.financeCategories.get(categoryId);
+  if (!category || category.deletedAt) throw new Error("This category is no longer available.");
+  const current = await db.financeBudgetAllocations.where("[month+categoryId]").equals([month, categoryId]).first();
+  const transactions = await db.financeTransactions.toArray();
+  const actual = categoryActual(month, category, transactions);
+  const timestamp = nowISO();
+  const adjustment = targetBalance === null
+    ? undefined
+    : signedMoney(targetBalance - ((current?.baseAmount ?? 0) + (current?.rolloverAmount ?? 0) - actual));
+  const values = { manualAdjustmentAmount: adjustment, manualAdjustmentAt: adjustment === undefined ? undefined : timestamp, deletedAt: undefined, updatedAt: timestamp };
+  if (current?.id) { await db.financeBudgetAllocations.update(current.id, values); return current.id; }
+  return db.financeBudgetAllocations.add({ month, categoryId, baseAmount: 0, rolloverAmount: 0, ...values, createdAt: timestamp });
 }
 
 export async function copyPreviousBudget(month: string) {
@@ -54,9 +70,9 @@ export function calculateBudgetRows(month: string, allocations: FinanceBudgetAll
   const monthAllocations = new Map(allocations.filter((item) => !item.deletedAt && item.month === month && item.categoryId).map((item) => [item.categoryId!, item]));
   return categories.filter((item) => !item.deletedAt).map((category): BudgetRow => {
     const allocation = monthAllocations.get(category.id!);
-    const baseAmount = allocation?.baseAmount ?? 0; const rolloverAmount = allocation?.rolloverAmount ?? 0;
-    const actual = categoryActual(month, category, transactions); const available = baseAmount + rolloverAmount;
-    return { id: allocation?.id, month, categoryId: category.id, baseAmount, rolloverAmount, createdAt: allocation?.createdAt ?? "", updatedAt: allocation?.updatedAt ?? "", category, actual, available, remaining: available - actual, percentage: available > 0 ? actual / available * 100 : actual > 0 ? 100 : 0 };
+    const baseAmount = allocation?.baseAmount ?? 0; const rolloverAmount = allocation?.rolloverAmount ?? 0; const manualAdjustmentAmount = allocation?.manualAdjustmentAmount ?? 0;
+    const actual = categoryActual(month, category, transactions); const available = baseAmount + rolloverAmount + manualAdjustmentAmount;
+    return { id: allocation?.id, month, categoryId: category.id, baseAmount, rolloverAmount, manualAdjustmentAmount, manualAdjustmentAt: allocation?.manualAdjustmentAt, createdAt: allocation?.createdAt ?? "", updatedAt: allocation?.updatedAt ?? "", category, actual, available, remaining: available - actual, percentage: available > 0 ? actual / available * 100 : actual > 0 ? 100 : 0 };
   });
 }
 
@@ -81,7 +97,7 @@ export function calculateYearReviewRows(year: number, allocations: FinanceBudget
   const latestActivityMonth = transactions.filter((item) => !item.deletedAt && item.date.startsWith(`${year}-`)).reduce((latest, item) => Math.max(latest, Number(item.date.slice(5, 7))), 0) || 12;
   return categories.filter((item) => !item.deletedAt).map((category): MonthReviewRow => {
     const rows = monthRows.map((items) => items.find((item) => item.category.id === category.id)!);
-    const baseAmount = rows.reduce((total, item) => total + item.baseAmount, 0); const rolloverAmount = rows.reduce((total, item) => total + item.rolloverAmount, 0); const actual = rows.reduce((total, item) => total + item.actual, 0); const available = baseAmount + rolloverAmount;
-    return { month: String(year), categoryId: category.id, baseAmount, rolloverAmount, createdAt: "", updatedAt: "", category, actual, available, remaining: available - actual, percentage: available > 0 ? actual / available * 100 : actual > 0 ? 100 : 0, averageActual: actual / latestActivityMonth };
+    const baseAmount = rows.reduce((total, item) => total + item.baseAmount, 0); const rolloverAmount = rows.reduce((total, item) => total + item.rolloverAmount, 0); const manualAdjustmentAmount = rows.reduce((total, item) => total + (item.manualAdjustmentAmount ?? 0), 0); const actual = rows.reduce((total, item) => total + item.actual, 0); const available = baseAmount + rolloverAmount + manualAdjustmentAmount;
+    return { month: String(year), categoryId: category.id, baseAmount, rolloverAmount, manualAdjustmentAmount, createdAt: "", updatedAt: "", category, actual, available, remaining: available - actual, percentage: available > 0 ? actual / available * 100 : actual > 0 ? 100 : 0, averageActual: actual / latestActivityMonth };
   });
 }

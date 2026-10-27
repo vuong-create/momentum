@@ -24,10 +24,12 @@ function hasSameFinancialPosition(
 export async function upsertMonthlyNetWorthSnapshot(accounts: FinanceAccount[], transactions: FinanceTransaction[], now: Date) {
   if (!accounts.length) return;
   const month = dateKey(now).slice(0, 7); const key = `monthly:${month}`;
-  const existing = await db.financeNetWorthSnapshots.where("snapshotKey").equals(key).first();
-  const candidate = buildSnapshot(accounts, transactions, dateKey(now), "monthly", key, existing);
-  if (existing && hasSameFinancialPosition(existing, candidate)) return existing.id;
-  return db.financeNetWorthSnapshots.put(candidate);
+  return db.transaction("rw", db.financeNetWorthSnapshots, async () => {
+    const existing = await db.financeNetWorthSnapshots.where("snapshotKey").equals(key).first();
+    const candidate = buildSnapshot(accounts, transactions, dateKey(now), "monthly", key, existing);
+    if (existing && hasSameFinancialPosition(existing, candidate)) return existing.id;
+    return db.financeNetWorthSnapshots.put(candidate);
+  });
 }
 
 export async function saveManualNetWorthSnapshot(accounts: FinanceAccount[], transactions: FinanceTransaction[], now: Date) {

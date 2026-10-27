@@ -4,7 +4,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "../../../database/db";
 import { getAccountBalance, getInvestmentContributionBreakdown, getMonthSummary, getNetWorth, isTransactionHiddenFromLedger } from "./financeCalculations";
-import { calculateBudgetRows, calculateMonthReviewRows, calculateYearReviewRows, copyPreviousBudget, setBudgetAllocation } from "./financeBudgetService";
+import { calculateBudgetRows, calculateMonthReviewRows, calculateYearReviewRows, copyPreviousBudget, setBudgetAllocation, setBudgetCategoryBalance } from "./financeBudgetService";
 import { ensureFinanceCategories, renameFinanceCategory, visibleFinanceCategories } from "./financeCategoryService";
 import { auditFinanceRolloverChain, closeFinanceMonth, getFinanceCloseReadiness, reopenFinanceMonth, visibleFinanceReviews } from "./financeCloseService";
 import { createFinanceGoal, getFinanceGoalProgress, softDeleteFinanceGoal, visibleFinanceGoals } from "./financeGoalService";
@@ -151,6 +151,27 @@ describe("finance foundation", () => {
     expect(row).toMatchObject({ actual: 140, available: 100, remaining: -40, percentage: 140 });
   });
 
+  it("adjusts a category current balance without changing ledger history and carries it forward on close", async () => {
+    await ensureFinanceCategories(); const categories = await db.financeCategories.toArray(); const groceries = categories.find((item) => item.name === "Groceries")!;
+    const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    await setBudgetAllocation("2026-08", groceries.id!, 300);
+    await createFinanceTransaction({ date: "2026-08-09", amount: 125, type: "expense", merchant: "Market", accountId: checking, categoryId: groceries.id, category: groceries.name });
+    const ledgerBefore = await db.financeTransactions.toArray();
+
+    await setBudgetCategoryBalance("2026-08", groceries.id!, 250);
+    const adjustedAllocations = await db.financeBudgetAllocations.toArray();
+    const adjusted = calculateBudgetRows("2026-08", adjustedAllocations, categories, await db.financeTransactions.toArray()).find((item) => item.category.id === groceries.id)!;
+    expect(adjusted).toMatchObject({ baseAmount: 300, rolloverAmount: 0, manualAdjustmentAmount: 75, actual: 125, available: 375, remaining: 250 });
+    expect(await db.financeTransactions.toArray()).toEqual(ledgerBefore);
+    expect(getFinanceCloseReadiness("2026-08", adjustedAllocations, categories, ledgerBefore).rolloverCandidates).toContainEqual(expect.objectContaining({ categoryId: groceries.id, amount: 250 }));
+
+    await closeFinanceMonth({ month: "2026-08", accounts: await db.financeAccounts.toArray(), transactions: ledgerBefore, categories, budgetMonths: [], allocations: adjustedAllocations, rollovers: [{ categoryId: groceries.id!, amount: 250 }], reflections: {} });
+    expect(await db.financeBudgetAllocations.where("[month+categoryId]").equals(["2026-09", groceries.id!]).first()).toMatchObject({ baseAmount: 300, rolloverAmount: 250 });
+    await setBudgetCategoryBalance("2026-08", groceries.id!, null);
+    const reset = calculateBudgetRows("2026-08", await db.financeBudgetAllocations.toArray(), categories, ledgerBefore).find((item) => item.category.id === groceries.id)!;
+    expect(reset).toMatchObject({ available: 300, remaining: 175 });
+  });
+
   it("closes a month with selected positive rollover and safely reopens it", async () => {
     await ensureFinanceCategories(); const categories = await db.financeCategories.toArray(); const category = (name: string) => categories.find((item) => item.name === name)!;
     const checking = await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
@@ -240,6 +261,18 @@ describe("finance foundation", () => {
     await upsertMonthlyNetWorthSnapshot(accounts, [], new Date(2026, 7, 15));
 
     expect(await db.financeNetWorthSnapshots.toArray()).toEqual(before);
+  });
+
+  it("serializes simultaneous monthly snapshot updates", async () => {
+    await createFinanceAccount({ name: "Checking", type: "checking", openingBalance: 1000 });
+    const accounts = await db.financeAccounts.toArray();
+
+    await Promise.all([
+      upsertMonthlyNetWorthSnapshot(accounts, [], new Date(2026, 7, 8)),
+      upsertMonthlyNetWorthSnapshot(accounts, [], new Date(2026, 7, 8)),
+    ]);
+
+    expect(await db.financeNetWorthSnapshots.where("snapshotKey").equals("monthly:2026-08").count()).toBe(1);
   });
 
   it("previews, imports, deduplicates, and reverts transaction CSV batches", async () => {
