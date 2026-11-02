@@ -27,4 +27,30 @@
 .athletics-schedule-block>div:first-child{display:block}.athletics-schedule-block>.athletics-schedule-preview{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 
 /* Keep the full Sunday–Saturday editor inside the visible workspace. */
-.athletics-week-board{width:100%;min-width:0;grid-template-columns:repeat(7,minmax(112px,1fr));overflow-x:auto}
+.athletics-week-board{width:100%;min-width:0;grid-template-columns:repeat(7,minmax(0,1fr));overflow-x:auto}
+
+.athletics-page .athletics-builder label>span,
+.athletics-page .athletics-build-toolbar label span,
+.athletics-page .athletics-schedule-block label>span{font-size:var(--control-label-size);color:var(--control-muted)}
+.athletics-page .athletics-build-page button,
+.athletics-page .athletics-builder input,
+.athletics-page .athletics-builder select,
+.athletics-page .athletics-build-toolbar select,
+.athletics-page .athletics-schedule-block input{font-size:var(--control-text-size);color:var(--control-text)}
+.athletics-page .athletics-workout-card strong{font-size:12px;white-space:normal;overflow-wrap:anywhere}
+.athletics-page .athletics-workout-card small{font-size:10px;color:var(--control-muted)}
+.athletics-page .athletics-week-dropzone{min-width:0;padding:7px}
+.athletics-page .athletics-week-dropzone>header strong{display:none}
+.athletics-page .athletics-week-dropzone>header span{font-size:11px;color:var(--control-muted)}
+.athletics-page .athletics-week-dropzone>div>span{font-size:11px;color:var(--control-muted)}
+.athletics-page .athletics-editing-context small,
+.athletics-page .athletics-build-page>header p,
+.athletics-page .athletics-workout-tray p,
+.athletics-page .athletics-block-dump p{font-size:11px;color:var(--control-muted);line-height:1.5}
+.athletics-page .athletics-schedule-preview strong{font-size:11px}
+.athletics-page .athletics-schedule-preview span{font-size:11px;color:var(--control-muted)}
+.athletics-page .athletics-save-reminder{margin:0;color:#d9ba86;font-size:12px}
+.athletics-page .athletics-build-page button:disabled{opacity:.45}
+.athletics-page .athletics-schedule-block>div p{font-size:11px;color:var(--control-muted)}
+.athletics-page .athletics-builder>footer>span{font-size:12px}
+@media(max-width:700px){.athletics-page .athletics-week-board{grid-template-columns:repeat(7,minmax(100px,1fr))}}

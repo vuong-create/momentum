@@ -14,6 +14,13 @@ beforeEach(async () => {
 afterAll(async () => { db.close(); await db.delete(); });
 
 describe("Athletics data maintenance", () => {
+  it("keeps workouts deliberately moved beyond the expired block", async () => {
+    await installSeptember2026TrainingBlock();
+    const session = (await db.athleticsPlannedSessions.toArray()).find((item) => item.plannedActivityId)!;
+    await db.plannedActivities.update(session.plannedActivityId!, { scheduledDate: "2026-11-03", rescheduleCount: 1 });
+    await cleanupExpiredAthleticsPlannerActivities(new Date("2026-11-02T12:00:00"));
+    expect(getActivityStatus((await db.plannedActivities.get(session.plannedActivityId!))!)).toBe("planned");
+  });
   it("removes unfinished expired sessions from Planner without deleting history", async () => {
     await installSeptember2026TrainingBlock();
     const sessions = await db.athleticsPlannedSessions.toArray();

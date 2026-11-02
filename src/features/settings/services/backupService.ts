@@ -1,6 +1,7 @@
 import Dexie from "dexie";
 
 import { db } from "../../../database/db";
+import { validateBackupRecords } from "./backupRecordValidation";
 
 export const MOMENTUM_BACKUP_FORMAT = "momentum-backup";
 export const MOMENTUM_BACKUP_VERSION = 1;
@@ -254,6 +255,7 @@ export function validateMomentumBackup(
     }
   }
 
+  validateBackupRecords(value.data as Record<string, unknown[]>);
   return value as unknown as MomentumBackupPackage;
 }
 

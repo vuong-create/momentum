@@ -46,7 +46,7 @@ import {
 import { getDailyChineseIdiom, idiomAsQuote } from "./chineseIdioms";
 import { createJournalEntry } from "../journal/services/journalService";
 import { toggleBuiltInQuote } from "../journal/services/quoteService";
-import { getTrainingSessionIdFromActivity } from "../athletics/services/trainingBlockService";
+import { completeTrainingSession, getTrainingSessionIdFromActivity, reopenTrainingSession } from "../athletics/services/trainingBlockService";
 
 import HomeTodo from "./components/HomeTodo";
 
@@ -341,7 +341,8 @@ export default function HomeDashboard() {
 
     const trainingSessionId = getTrainingSessionIdFromActivity(activity);
     if (trainingSessionId) {
-      navigate(`/athletics?session=${trainingSessionId}`);
+      if (activity.completed) await reopenTrainingSession(trainingSessionId);
+      else await completeTrainingSession(trainingSessionId);
       return;
     }
     await toggleActivityLifecycle(activity.id);

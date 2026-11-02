@@ -1,5 +1,21 @@
 # Momentum — App Architecture
 
+## Current implementation — November 2026
+
+Momentum ships as a browser application using React, TypeScript, Vite, React
+Router, and IndexedDB through Dexie. The Chrome New Tab extension described in
+the original design below is a future packaging option, not a shipped feature.
+There is no required backend, account, or cloud sync. Browser profile and origin
+determine where personal records are stored.
+
+Feature services own business rules; shared Planner activities own completion.
+Browser workflow tests cover UI saves, scheduling, completion, persistence, and
+backup export in isolated contexts. GitHub verification runs lint, service tests,
+a production build, and Chromium workflow tests.
+
+The original sections below document intent and historical proposals. Their
+completion checklists do not certify that every described feature shipped.
+
 Finance recurring schedules are owned by
 `features/finance/services/financeRecurringService.ts`. The service validates and
 advances schedules, while `FinanceRecurringModal` remains the review-oriented UI.

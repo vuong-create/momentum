@@ -11,21 +11,27 @@ function toDateKey(date: Date) {
  * Completed activities are never changed and repeated runs are safe.
  */
 export async function cleanupExpiredAthleticsPlannerActivities(referenceDate = new Date()) {
-  const todayKey = toDateKey(referenceDate);
-  const expiredBlocks = await db.athleticsTrainingBlocks.filter((block) => !block.deletedAt && block.endDate < todayKey).toArray();
-  if (!expiredBlocks.length) return 0;
+  return db.transaction("rw", db.athleticsTrainingBlocks, db.athleticsPlannedSessions, db.plannedActivities, async () => {
+    const todayKey = toDateKey(referenceDate);
+    const expiredBlocks = await db.athleticsTrainingBlocks.filter((block) => !block.deletedAt && block.endDate < todayKey).toArray();
+    if (!expiredBlocks.length) return 0;
 
-  const expiredIds = new Set(expiredBlocks.flatMap((block) => block.id ? [block.id] : []));
-  const sessions = await db.athleticsPlannedSessions.filter((session) => !session.deletedAt && expiredIds.has(session.blockId) && Boolean(session.plannedActivityId)).toArray();
-  const activities = await db.plannedActivities.bulkGet(sessions.map((session) => session.plannedActivityId!));
-  let cancelled = 0;
+    const expiredIds = new Set(expiredBlocks.flatMap((block) => block.id ? [block.id] : []));
+    const sessions = await db.athleticsPlannedSessions.filter((session) => !session.deletedAt && expiredIds.has(session.blockId) && Boolean(session.plannedActivityId)).toArray();
+    const activities = await db.plannedActivities.bulkGet(sessions.map((session) => session.plannedActivityId!));
+    let cancelled = 0;
 
-  for (const activity of activities) {
-    if (!activity || !isActivityVisible(activity) || getActivityStatus(activity) === "completed") continue;
-    await cancelPlannedActivity(activity.id!);
-    cancelled += 1;
-  }
+    for (const activity of activities) {
+      if (!activity || !isActivityVisible(activity) || getActivityStatus(activity) === "completed") continue;
+      // A deliberate move beyond the original block is still actionable work.
+      const session = sessions.find((item) => item.plannedActivityId === activity.id);
+      const block = expiredBlocks.find((item) => item.id === session?.blockId);
+      if (activity.deferredAt || (activity.scheduledDate && block && activity.scheduledDate > block.endDate)) continue;
+      await cancelPlannedActivity(activity.id!);
+      cancelled += 1;
+    }
 
-  await db.athleticsTrainingBlocks.bulkUpdate(expiredBlocks.filter((block) => block.id && block.active).map((block) => ({ key: block.id!, changes: { active: false, updatedAt: new Date().toISOString() } })));
-  return cancelled;
+    await db.athleticsTrainingBlocks.bulkUpdate(expiredBlocks.filter((block) => block.id && block.active).map((block) => ({ key: block.id!, changes: { active: false, updatedAt: new Date().toISOString() } })));
+    return cancelled;
+  });
 }

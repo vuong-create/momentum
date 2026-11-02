@@ -1,75 +1,63 @@
-# React + TypeScript + Vite
+# Momentum
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A local-first personal operating system for planning, Chinese learning, Athletics,
+Cooking, Finance, and Library. Built with React, TypeScript, Vite, and Dexie.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Use Node.js 22.12+ and npm. From the repository directory:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```sh
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open the address printed by Vite. After pulling changes that add dependencies,
+run `npm ci` again before starting the app.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Data and backups
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Personal data lives in IndexedDB in the browser profile and site origin where
+you use Momentum. GitHub stores application code, not your ledger, journal,
+recipes, or tasks. Different browsers, ports, and hostnames have separate
+databases. Use the same address consistently.
 
+Export a full backup in Settings before switching origins or clearing browser
+data. Restore validates the package and core records before replacement and
+creates a safety copy. Backups contain private personal information. There is
+currently no cloud sync, installed extension, or mobile app.
+
+## Verification
+
+```sh
+npm run lint
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
+
+Browser tests use a dedicated local server on port 4175 and fresh isolated browser
+contexts. They do not access your everyday browser profile or personal database.
+They cover Athletics editing and scheduling, completion from Home, seven-day
+layout, task persistence, and backup export.
+
+## Structure
+
+- `src/features/`: pillar screens, services, and tests.
+- `src/database/db.ts`: persisted records and additive migrations.
+- `src/features/activities/`: shared Planner activity lifecycle.
+- `src/features/settings/services/`: backups, validation, and data health.
+- `src/experience/`: sound, presence, and motion preferences.
+- `src/styles/`: shared design tokens and base styles.
+- `e2e/`: browser workflow tests.
+- `docs/`: product and architecture references; current implementation notes
+  take precedence over historical proposals.
+
+## Development
+
+Inspect GitHub main before implementation. Use a new branch, preserve personal
+records, verify affected workflows, and check PR state before publishing further
+changes. Planner activities own completion; pillar plans link to those records.
+Business rules belong in services. Commit multi-record changes together where
+practical and preserve Momentum's existing icons, typefaces, and visual identity.

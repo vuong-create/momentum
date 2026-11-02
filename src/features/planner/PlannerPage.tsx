@@ -41,7 +41,7 @@ import PlannerTemplates from "./components/PlannerTemplates";
 import PlannerMonthOverview from "./components/PlannerMonthOverview";
 import DayPresetManager from "./components/DayPresetManager";
 import TaskLedger from "./components/TaskLedger";
-import { getTrainingSessionIdFromActivity } from "../athletics/services/trainingBlockService";
+import { completeTrainingSession, getTrainingSessionIdFromActivity, reopenTrainingSession } from "../athletics/services/trainingBlockService";
 
 import "./planner.css";
 
@@ -141,7 +141,9 @@ export default function PlannerPage() {
   async function completeActivity(activity: PlannerActivity) {
     const trainingSessionId = getTrainingSessionIdFromActivity(activity);
     if (trainingSessionId) {
-      navigate(`/athletics?session=${trainingSessionId}`);
+      if (activity.completed) await reopenTrainingSession(trainingSessionId);
+      else await completeTrainingSession(trainingSessionId);
+      experience.playFeedback(activity.completed ? "task-reopened" : "workout-completed");
       return;
     }
     const willComplete = !activity.completed;
