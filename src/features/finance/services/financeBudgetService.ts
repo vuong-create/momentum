@@ -97,7 +97,8 @@ export function calculateYearReviewRows(year: number, allocations: FinanceBudget
   const latestActivityMonth = transactions.filter((item) => !item.deletedAt && item.date.startsWith(`${year}-`)).reduce((latest, item) => Math.max(latest, Number(item.date.slice(5, 7))), 0) || 12;
   return categories.filter((item) => !item.deletedAt).map((category): MonthReviewRow => {
     const rows = monthRows.map((items) => items.find((item) => item.category.id === category.id)!);
-    const baseAmount = rows.reduce((total, item) => total + item.baseAmount, 0); const rolloverAmount = rows.reduce((total, item) => total + item.rolloverAmount, 0); const manualAdjustmentAmount = rows.reduce((total, item) => total + (item.manualAdjustmentAmount ?? 0), 0); const actual = rows.reduce((total, item) => total + item.actual, 0); const available = baseAmount + rolloverAmount + manualAdjustmentAmount;
+    // Later rollovers move the same money between months within the year.
+    const baseAmount = rows.reduce((total, item) => total + item.baseAmount, 0); const rolloverAmount = rows[0].rolloverAmount; const manualAdjustmentAmount = rows.reduce((total, item) => total + (item.manualAdjustmentAmount ?? 0), 0); const actual = rows.reduce((total, item) => total + item.actual, 0); const available = baseAmount + rolloverAmount + manualAdjustmentAmount;
     return { month: String(year), categoryId: category.id, baseAmount, rolloverAmount, manualAdjustmentAmount, createdAt: "", updatedAt: "", category, actual, available, remaining: available - actual, percentage: available > 0 ? actual / available * 100 : actual > 0 ? 100 : 0, averageActual: actual / latestActivityMonth };
   });
 }

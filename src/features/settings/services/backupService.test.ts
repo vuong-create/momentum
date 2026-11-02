@@ -44,6 +44,33 @@ afterAll(async () => {
 });
 
 describe("backup service", () => {
+  it.each([
+    { date: "2026-02-30", amount: 10 },
+    { date: "2026-11-01", amount: "10" },
+    { date: "2026-11-01", amount: -10 },
+  ])("rejects invalid transaction content before replacing existing notes: %j", async (fields) => {
+    await db.notes.add({ text: "Preserve me", createdAt: "2026-11-01", updatedAt: "2026-11-01" });
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+    backup.data.financeTransactions = [{ id: 1, type: "expense", merchant: "Test", tags: [], ...fields }];
+    backup.manifest.tableCounts.financeTransactions = 1;
+    backup.manifest.totalRecords += 1;
+    await expect(restoreMomentumBackup(backup, db, new MemoryStorage())).rejects.toThrow();
+    expect((await db.notes.toArray())[0].text).toBe("Preserve me");
+  });
+
+  it("rejects duplicate IDs and broken references even when record counts match", async () => {
+    await db.notes.add({ text: "Note", createdAt: "2026-11-01", updatedAt: "2026-11-01" });
+    const backup = await createMomentumBackup(db, new MemoryStorage());
+    backup.data.notes.push(structuredClone(backup.data.notes[0]));
+    backup.manifest.tableCounts.notes += 1;
+    backup.manifest.totalRecords += 1;
+    expect(() => validateMomentumBackup(backup)).toThrow("duplicate record ID");
+    const broken = await createMomentumBackup(db, new MemoryStorage());
+    broken.data.athleticsPlannedSessions = [{ id: 1, blockId: 999, date: "2026-11-01", weekNumber: 1, name: "Workout", exercises: [] }];
+    broken.manifest.tableCounts.athleticsPlannedSessions = 1;
+    broken.manifest.totalRecords += 1;
+    expect(() => validateMomentumBackup(broken)).toThrow("without their block");
+  });
   it("exports every current table and only intentional local preferences", async () => {
     const storage = new MemoryStorage();
     storage.setItem("momentum.finance.hideBalances", "true");

@@ -184,3 +184,8 @@
 .finance-transaction-table>article:is(.type-income,.type-transfer,.type-investment)>time,.finance-transaction-table>article:is(.type-income,.type-transfer,.type-investment)>.finance-ledger-merchant strong,.finance-transaction-table>article:is(.type-income,.type-transfer,.type-investment)>.finance-ledger-merchant small,.finance-transaction-table>article:is(.type-income,.type-transfer,.type-investment)>b,.finance-transaction-table>article:is(.type-income,.type-transfer,.type-investment)>span:not(.finance-transaction-glyph){font-weight:560}
 .finance-transaction-table>article:is(.type-income,.type-transfer,.type-investment){background:linear-gradient(90deg,rgba(var(--ledger-rgb),.1),rgba(var(--ledger-rgb),.045) 58%,rgba(var(--ledger-rgb),.018))!important;box-shadow:inset 3px 0 rgba(var(--ledger-rgb),.88),inset 0 0 0 1px rgba(var(--ledger-rgb),.14)!important}
 .finance-transaction-table>article:is(.type-income,.type-transfer,.type-investment):hover{background:linear-gradient(90deg,rgba(var(--ledger-rgb),.15),rgba(var(--ledger-rgb),.07) 58%,rgba(var(--ledger-rgb),.028))!important;box-shadow:inset 3px 0 rgba(var(--ledger-rgb),1),inset 0 0 0 1px rgba(var(--ledger-rgb),.22)!important}
+/* Shared readable controls; retain compact ledger row heights. */
+.finance-page .finance-transaction-table>header{font-size:var(--control-label-size);color:var(--control-muted)}
+.finance-page .finance-transaction-table>article{font-size:var(--control-text-size)}
+.finance-page .finance-transaction-table .finance-ledger-merchant small{font-size:11px}
+.finance-page .finance-ledger-filters input,.finance-page .finance-ledger-filters select{font-size:var(--control-text-size);color:var(--control-text)}

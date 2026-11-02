@@ -1,4 +1,9 @@
 :root {
+  --control-text-size: 12px;
+  --control-label-size: 11px;
+  --control-height: 36px;
+  --control-text: #d1d7de;
+  --control-muted: #9da8b3;
   /* Fonts */
 
   --font-ui:

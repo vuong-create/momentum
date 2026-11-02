@@ -8,3 +8,5 @@ dist
 .vscode/settings.json
 
 coverage
+playwright-report/
+test-results/

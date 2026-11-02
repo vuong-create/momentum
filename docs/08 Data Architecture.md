@@ -1,5 +1,19 @@
 # Momentum — Data Architecture
 
+## Reliability implementation — November 2026
+
+The current database is schema 35. This milestone does not change the database
+version or rewrite historical records. Full backups include every table.
+Restore checks package counts, record IDs, core record fields, dates, amounts,
+and declared relationships before replacing stored data. Historical optional
+fields remain optional. Broken references are reported rather than silently
+removed; deleted-but-retained records remain valid reference targets.
+
+Expired Athletics cleanup preserves completed work and tasks deliberately moved
+beyond the block or deferred into To Do Later. Annual budgets count January's
+incoming rollover once; later monthly rollovers are internal movement rather
+than new annual funding.
+
 **Current local schema:** Version 34
 
 Version 34 adds `financeRecurringTransactions`. These records describe schedules
