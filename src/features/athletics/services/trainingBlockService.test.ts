@@ -10,6 +10,7 @@ import {
   acknowledgeTrainingWeek,
   completeTrainingSession,
   ensureAthleticsBlockTemplates,
+  getAthleticsSchedulePreview,
   getTrainingBlockDefinition,
   getTrainingSessionDisplayStatus,
   installSeptember2026TrainingBlock,
@@ -150,13 +151,13 @@ Lower A
 
   it("schedules a reusable template into dated sessions and Planner tasks", async () => {
     const templateId = await ensureAthleticsBlockTemplates();
-    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "October Build", startDate: "2026-10-05", weekCount: 2 });
+    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "October Build", startDate: "2026-10-04", weekCount: 2 });
     const block = await db.athleticsTrainingBlocks.get(result.blockId);
     const sessions = await db.athleticsPlannedSessions.where("blockId").equals(result.blockId).toArray();
     const tasks = await db.plannedActivities.toArray();
 
     expect(result).toMatchObject({ sessionCount: 10, taskCount: 10 });
-    expect(block).toMatchObject({ name: "October Build", startDate: "2026-10-05", endDate: "2026-10-18", active: true, templateId });
+    expect(block).toMatchObject({ name: "October Build", startDate: "2026-10-04", endDate: "2026-10-17", active: true, templateId, weekStartsOn: "sunday" });
     expect(sessions).toHaveLength(10);
     expect(sessions[0]).toMatchObject({ date: "2026-10-05", templateDayId: "training-day-0", templateActivityId: "monday-volleyball" });
     expect(sessions.at(-1)).toMatchObject({ date: "2026-10-16", name: "Lower B" });
@@ -164,9 +165,60 @@ Lower A
     expect(tasks.every((task) => task.activityKind?.startsWith("athletics-plan-session:"))).toBe(true);
   });
 
+  it("previews and schedules November 1 as a Sunday-first week", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const template = (await db.athleticsBlockTemplates.get(templateId))!;
+    const preview = getAthleticsSchedulePreview(template, "2026-11-01");
+
+    expect(preview.map((day) => [day.date, day.activities.map((activity) => activity.name)])).toEqual([
+      ["2026-11-01", []],
+      ["2026-11-02", ["Sand Volleyball"]],
+      ["2026-11-03", ["Upper A"]],
+      ["2026-11-04", ["Lower A"]],
+      ["2026-11-05", ["Upper B"]],
+      ["2026-11-06", ["Lower B"]],
+      ["2026-11-07", []],
+    ]);
+
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "November Block", startDate: "2026-11-01", weekCount: 4 });
+    const block = await db.athleticsTrainingBlocks.get(blockId);
+    const sessions = await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray();
+    expect(block).toMatchObject({ startDate: "2026-11-01", endDate: "2026-11-28", weekStartsOn: "sunday" });
+    expect(sessions.filter((session) => session.weekNumber === 1).map((session) => [session.date, session.name])).toEqual([
+      ["2026-11-02", "Sand Volleyball"],
+      ["2026-11-03", "Upper A"],
+      ["2026-11-04", "Lower A"],
+      ["2026-11-05", "Upper B"],
+      ["2026-11-06", "Lower B"],
+    ]);
+  });
+
+  it("rejects a non-Sunday block start", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    await expect(scheduleAthleticsTrainingBlock(templateId, { name: "Shifted Block", startDate: "2026-11-02", weekCount: 1 })).rejects.toThrow("must begin on a Sunday");
+  });
+
+  it("replaces only unfinished overlapping Athletics sessions", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const first = await scheduleAthleticsTrainingBlock(templateId, { name: "First November Block", startDate: "2026-11-01", weekCount: 1 });
+    const original = await db.athleticsPlannedSessions.where("blockId").equals(first.blockId).toArray();
+    await completeTrainingSession(original[0].id!);
+
+    const replacement = await scheduleAthleticsTrainingBlock(templateId, { name: "Corrected November Block", startDate: "2026-11-01", weekCount: 1, replaceExisting: true });
+    const preserved = await db.athleticsPlannedSessions.get(original[0].id!);
+    const removed = await Promise.all(original.slice(1).map((session) => db.athleticsPlannedSessions.get(session.id!)));
+    const removedActivities = await Promise.all(original.slice(1).map((session) => db.plannedActivities.get(session.plannedActivityId!)));
+
+    expect(replacement.replacedSessionCount).toBe(4);
+    expect(preserved?.deletedAt).toBeUndefined();
+    expect(getActivityStatus((await db.plannedActivities.get(preserved!.plannedActivityId!))!)).toBe("completed");
+    expect(removed.every((session) => Boolean(session?.deletedAt))).toBe(true);
+    expect(removedActivities.every((activity) => getActivityStatus(activity!) === "cancelled")).toBe(true);
+  });
+
   it("updates unfinished current-block sessions while keeping completed sessions frozen", async () => {
     const templateId = await ensureAthleticsBlockTemplates();
-    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Editable Block", startDate: "2026-10-05", weekCount: 2 });
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Editable Block", startDate: "2026-10-04", weekCount: 2 });
     const block = (await db.athleticsTrainingBlocks.get(blockId))!;
     const sessions = await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray();
     const firstTuesday = sessions.find((session) => session.date === "2026-10-06")!;
@@ -185,7 +237,7 @@ Lower A
 
   it("keeps template edits separate from a scheduled block until explicitly applied", async () => {
     const templateId = await ensureAthleticsBlockTemplates();
-    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Stable Instance", startDate: "2026-10-05", weekCount: 1 });
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Stable Instance", startDate: "2026-10-04", weekCount: 1 });
     const before = await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray();
     const template = (await db.athleticsBlockTemplates.get(templateId))!;
     await updateAthleticsBlockTemplate(templateId, { ...template, name: "Changed Future Template", days: template.days.map((day, index) => index === 0 ? { ...day, name: "Monday Speed" } : day) });
@@ -203,7 +255,7 @@ Lower A
       days: template.days.map((day, index) => index === 0 ? { ...monday, activities: [...monday.activities, { id: "monday-mobility", kind: "custom", name: "Mobility Reset", focus: "Shoulders and hips", exercises: [] }] } : day),
     });
 
-    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "Double Monday", startDate: "2026-10-05", weekCount: 1 });
+    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "Double Monday", startDate: "2026-10-04", weekCount: 1 });
     const mondaySessions = (await db.athleticsPlannedSessions.where("blockId").equals(result.blockId).toArray()).filter((session) => session.date === "2026-10-05");
     expect(result).toMatchObject({ sessionCount: 6, taskCount: 6 });
     expect(mondaySessions.map((session) => session.name)).toEqual(["Sand Volleyball", "Mobility Reset"]);
@@ -219,7 +271,7 @@ Lower A
     const parked = parseAthleticsBlockDump("Future Workout\n- Cable Row - 100 for 10");
     await updateAthleticsBlockTemplate(templateId, { ...template, activityLibrary: parked });
     const saved = await db.athleticsBlockTemplates.get(templateId);
-    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "Tray Test", startDate: "2026-10-05", weekCount: 1 });
+    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "Tray Test", startDate: "2026-10-04", weekCount: 1 });
 
     expect(saved?.activityLibrary?.[0]).toMatchObject({ name: "Future Workout" });
     expect((await db.athleticsPlannedSessions.where("blockId").equals(result.blockId).toArray()).some((session) => session.name === "Future Workout")).toBe(false);
@@ -227,7 +279,7 @@ Lower A
 
   it("adds and removes unfinished day activities while keeping Planner synchronized", async () => {
     const templateId = await ensureAthleticsBlockTemplates();
-    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Sync Builder", startDate: "2026-10-05", weekCount: 2 });
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Sync Builder", startDate: "2026-10-04", weekCount: 2 });
     const block = (await db.athleticsTrainingBlocks.get(blockId))!;
     const original = await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray();
     const withMobility = getTrainingBlockDefinition(block, original);
@@ -250,7 +302,7 @@ Lower A
 
   it("acknowledges a completed week only once", async () => {
     const templateId = await ensureAthleticsBlockTemplates();
-    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Clear Test", startDate: "2026-10-05", weekCount: 1 });
+    const { blockId } = await scheduleAthleticsTrainingBlock(templateId, { name: "Clear Test", startDate: "2026-10-04", weekCount: 1 });
     expect(await acknowledgeTrainingWeek(blockId, 1)).toBe(true);
     expect(await acknowledgeTrainingWeek(blockId, 1)).toBe(false);
     expect((await db.athleticsTrainingBlocks.get(blockId))?.celebratedWeeks).toEqual([1]);

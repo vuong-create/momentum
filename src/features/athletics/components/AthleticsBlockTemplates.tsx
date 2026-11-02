@@ -8,7 +8,7 @@ import type {
   AthleticsTrainingBlock,
   PlannedActivity,
 } from "../../../database/db";
-import { getTrainingBlockDefinition, parseAthleticsBlockDump, type AthleticsBlockDefinitionInput } from "../services/trainingBlockService";
+import { getAthleticsSchedulePreview, getTrainingBlockDefinition, parseAthleticsBlockDump, type AthleticsBlockDefinitionInput } from "../services/trainingBlockService";
 
 type Props = {
   templates: AthleticsBlockTemplate[];
@@ -18,7 +18,7 @@ type Props = {
   onSaveTemplate: (id: number, input: AthleticsBlockDefinitionInput) => Promise<void>;
   onCreateTemplate: (input: AthleticsBlockDefinitionInput) => Promise<number>;
   onUpdateBlock: (id: number, input: AthleticsBlockDefinitionInput) => Promise<number>;
-  onSchedule: (templateId: number, input: { name: string; startDate: string; weekCount: number }) => Promise<void>;
+  onSchedule: (templateId: number, input: { name: string; startDate: string; weekCount: number; replaceExisting: boolean }) => Promise<void>;
 };
 
 // Stored offsets remain Monday-first for backward compatibility. The board is intentionally Sunday-first.
@@ -27,6 +27,10 @@ const sundayFirstIndices = [6, 0, 1, 2, 3, 4, 5];
 const activityLabels: Record<AthleticsBlockTemplateActivity["kind"], string> = { gym: "Workout", volleyball: "Volleyball", custom: "Activity", recovery: "Recovery" };
 
 function localId(prefix: string) { return `${prefix}-${crypto.randomUUID()}`; }
+function toDateKey(date: Date) { const year = date.getFullYear(); const month = String(date.getMonth() + 1).padStart(2, "0"); const day = String(date.getDate()).padStart(2, "0"); return `${year}-${month}-${day}`; }
+function startOfCurrentWeek() { const date = new Date(); date.setHours(12, 0, 0, 0); date.setDate(date.getDate() - date.getDay()); return toDateKey(date); }
+function isSunday(dateKey: string) { return Boolean(dateKey) && new Date(`${dateKey}T12:00:00`).getDay() === 0; }
+function formatPreviewDate(dateKey: string) { return new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" }).format(new Date(`${dateKey}T12:00:00`)); }
 function cloneExercises(exercises: AthleticsPlannedExercise[]) { return exercises.map((item) => ({ ...item, alternatives: item.alternatives ? [...item.alternatives] : undefined })); }
 function cloneActivity(activity: AthleticsBlockTemplateActivity) { return { ...activity, exercises: cloneExercises(activity.exercises) }; }
 function cloneDefinition(input: AthleticsBlockDefinitionInput): AthleticsBlockDefinitionInput {
@@ -144,28 +148,32 @@ function BlockEditor({ initial, onSave, onApplyCurrent, saveLabel }: { initial: 
     </section>}
 
     <section className="athletics-block-dump"><header><div><span className="text-label">Block Dump</span><h3>Paste the plan. Arrange it after.</h3></div><p>Workout headings become cards. Every bullet underneath becomes an exercise, including loose weight, rep, and effort notes.</p></header><textarea value={dump} onChange={(event) => setDump(event.target.value)} placeholder={"Upper A\n- Incline Chest Machine - 75 for 6\n- Lat Pulldown - 120 for 8\n\nLower A\n- Pogo Circuit\n- Back Squat"} /><button type="button" disabled={!dump.trim()} onClick={importDump}>Create workout cards</button></section>
-    <footer>{notice && <span>{notice}</span>}{onApplyCurrent && <button type="button" disabled={saving} onClick={() => void run(onApplyCurrent)}>Save + apply to current block</button>}<button type="button" className="is-primary" disabled={saving} onClick={() => void run(onSave)}>{saving ? "Saving…" : saveLabel}</button></footer>
+    <footer>{notice && <span>{notice}</span>}<button type="button" className="is-primary" disabled={saving} onClick={() => void run(onApplyCurrent ?? onSave)}>{saving ? "Saving…" : onApplyCurrent ? "Update Current Block" : saveLabel}</button></footer>
   </section>;
 }
 
 export default function AthleticsBlockTemplates({ templates, block, sessions, onSaveTemplate, onCreateTemplate, onUpdateBlock, onSchedule }: Props) {
-  const [templateId, setTemplateId] = useState(templates[0]?.id ?? 0);
+  const [templateId, setTemplateId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState(startOfCurrentWeek);
   const [blockName, setBlockName] = useState("");
   const [scheduleWeeks, setScheduleWeeks] = useState(4);
+  const [replaceExisting, setReplaceExisting] = useState(true);
   const [scheduling, setScheduling] = useState(false);
-  const template = templates.find((item) => item.id === templateId) ?? templates[0];
+  const [scheduleError, setScheduleError] = useState("");
+  const template = templates.find((item) => item.id === templateId) ?? templates.find((item) => item.id === block?.templateId) ?? templates[0];
   const templateDefinition = useMemo(() => template ? { name: template.name, goal: template.goal, weekCount: template.weekCount, days: template.days, activityLibrary: template.activityLibrary ?? [], phases: template.phases } : null, [template]);
   const currentDefinition = useMemo(() => block ? getTrainingBlockDefinition(block, sessions) : null, [block, sessions]);
   const editorDefinition = creating ? blankDefinition() : templateDefinition ?? currentDefinition ?? blankDefinition();
   const linkedToCurrent = Boolean(block?.id && template?.id && block.templateId === template.id);
+  const preview = useMemo(() => template && isSunday(startDate) ? getAthleticsSchedulePreview(template, startDate) : [], [template, startDate]);
 
   return <section className="athletics-build-page">
     <header><div><span className="text-label">Build / Edit Block</span><h2>Arrange your training week</h2><p>Build reusable workout cards, then drag them across a Sunday–Saturday week. Nothing reaches Planner until you schedule the finished block.</p></div><button type="button" className="is-new" onClick={() => { setCreating(true); setScheduleOpen(false); }}>＋ New Block</button></header>
-    <div className="athletics-build-toolbar"><label><span>Saved blocks</span><select disabled={creating || !templates.length} value={template?.id ?? ""} onChange={(event) => { setCreating(false); setTemplateId(Number(event.target.value)); setScheduleOpen(false); }}>{templates.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><div>{creating && <button type="button" onClick={() => setCreating(false)}>Cancel new block</button>}<button type="button" disabled={creating || !template} onClick={() => { if (!template) return; setBlockName(template.name); setScheduleWeeks(template.weekCount); setScheduleOpen((current) => !current); }}>Schedule Block</button></div></div>
-    {scheduleOpen && template && <section className="athletics-schedule-block"><div><span className="text-label">Send to Planner</span><h3>Schedule {template.name}</h3></div><label><span>Block name</span><input value={blockName} onChange={(event) => setBlockName(event.target.value)} /></label><label><span>First Monday</span><input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><label><span>Weeks</span><input type="number" min="1" max="12" value={scheduleWeeks} onChange={(event) => setScheduleWeeks(Number(event.target.value))} /></label><button type="button" disabled={scheduling || !startDate} onClick={async () => { setScheduling(true); try { await onSchedule(template.id!, { name: blockName || template.name, startDate, weekCount: scheduleWeeks }); setScheduleOpen(false); } finally { setScheduling(false); } }}>{scheduling ? "Creating Planner tasks…" : "Confirm and populate Planner"}</button></section>}
+    <div className="athletics-editing-context"><span>{creating ? "New draft" : linkedToCurrent ? "Current block template" : "Saved draft"}</span><strong>{creating ? "Untitled Training Block" : template?.name ?? "No block selected"}</strong><small>{linkedToCurrent ? "Changes update the active block and its unfinished Planner sessions." : "Nothing reaches Planner until you review and schedule it."}</small></div>
+    <div className="athletics-build-toolbar"><label><span>Block to edit</span><select disabled={creating || !templates.length} value={template?.id ?? ""} onChange={(event) => { setCreating(false); setTemplateId(Number(event.target.value)); setScheduleOpen(false); setScheduleError(""); }}>{templates.map((item) => <option key={item.id} value={item.id}>{item.name}{item.id === block?.templateId ? " — Current" : " — Draft"}</option>)}</select></label><div>{creating && <button type="button" onClick={() => setCreating(false)}>Cancel new block</button>}<button type="button" disabled={creating || !template} onClick={() => { if (!template) return; setBlockName(template.name); setScheduleWeeks(template.weekCount); setScheduleOpen((current) => !current); setScheduleError(""); }}>Review & Schedule</button></div></div>
+    {scheduleOpen && template && <section className="athletics-schedule-block"><div><span className="text-label">Planner preview</span><h3>Schedule {template.name}</h3><p>Choose the Sunday that begins the block. Review the exact first week before anything is added.</p></div><label><span>Block name</span><input value={blockName} onChange={(event) => setBlockName(event.target.value)} /></label><label><span>Week begins Sunday</span><input type="date" value={startDate} onChange={(event) => { setStartDate(event.target.value); setScheduleError(""); }} /></label><label><span>Weeks</span><input type="number" min="1" max="12" value={scheduleWeeks} onChange={(event) => setScheduleWeeks(Number(event.target.value))} /></label><label className="athletics-replace-toggle"><input type="checkbox" checked={replaceExisting} onChange={(event) => setReplaceExisting(event.target.checked)} /><span>Replace unfinished overlapping Athletics sessions</span></label>{!isSunday(startDate) && <p className="athletics-schedule-error">The selected date must be a Sunday.</p>}{scheduleError && <p className="athletics-schedule-error">{scheduleError}</p>}{preview.length > 0 && <div className="athletics-schedule-preview">{preview.map((day) => <article key={day.date}><strong>{formatPreviewDate(day.date)}</strong><span>{day.activities.length ? day.activities.map((activity) => activity.name).join(" · ") : "Rest"}</span></article>)}</div>}<button type="button" disabled={scheduling || !isSunday(startDate)} onClick={async () => { setScheduling(true); setScheduleError(""); try { await onSchedule(template.id!, { name: blockName || template.name, startDate, weekCount: scheduleWeeks, replaceExisting }); setScheduleOpen(false); } catch (error) { setScheduleError(error instanceof Error ? error.message : "Could not schedule this block."); } finally { setScheduling(false); } }}>{scheduling ? "Updating Planner…" : replaceExisting ? "Replace unfinished sessions & schedule" : "Schedule alongside existing sessions"}</button></section>}
     <BlockEditor key={creating ? "new-block" : `template-${template?.id}-${template?.updatedAt}`} initial={editorDefinition} saveLabel={creating ? "Save New Block" : "Save Block"} onSave={async (input) => { if (creating || !template?.id) { const id = await onCreateTemplate(input); setTemplateId(id); setCreating(false); return "New block saved. You can now schedule it."; } await onSaveTemplate(template.id, input); return "Block saved."; }} onApplyCurrent={linkedToCurrent && block?.id ? async (input) => { await onSaveTemplate(template!.id!, input); const count = await onUpdateBlock(block.id!, input); return `Saved and synchronized ${count} unfinished Planner sessions.`; } : undefined} />
   </section>;
 }
