@@ -25,3 +25,6 @@
 
 /* Override retired Athletics workspace rules that share this class name. */
 .athletics-schedule-block>div:first-child{display:block}.athletics-schedule-block>.athletics-schedule-preview{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+
+/* Keep the full Sunday–Saturday editor inside the visible workspace. */
+.athletics-week-board{width:100%;min-width:0;grid-template-columns:repeat(7,minmax(112px,1fr));overflow-x:auto}

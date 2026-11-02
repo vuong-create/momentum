@@ -6,13 +6,11 @@ import { getSessionScheduledDate, getTrainingSessionDisplayStatus } from "../ser
 
 type Props = {
   block?: AthleticsTrainingBlock;
-  blocks: AthleticsTrainingBlock[];
   sessions: AthleticsPlannedSession[];
   activities: PlannedActivity[];
   now: Date;
   selectedSessionId: number | null;
-  installing: boolean;
-  onInstall: () => Promise<void>;
+  onBuild: () => void;
   onSelect: (id: number | null) => void;
   onComplete: (session: AthleticsPlannedSession) => Promise<void>;
   onReopen: (session: AthleticsPlannedSession) => Promise<void>;
@@ -20,7 +18,6 @@ type Props = {
   onMove: (session: AthleticsPlannedSession, date: string) => Promise<void>;
   onSkip: (session: AthleticsPlannedSession) => Promise<void>;
   onExerciseChoice: (sessionId: number, exerciseId: string, name: string) => Promise<void>;
-  onBlockSelect: (blockId: number) => Promise<void>;
   celebratingWeeks: number[];
 };
 
@@ -31,7 +28,7 @@ function dayDistance(start: string, end: string) { return Math.floor((new Date(`
 function startOfSunday(dateKey: string) { const date = new Date(`${dateKey}T12:00:00`); return addDays(dateKey, -date.getDay()); }
 function endOfSaturday(dateKey: string) { const date = new Date(`${dateKey}T12:00:00`); return addDays(dateKey, 6 - date.getDay()); }
 
-export default function AthleticsTrainingCalendar({ block, blocks, sessions, activities, now, selectedSessionId, installing, onInstall, onSelect, onComplete, onReopen, onSaturdayChoice, onMove, onSkip, onExerciseChoice, onBlockSelect, celebratingWeeks }: Props) {
+export default function AthleticsTrainingCalendar({ block, sessions, activities, now, selectedSessionId, onBuild, onSelect, onComplete, onReopen, onSaturdayChoice, onMove, onSkip, onExerciseChoice, celebratingWeeks }: Props) {
   const [moveDate, setMoveDate] = useState("");
   const todayKey = toDateKey(now);
   const selected = sessions.find((item) => item.id === selectedSessionId) ?? null;
@@ -52,12 +49,12 @@ export default function AthleticsTrainingCalendar({ block, blocks, sessions, act
   const activeWeek = activeWeekIndex >= 0 ? weeks[activeWeekIndex] : null;
 
   if (!block) return <section className="athletics-plan-import">
-    <div className="athletics-plan-import-copy"><span className="text-label">Training blocks</span><h2>September is ready.</h2><p>A four-week hypertrophy and athletic-development block, translated into structured workouts and linked Planner tasks.</p><div><span>65–70%</span><small>Hypertrophy emphasis</small><span>30–35%</span><small>Athletic development</small></div></div>
-    <div className="athletics-plan-import-preview"><header><span>Aug 31 — Sep 27</span><strong>4 weeks · 20 planned sessions</strong></header>{["MON · Sand Volleyball", "TUE · Upper A", "WED · Lower A", "THU · Upper B", "FRI · Lower B", "SAT · Recovery / Volleyball", "SUN · Full Rest"].map((item) => <span key={item}>{item}</span>)}<button type="button" disabled={installing} onClick={onInstall}>{installing ? "Building your calendar…" : "Add September block"}</button><small>Previewed, duplicate-safe, and additive. Existing training data stays untouched.</small></div>
+    <div className="athletics-plan-import-copy"><span className="text-label">Current block</span><h2>No active training block.</h2><p>Your previous blocks remain preserved as history. Build or schedule a block that includes today to place it here.</p></div>
+    <div className="athletics-plan-import-preview"><header><span>Sunday — Saturday</span><strong>Nothing is scheduled</strong></header><span>Design the weekly training structure.</span><span>Review its exact dates.</span><span>Then send only the finished block to Planner.</span><button type="button" onClick={onBuild}>Build / schedule a block</button><small>Expired blocks will not appear here or remain in unfinished Planner work.</small></div>
   </section>;
 
   return <section className="athletics-training-calendar">
-    <header className="athletics-block-header"><div><span className="text-label">{block.active ? "Current block" : "Previous block · read-only history"}</span><div className="athletics-block-switcher"><button type="button" aria-label="Previous training block" disabled={blocks.findIndex((item) => item.id === block.id) <= 0} onClick={() => { const index = blocks.findIndex((item) => item.id === block.id); if (index > 0) void onBlockSelect(blocks[index - 1].id!); }}>←</button><span><strong>{block.name}</strong><small>{formatDate(block.startDate, { month: "short", day: "numeric" })} — {formatDate(block.endDate, { month: "short", day: "numeric", year: "numeric" })}</small></span><button type="button" aria-label="Next training block" disabled={blocks.findIndex((item) => item.id === block.id) >= blocks.length - 1} onClick={() => { const index = blocks.findIndex((item) => item.id === block.id); if (index < blocks.length - 1) void onBlockSelect(blocks[index + 1].id!); }}>→</button></div><p>{block.goal}</p></div><div className="athletics-block-progress"><strong>{completed}<small> / {actionable.length}</small></strong><span>sessions complete</span><i><span style={{ width: `${actionable.length ? completed / actionable.length * 100 : 0}%` }} /></i></div></header>
+    <header className="athletics-block-header"><div><span className="text-label">Current block</span><div className="athletics-block-switcher"><span><strong>{block.name}</strong><small>{formatDate(block.startDate, { month: "short", day: "numeric" })} — {formatDate(block.endDate, { month: "short", day: "numeric", year: "numeric" })}</small></span></div><p>{block.goal}</p></div><div className="athletics-block-progress"><strong>{completed}<small> / {actionable.length}</small></strong><span>sessions complete</span><i><span style={{ width: `${actionable.length ? completed / actionable.length * 100 : 0}%` }} /></i></div></header>
     <div className="athletics-current-phase"><span>{activeWeek ? `Current training week · Week ${activeWeek.weekNumber}` : todayKey < block.startDate ? `Block begins ${formatDate(block.startDate, { month: "long", day: "numeric" })}` : "Transition period"}</span><strong>{activeWeek?.phaseName ?? block.name}</strong><p>{activeWeek?.phaseGuidance ?? `${weekCount} complete Sunday–Saturday calendar ${weekCount === 1 ? "week" : "weeks"}.`}</p></div>
     <div className="athletics-block-weeks">{weeks.map((week, index) => {
       const weekActionable = week.sessions.filter((item) => item.kind !== "recovery"); const weekCompleted = weekActionable.length > 0 && weekActionable.every((item) => getTrainingSessionDisplayStatus(item, activities, todayKey) === "completed"); const completedCount = weekActionable.filter((item) => getTrainingSessionDisplayStatus(item, activities, todayKey) === "completed").length; const phaseName = week.phaseName ?? `Calendar week ${index + 1}`;
