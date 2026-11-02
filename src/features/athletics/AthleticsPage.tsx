@@ -14,7 +14,6 @@ import {
   acknowledgeTrainingWeek,
   createAthleticsBlockTemplate,
   ensureAthleticsBlockTemplates,
-  installSeptember2026TrainingBlock,
   moveTrainingSession,
   reopenTrainingSession,
   scheduleAthleticsTrainingBlock,
@@ -44,9 +43,7 @@ export default function AthleticsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const experience = useExperience();
   const [view, setView] = useState<AthleticsView>(getInitialView);
-  const [installingBlock, setInstallingBlock] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-  const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
   const [celebratingWeeks, setCelebratingWeeks] = useState<number[]>([]);
   const initializedCelebrations = useRef(new Set<number>());
   const routedSessionId = Number(searchParams.get("session")) || null;
@@ -59,10 +56,10 @@ export default function AthleticsPage() {
   const trainingBlocks = visibleTrainingBlocks(allTrainingBlocks);
   const blockTemplates = visibleAthleticsBlockTemplates(allBlockTemplates);
   const trainingSessions = visibleTrainingSessions(allPlannedSessions);
-  const currentTrainingBlock = trainingBlocks.find((item) => item.active) ?? trainingBlocks.at(-1);
-  const displayedTrainingBlock = trainingBlocks.find((item) => item.id === selectedBlockId) ?? currentTrainingBlock;
-  const blockSessions = useMemo(() => displayedTrainingBlock?.id ? trainingSessions.filter((item) => item.blockId === displayedTrainingBlock.id) : [], [displayedTrainingBlock, trainingSessions]);
-  const currentBlockSessions = useMemo(() => currentTrainingBlock?.id ? trainingSessions.filter((item) => item.blockId === currentTrainingBlock.id) : [], [currentTrainingBlock, trainingSessions]);
+  const todayKey = [experience.now.getFullYear(), String(experience.now.getMonth() + 1).padStart(2, "0"), String(experience.now.getDate()).padStart(2, "0")].join("-");
+  const currentTrainingBlock = trainingBlocks.find((item) => item.active && item.startDate <= todayKey && item.endDate >= todayKey)
+    ?? trainingBlocks.find((item) => item.startDate <= todayKey && item.endDate >= todayKey);
+  const blockSessions = useMemo(() => currentTrainingBlock?.id ? trainingSessions.filter((item) => item.blockId === currentTrainingBlock.id) : [], [currentTrainingBlock, trainingSessions]);
   const actionable = blockSessions.filter((item) => item.kind !== "recovery");
   const completed = actionable.filter((session) => getActivityStatus(plannedActivities.find((activity) => activity.id === session.plannedActivityId) ?? { completed: false } as PlannedActivity) === "completed").length;
   const athleticsXP = getXPBreakdown(xpEvents).contributions.find(({ pillar }) => pillar === "athletics")!;
@@ -70,20 +67,20 @@ export default function AthleticsPage() {
 
   useEffect(() => { void ensureAthleticsBlockTemplates(); }, []);
   useEffect(() => {
-    if (!displayedTrainingBlock?.id || !blockSessions.length) return;
+    if (!currentTrainingBlock?.id || !blockSessions.length) return;
     const completedWeeks = [...new Set(blockSessions.map((item) => item.weekNumber))].filter((weekNumber) => {
       const sessions = blockSessions.filter((item) => item.weekNumber === weekNumber && item.kind !== "recovery");
       return sessions.length > 0 && sessions.every((session) => getActivityStatus(plannedActivities.find((activity) => activity.id === session.plannedActivityId) ?? { completed: false } as PlannedActivity) === "completed");
     });
-    if (!initializedCelebrations.current.has(displayedTrainingBlock.id)) {
-      initializedCelebrations.current.add(displayedTrainingBlock.id);
-      for (const weekNumber of completedWeeks.filter((week) => !(displayedTrainingBlock.celebratedWeeks ?? []).includes(week))) void acknowledgeTrainingWeek(displayedTrainingBlock.id, weekNumber);
+    if (!initializedCelebrations.current.has(currentTrainingBlock.id)) {
+      initializedCelebrations.current.add(currentTrainingBlock.id);
+      for (const weekNumber of completedWeeks.filter((week) => !(currentTrainingBlock.celebratedWeeks ?? []).includes(week))) void acknowledgeTrainingWeek(currentTrainingBlock.id, weekNumber);
       return;
     }
-    for (const weekNumber of completedWeeks.filter((week) => !(displayedTrainingBlock.celebratedWeeks ?? []).includes(week))) {
-      void acknowledgeTrainingWeek(displayedTrainingBlock.id, weekNumber).then((isNew) => { if (!isNew) return; setCelebratingWeeks((current) => [...new Set([...current, weekNumber])]); experience.playFeedback("level-up"); window.setTimeout(() => setCelebratingWeeks((current) => current.filter((item) => item !== weekNumber)), 1800); });
+    for (const weekNumber of completedWeeks.filter((week) => !(currentTrainingBlock.celebratedWeeks ?? []).includes(week))) {
+      void acknowledgeTrainingWeek(currentTrainingBlock.id, weekNumber).then((isNew) => { if (!isNew) return; setCelebratingWeeks((current) => [...new Set([...current, weekNumber])]); experience.playFeedback("level-up"); window.setTimeout(() => setCelebratingWeeks((current) => current.filter((item) => item !== weekNumber)), 1800); });
     }
-  }, [displayedTrainingBlock, blockSessions, experience, plannedActivities]);
+  }, [currentTrainingBlock, blockSessions, experience, plannedActivities]);
 
   function selectView(nextView: AthleticsView) {
     setView(nextView); setSearchParams({}); sessionStorage.setItem("momentum.athletics.tab", nextView);
@@ -91,13 +88,6 @@ export default function AthleticsPage() {
 
   function handleSelectSession(id: number | null) {
     setSelectedSessionId(id); setSearchParams(id ? { session: String(id) } : {}, { replace: true });
-  }
-
-  async function handleInstallBlock() {
-    if (installingBlock) return;
-    setInstallingBlock(true);
-    try { await installSeptember2026TrainingBlock(); experience.playFeedback("task-added"); }
-    finally { setInstallingBlock(false); }
   }
 
   async function closeSession(session: AthleticsPlannedSession) {
@@ -119,8 +109,8 @@ export default function AthleticsPage() {
     <nav className="athletics-tabs" aria-label="Athletics sections">{tabs.map((tab) => <button key={tab.id} type="button" className={displayView === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}</button>)}</nav>
 
     <main className="athletics-content">
-      {displayView === "calendar" && <AthleticsTrainingCalendar block={displayedTrainingBlock} blocks={trainingBlocks} sessions={blockSessions} activities={plannedActivities} now={experience.now} selectedSessionId={routedSessionId ?? selectedSessionId} installing={installingBlock} celebratingWeeks={celebratingWeeks} onInstall={handleInstallBlock} onBlockSelect={async (blockId) => { setSelectedBlockId(blockId); setCelebratingWeeks([]); }} onSelect={handleSelectSession} onComplete={closeSession} onReopen={async (session) => { await reopenTrainingSession(session.id!); experience.playFeedback("task-reopened"); }} onSaturdayChoice={async (session, choice) => { await setSaturdayTrainingChoice(session.id!, choice); experience.playFeedback("task-updated"); }} onMove={async (session, date) => { await moveTrainingSession(session.id!, date); experience.playFeedback("task-updated"); }} onSkip={async (session) => { await skipTrainingSession(session.id!); experience.playFeedback("task-dismissed"); handleSelectSession(null); }} onExerciseChoice={async (sessionId, exerciseId, name) => { await updatePlannedExerciseChoice(sessionId, exerciseId, name); experience.playFeedback("task-updated"); }} />}
-      {displayView === "templates" && <AthleticsBlockTemplates templates={blockTemplates} block={currentTrainingBlock} sessions={currentBlockSessions} activities={plannedActivities} onSaveTemplate={async (id, input) => { await updateAthleticsBlockTemplate(id, input); experience.playFeedback("task-updated"); }} onCreateTemplate={async (input) => { const id = await createAthleticsBlockTemplate(input); experience.playFeedback("task-added"); return id; }} onUpdateBlock={async (id, input) => { const count = await updateCurrentTrainingBlock(id, input); experience.playFeedback("task-updated"); return count; }} onSchedule={async (templateId, input) => { const result = await scheduleAthleticsTrainingBlock(templateId, input); setSelectedBlockId(result.blockId); selectView("calendar"); experience.playFeedback("task-added"); }} />}
+      {displayView === "calendar" && <AthleticsTrainingCalendar block={currentTrainingBlock} sessions={blockSessions} activities={plannedActivities} now={experience.now} selectedSessionId={routedSessionId ?? selectedSessionId} celebratingWeeks={celebratingWeeks} onBuild={() => selectView("templates")} onSelect={handleSelectSession} onComplete={closeSession} onReopen={async (session) => { await reopenTrainingSession(session.id!); experience.playFeedback("task-reopened"); }} onSaturdayChoice={async (session, choice) => { await setSaturdayTrainingChoice(session.id!, choice); experience.playFeedback("task-updated"); }} onMove={async (session, date) => { await moveTrainingSession(session.id!, date); experience.playFeedback("task-updated"); }} onSkip={async (session) => { await skipTrainingSession(session.id!); experience.playFeedback("task-dismissed"); handleSelectSession(null); }} onExerciseChoice={async (sessionId, exerciseId, name) => { await updatePlannedExerciseChoice(sessionId, exerciseId, name); experience.playFeedback("task-updated"); }} />}
+      {displayView === "templates" && <AthleticsBlockTemplates templates={blockTemplates} block={currentTrainingBlock} sessions={blockSessions} activities={plannedActivities} onSaveTemplate={async (id, input) => { await updateAthleticsBlockTemplate(id, input); experience.playFeedback("task-updated"); }} onCreateTemplate={async (input) => { const id = await createAthleticsBlockTemplate(input); experience.playFeedback("task-added"); return id; }} onUpdateBlock={async (id, input) => { const count = await updateCurrentTrainingBlock(id, input); experience.playFeedback("task-updated"); return count; }} onSchedule={async (templateId, input) => { await scheduleAthleticsTrainingBlock(templateId, input); selectView("calendar"); experience.playFeedback("task-added"); }} />}
     </main>
   </div>;
 }
