@@ -389,6 +389,8 @@ export interface AthleticsTrainingBlock {
   goal: string;
   active: boolean;
   templateId?: number;
+  /** Older blocks were Monday-first. New scheduled blocks use Sunday-first calendar weeks. */
+  weekStartsOn?: "monday" | "sunday";
   celebratedWeeks?: number[];
   createdAt: string;
   updatedAt: string;
