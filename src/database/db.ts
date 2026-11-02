@@ -372,6 +372,8 @@ export interface AthleticsBlockTemplate {
   goal: string;
   weekCount: number;
   days: AthleticsBlockTemplateDay[];
+  /** Activities designed for the block but not currently assigned to a weekday. */
+  activityLibrary?: AthleticsBlockTemplateActivity[];
   phases: AthleticsBlockTemplatePhase[];
   createdAt: string;
   updatedAt: string;
