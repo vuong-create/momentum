@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import type { AthleticsPlannedSession, AthleticsSaturdayChoice, AthleticsTrainingBlock, PlannedActivity } from "../../../database/db";
 import { getEffectivePlannedExercises } from "../services/septemberTrainingBlock";
@@ -28,17 +28,28 @@ function toDateKey(date: Date) { return [date.getFullYear(), String(date.getMont
 function formatDate(dateKey: string, options: Intl.DateTimeFormatOptions) { return new Intl.DateTimeFormat("en-US", options).format(new Date(`${dateKey}T12:00:00`)); }
 function addDays(dateKey: string, days: number) { const date = new Date(`${dateKey}T12:00:00`); date.setDate(date.getDate() + days); return toDateKey(date); }
 function dayDistance(start: string, end: string) { return Math.floor((new Date(`${end}T12:00:00`).getTime() - new Date(`${start}T12:00:00`).getTime()) / 86_400_000); }
+function startOfSunday(dateKey: string) { const date = new Date(`${dateKey}T12:00:00`); return addDays(dateKey, -date.getDay()); }
+function endOfSaturday(dateKey: string) { const date = new Date(`${dateKey}T12:00:00`); return addDays(dateKey, 6 - date.getDay()); }
 
 export default function AthleticsTrainingCalendar({ block, blocks, sessions, activities, now, selectedSessionId, installing, onInstall, onSelect, onComplete, onReopen, onSaturdayChoice, onMove, onSkip, onExerciseChoice, onBlockSelect, celebratingWeeks }: Props) {
   const [moveDate, setMoveDate] = useState("");
   const todayKey = toDateKey(now);
   const selected = sessions.find((item) => item.id === selectedSessionId) ?? null;
   const selectedStatus = selected ? getTrainingSessionDisplayStatus(selected, activities, todayKey) : null;
-  const weekCount = Math.max(1, Math.ceil((dayDistance(block?.startDate ?? todayKey, block?.endDate ?? todayKey) + 1) / 7), ...sessions.map((item) => item.weekNumber));
-  const weeks = useMemo(() => Array.from({ length: weekCount }, (_, index) => sessions.filter((item) => item.weekNumber === index + 1)), [sessions, weekCount]);
+  const scheduledDates = sessions.map((session) => getSessionScheduledDate(session, activities));
+  const calendarStart = startOfSunday([block?.startDate ?? todayKey, ...scheduledDates].sort()[0]);
+  const calendarEnd = endOfSaturday([block?.endDate ?? todayKey, ...scheduledDates].sort().at(-1)!);
+  const weeks = Array.from({ length: Math.max(1, Math.ceil((dayDistance(calendarStart, calendarEnd) + 1) / 7)) }, (_, index) => {
+    const dates = Array.from({ length: 7 }, (__, dayIndex) => addDays(calendarStart, index * 7 + dayIndex));
+    const weekSessions = sessions.filter((session) => dates.includes(getSessionScheduledDate(session, activities)));
+    const representative = weekSessions.find((session) => getSessionScheduledDate(session, activities) !== dates[0]) ?? weekSessions[0];
+    return { dates, sessions: weekSessions, weekNumber: representative?.weekNumber ?? index + 1, phaseName: representative?.phaseName, phaseGuidance: representative?.phaseGuidance };
+  });
+  const weekCount = weeks.length;
   const actionable = sessions.filter((item) => item.kind !== "recovery");
   const completed = actionable.filter((item) => getTrainingSessionDisplayStatus(item, activities, todayKey) === "completed").length;
-  const activeWeek = block && todayKey >= block.startDate && todayKey <= block.endDate ? Math.floor(dayDistance(block.startDate, todayKey) / 7) + 1 : 0;
+  const activeWeekIndex = weeks.findIndex((week) => week.dates.includes(todayKey));
+  const activeWeek = activeWeekIndex >= 0 ? weeks[activeWeekIndex] : null;
 
   if (!block) return <section className="athletics-plan-import">
     <div className="athletics-plan-import-copy"><span className="text-label">Training blocks</span><h2>September is ready.</h2><p>A four-week hypertrophy and athletic-development block, translated into structured workouts and linked Planner tasks.</p><div><span>65–70%</span><small>Hypertrophy emphasis</small><span>30–35%</span><small>Athletic development</small></div></div>
@@ -47,11 +58,11 @@ export default function AthleticsTrainingCalendar({ block, blocks, sessions, act
 
   return <section className="athletics-training-calendar">
     <header className="athletics-block-header"><div><span className="text-label">Current block</span><div className="athletics-block-switcher"><button type="button" aria-label="Previous training block" disabled={blocks.findIndex((item) => item.id === block.id) <= 0} onClick={() => { const index = blocks.findIndex((item) => item.id === block.id); if (index > 0) void onBlockSelect(blocks[index - 1].id!); }}>←</button><span><strong>{block.name}</strong><small>{formatDate(block.startDate, { month: "short", day: "numeric" })} — {formatDate(block.endDate, { month: "short", day: "numeric", year: "numeric" })}</small></span><button type="button" aria-label="Next training block" disabled={blocks.findIndex((item) => item.id === block.id) >= blocks.length - 1} onClick={() => { const index = blocks.findIndex((item) => item.id === block.id); if (index < blocks.length - 1) void onBlockSelect(blocks[index + 1].id!); }}>→</button></div><p>{block.goal}</p></div><div className="athletics-block-progress"><strong>{completed}<small> / {actionable.length}</small></strong><span>sessions complete</span><i><span style={{ width: `${actionable.length ? completed / actionable.length * 100 : 0}%` }} /></i></div></header>
-    <div className="athletics-current-phase"><span>{activeWeek ? `Current training week · Week ${activeWeek}` : todayKey < block.startDate ? `Block begins ${formatDate(block.startDate, { month: "long", day: "numeric" })}` : "Transition period"}</span><strong>{activeWeek ? weeks[activeWeek - 1]?.[0]?.phaseName : block.name}</strong><p>{activeWeek ? weeks[activeWeek - 1]?.[0]?.phaseGuidance : `${weekCount} complete Monday–Sunday training ${weekCount === 1 ? "week" : "weeks"}.`}</p></div>
+    <div className="athletics-current-phase"><span>{activeWeek ? `Current training week · Week ${activeWeek.weekNumber}` : todayKey < block.startDate ? `Block begins ${formatDate(block.startDate, { month: "long", day: "numeric" })}` : "Transition period"}</span><strong>{activeWeek?.phaseName ?? block.name}</strong><p>{activeWeek?.phaseGuidance ?? `${weekCount} complete Sunday–Saturday calendar ${weekCount === 1 ? "week" : "weeks"}.`}</p></div>
     <div className="athletics-block-weeks">{weeks.map((week, index) => {
-      const weekActionable = week.filter((item) => item.kind !== "recovery"); const weekCompleted = weekActionable.length > 0 && weekActionable.every((item) => getTrainingSessionDisplayStatus(item, activities, todayKey) === "completed"); const completedCount = weekActionable.filter((item) => getTrainingSessionDisplayStatus(item, activities, todayKey) === "completed").length; const weekDates = Array.from({ length: 7 }, (_, dayIndex) => addDays(block.startDate, index * 7 + dayIndex)); const phaseName = week[0]?.phaseName ?? `Week ${index + 1}`;
-      return <article className={`athletics-block-week${activeWeek === index + 1 ? " is-current" : ""}${weekCompleted ? " is-complete" : ""}${celebratingWeeks.includes(index + 1) ? " is-celebrating" : ""}`} key={index}><header><span>Week {index + 1}</span><strong>{weekCompleted ? `${phaseName} complete ✓` : phaseName}</strong><small>{formatDate(weekDates[0], { month: "short", day: "numeric" })} — {formatDate(weekDates[6], { month: "short", day: "numeric" })}</small><i><b style={{ width: `${weekActionable.length ? completedCount / weekActionable.length * 100 : 0}%` }} /></i></header><div>{weekDates.map((date) => {
-        const daySessions = week.filter((session) => getSessionScheduledDate(session, activities) === date && !session.deletedAt);
+      const weekActionable = week.sessions.filter((item) => item.kind !== "recovery"); const weekCompleted = weekActionable.length > 0 && weekActionable.every((item) => getTrainingSessionDisplayStatus(item, activities, todayKey) === "completed"); const completedCount = weekActionable.filter((item) => getTrainingSessionDisplayStatus(item, activities, todayKey) === "completed").length; const phaseName = week.phaseName ?? `Calendar week ${index + 1}`;
+      return <article className={`athletics-block-week${activeWeekIndex === index ? " is-current" : ""}${weekCompleted ? " is-complete" : ""}${celebratingWeeks.includes(week.weekNumber) ? " is-celebrating" : ""}`} key={week.dates[0]}><header><span>Week {week.weekNumber}</span><strong>{weekCompleted ? `${phaseName} complete ✓` : phaseName}</strong><small>{formatDate(week.dates[0], { month: "short", day: "numeric" })} — {formatDate(week.dates[6], { month: "short", day: "numeric" })}</small><i><b style={{ width: `${weekActionable.length ? completedCount / weekActionable.length * 100 : 0}%` }} /></i></header><div>{week.dates.map((date) => {
+        const daySessions = week.sessions.filter((session) => getSessionScheduledDate(session, activities) === date && !session.deletedAt);
         return <section className="athletics-block-day" key={date}><time><span>{formatDate(date, { weekday: "short" })}</span><strong>{formatDate(date, { day: "numeric" })}</strong></time><div>{daySessions.length ? daySessions.map((session) => { const status = getTrainingSessionDisplayStatus(session, activities, todayKey); return <button type="button" key={session.id} className={`is-${session.kind} status-${status}${session.reducedVolume ? " is-reduced" : ""}`} onClick={() => onSelect(session.id!)}><span><strong>{session.name}</strong><small>{session.focus}</small></span><i>{status === "completed" ? "✓" : status === "missed" ? "Missed" : status === "skipped" ? "Skipped" : status === "recovery" ? "Rest" : session.reducedVolume ? "Reduced" : "Planned"}</i></button>; }) : <span className="athletics-rest-day">Rest</span>}</div></section>;
       })}</div></article>;
     })}</div>

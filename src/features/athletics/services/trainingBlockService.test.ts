@@ -13,6 +13,7 @@ import {
   getTrainingBlockDefinition,
   getTrainingSessionDisplayStatus,
   installSeptember2026TrainingBlock,
+  parseAthleticsBlockDump,
   reopenTrainingSession,
   scheduleAthleticsTrainingBlock,
   setSaturdayTrainingChoice,
@@ -28,6 +29,27 @@ beforeEach(async () => {
 afterAll(async () => { db.close(); await db.delete(); });
 
 describe("September Athletics training block", () => {
+  it("turns a loose block dump into reusable workout cards", () => {
+    const workouts = parseAthleticsBlockDump(`Upper A
+- Incline Chest Machine - 75 for 6
+- Lat Pulldown - 120 for 8
+Lower A
+- Pogo Circuit
+- Horizontal Upper Back Pull -
+- Back Squat - 185 is comfortable
+- Bulgarian Split Squat - 3x10 per leg`);
+
+    expect(workouts.map((workout) => workout.name)).toEqual(["Upper A", "Lower A"]);
+    expect(workouts[0].exercises).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Incline Chest Machine", prescribedSets: 2, repRange: "6 @ 75", targetLabel: "2 × 6 @ 75" }),
+      expect.objectContaining({ name: "Lat Pulldown", prescribedSets: 2, repRange: "8 @ 120" }),
+    ]));
+    expect(workouts[1].exercises[0]).toMatchObject({ name: "Pogo Circuit", category: "explosive", tracking: "completion", prescribedSets: 2, repRange: "8", targetLabel: "2 × 8" });
+    expect(workouts[1].exercises[1]).toMatchObject({ name: "Horizontal Upper Back Pull", prescribedSets: 2, repRange: "8", targetLabel: "2 × 8" });
+    expect(workouts[1].exercises[2]).toMatchObject({ name: "Back Squat", prescribedSets: 2, repRange: "8 · 185 is comfortable" });
+    expect(workouts[1].exercises[3]).toMatchObject({ name: "Bulgarian Split Squat", prescribedSets: 3, repRange: "10 · per leg" });
+  });
+
   it("installs four complete weeks and linked tasks exactly once", async () => {
     const first = await installSeptember2026TrainingBlock();
     const second = await installSeptember2026TrainingBlock();
@@ -189,6 +211,18 @@ describe("September Athletics training block", () => {
       expect.objectContaining({ title: "Sand Volleyball", scheduledDate: "2026-10-05" }),
       expect.objectContaining({ title: "Mobility Reset · Shoulders and hips", scheduledDate: "2026-10-05" }),
     ]));
+  });
+
+  it("persists unassigned workout cards without scheduling them", async () => {
+    const templateId = await ensureAthleticsBlockTemplates();
+    const template = (await db.athleticsBlockTemplates.get(templateId))!;
+    const parked = parseAthleticsBlockDump("Future Workout\n- Cable Row - 100 for 10");
+    await updateAthleticsBlockTemplate(templateId, { ...template, activityLibrary: parked });
+    const saved = await db.athleticsBlockTemplates.get(templateId);
+    const result = await scheduleAthleticsTrainingBlock(templateId, { name: "Tray Test", startDate: "2026-10-05", weekCount: 1 });
+
+    expect(saved?.activityLibrary?.[0]).toMatchObject({ name: "Future Workout" });
+    expect((await db.athleticsPlannedSessions.where("blockId").equals(result.blockId).toArray()).some((session) => session.name === "Future Workout")).toBe(false);
   });
 
   it("adds and removes unfinished day activities while keeping Planner synchronized", async () => {

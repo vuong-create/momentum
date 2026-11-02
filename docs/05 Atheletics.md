@@ -877,3 +877,17 @@ Implemented:
 The implementation intentionally keeps template and session exercises as embedded snapshots. Editing a template therefore never rewrites historical workouts, while previous values and progress remain derived from completed session data.
 
 **Athletics Pillar Foundation: COMPLETE**
+
+---
+
+# 37. Training Block Builder
+
+The block workflow uses two focused views:
+
+* **Current Block** presents every calendar week Sunday through Saturday in one clear row.
+* **Build / Edit Block** treats workouts as reusable cards that can be dragged from a workout tray onto any day.
+* Removing a workout from a day returns it to the tray instead of deleting it.
+* **Block Dump** converts loose workout headings and bulleted exercises into editable workout cards while preserving informal weight, rep, and effort notes.
+* Exercises without an explicit prescription default to **2 × 8**. A line such as `75 for 6` becomes **2 × 6 @ 75**.
+* Unassigned cards are saved with the block but never create Planner tasks until assigned to a day.
+* Scheduling remains additive, while completed sessions stay frozen when the current block is edited.
