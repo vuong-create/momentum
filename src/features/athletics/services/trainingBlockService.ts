@@ -79,6 +79,52 @@ function normalizeTemplateDays(days: AthleticsBlockTemplateDay[]) {
   });
 }
 
+function normalizeActivityLibrary(activities: AthleticsBlockTemplateActivity[] | undefined) {
+  return (activities ?? []).map(normalizeActivity);
+}
+
+export function parseAthleticsBlockDump(value: string): AthleticsBlockTemplateActivity[] {
+  const workouts: AthleticsBlockTemplateActivity[] = [];
+  let current: AthleticsBlockTemplateActivity | null = null;
+  for (const rawLine of value.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (!/^[-*•]\s+/.test(line)) {
+      current = { id: `dump-activity-${crypto.randomUUID()}`, kind: "gym", name: line.replace(/:$/, "").trim(), focus: "", exercises: [] };
+      workouts.push(current);
+      continue;
+    }
+    if (!current) {
+      current = { id: `dump-activity-${crypto.randomUUID()}`, kind: "gym", name: "Imported Workout", focus: "", exercises: [] };
+      workouts.push(current);
+    }
+    const content = line.replace(/^[-*•]\s+/, "").trim().replace(/\s+-\s*$/, "");
+    const [namePart, ...detailParts] = content.split(/\s+-\s+/);
+    const detail = detailParts.join(" - ").trim();
+    const name = namePart.trim();
+    if (!name) continue;
+    const explosive = /pogo|jump|bound|sprint|acceleration|quickness|throw/i.test(name);
+    const explicitSetsAndReps = detail.match(/^(\d+)\s*[x×]\s*(\d+)(.*)$/i);
+    const weightAndReps = detail.match(/^(\d+(?:\.\d+)?)\s*(?:lb|lbs)?\s+for\s+(\d+)(.*)$/i);
+    const prescribedSets = explicitSetsAndReps ? Number(explicitSetsAndReps[1]) : 2;
+    const repRange = explicitSetsAndReps
+      ? `${explicitSetsAndReps[2]}${explicitSetsAndReps[3].trim() ? ` · ${explicitSetsAndReps[3].trim()}` : ""}`
+      : weightAndReps
+        ? `${weightAndReps[2]} @ ${weightAndReps[1]}${weightAndReps[3].trim() ? ` · ${weightAndReps[3].trim()}` : ""}`
+        : `8${detail ? ` · ${detail}` : ""}`;
+    current.exercises.push({
+      id: `dump-exercise-${crypto.randomUUID()}`,
+      name,
+      category: explosive ? "explosive" : "hypertrophy",
+      tracking: explosive ? "completion" : "load-reps",
+      prescribedSets,
+      repRange,
+      targetLabel: `${prescribedSets} × ${repRange}`,
+    });
+  }
+  return workouts.filter((workout) => workout.name && workout.exercises.length);
+}
+
 function normalizePhases(phases: AthleticsBlockTemplatePhase[], weekCount: number) {
   return Array.from({ length: weekCount }, (_, index) => {
     const phase = phases[index] ?? phases.at(-1);
@@ -86,7 +132,7 @@ function normalizePhases(phases: AthleticsBlockTemplatePhase[], weekCount: numbe
   });
 }
 
-export function visibleAthleticsBlockTemplates(templates: AthleticsBlockTemplate[]) { return templates.filter((item) => !item.deletedAt).map((item) => ({ ...item, days: normalizeTemplateDays(item.days) })).sort((a, b) => a.createdAt.localeCompare(b.createdAt)); }
+export function visibleAthleticsBlockTemplates(templates: AthleticsBlockTemplate[]) { return templates.filter((item) => !item.deletedAt).map((item) => ({ ...item, days: normalizeTemplateDays(item.days), activityLibrary: normalizeActivityLibrary(item.activityLibrary) })).sort((a, b) => a.createdAt.localeCompare(b.createdAt)); }
 
 export async function ensureAthleticsBlockTemplates() {
   return db.transaction("rw", db.athleticsBlockTemplates, db.athleticsTrainingBlocks, async () => {
@@ -111,18 +157,19 @@ export interface AthleticsBlockDefinitionInput {
   goal: string;
   weekCount: number;
   days: AthleticsBlockTemplateDay[];
+  activityLibrary?: AthleticsBlockTemplateActivity[];
   phases: AthleticsBlockTemplatePhase[];
 }
 
 export async function updateAthleticsBlockTemplate(templateId: number, input: AthleticsBlockDefinitionInput) {
   const template = await db.athleticsBlockTemplates.get(templateId); if (!template || template.deletedAt) throw new Error("Training template not found.");
   const weekCount = Math.min(12, Math.max(1, Math.round(input.weekCount)));
-  await db.athleticsBlockTemplates.update(templateId, { name: input.name.trim() || template.name, goal: input.goal.trim(), weekCount, days: normalizeTemplateDays(input.days), phases: normalizePhases(input.phases, weekCount), updatedAt: new Date().toISOString() });
+  await db.athleticsBlockTemplates.update(templateId, { name: input.name.trim() || template.name, goal: input.goal.trim(), weekCount, days: normalizeTemplateDays(input.days), activityLibrary: normalizeActivityLibrary(input.activityLibrary), phases: normalizePhases(input.phases, weekCount), updatedAt: new Date().toISOString() });
 }
 
 export async function createAthleticsBlockTemplate(input: AthleticsBlockDefinitionInput) {
   const timestamp = new Date().toISOString(); const weekCount = Math.min(12, Math.max(1, Math.round(input.weekCount)));
-  return db.athleticsBlockTemplates.add({ key: `custom-${Date.now()}-${crypto.randomUUID()}`, name: input.name.trim() || "Training Block", goal: input.goal.trim(), weekCount, days: normalizeTemplateDays(input.days), phases: normalizePhases(input.phases, weekCount), createdAt: timestamp, updatedAt: timestamp });
+  return db.athleticsBlockTemplates.add({ key: `custom-${Date.now()}-${crypto.randomUUID()}`, name: input.name.trim() || "Training Block", goal: input.goal.trim(), weekCount, days: normalizeTemplateDays(input.days), activityLibrary: normalizeActivityLibrary(input.activityLibrary), phases: normalizePhases(input.phases, weekCount), createdAt: timestamp, updatedAt: timestamp });
 }
 
 function septemberSessionSeeds(): SessionSeed[] {
@@ -219,7 +266,7 @@ export function getTrainingBlockDefinition(block: AthleticsTrainingBlock, sessio
     const session = blockSessions.find((item) => item.weekNumber === index + 1);
     return { weekNumber: index + 1, name: session?.phaseName ?? `Week ${index + 1}`, guidance: session?.phaseGuidance ?? "Train with intention and recover well.", reducedVolume: blockSessions.filter((item) => item.weekNumber === index + 1 && item.kind === "gym").every((item) => item.reducedVolume) };
   });
-  return { name: block.name, goal: block.goal, weekCount, days, phases };
+  return { name: block.name, goal: block.goal, weekCount, days, activityLibrary: [], phases };
 }
 
 export async function updateCurrentTrainingBlock(blockId: number, input: AthleticsBlockDefinitionInput) {
