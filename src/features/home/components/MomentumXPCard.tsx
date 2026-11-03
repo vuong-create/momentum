@@ -1,6 +1,7 @@
-import type { CSSProperties } from "react";
-
 import type { XPBreakdown } from "../../xp/XPService";
+import { MomentumMark } from "../../../components/NavigationIcon";
+import PillarIcon from "../../activities/components/PillarIcon";
+import { pillarThemes } from "../../../app/theme";
 
 type MomentumXPCardProps = {
   summary: XPBreakdown;
@@ -8,90 +9,46 @@ type MomentumXPCardProps = {
   onOpen: () => void;
 };
 
-const pillarMarks: Record<string, string> = {
-  chinese: "文",
-  athletics: "A",
-  cooking: "C",
-  finance: "F",
-  happiness: "J",
-  core: "M",
-};
-
-export default function MomentumXPCard({
-  summary,
-  expanded,
-  onOpen,
-}: MomentumXPCardProps) {
+export default function MomentumXPCard({ summary, expanded, onOpen }: MomentumXPCardProps) {
   const progression = summary.globalProgression;
-  const activeContributions = summary.contributions
-    .filter((contribution) => contribution.xp > 0)
-    .slice(0, 6);
-  const cardStyle = {
-    "--momentum-xp-angle": `${progression.percentage * 3.6}deg`,
-    "--momentum-xp-mid-angle": `${progression.percentage * 2.3}deg`,
-  } as CSSProperties;
+  const percentage = Math.max(0, Math.min(100, progression.percentage));
+  const activeContributions = summary.contributions.filter((item) => item.xp > 0);
 
   return (
     <button
       type="button"
       className="momentum-level-display"
-      style={cardStyle}
       aria-label={`Momentum level ${progression.level}. Open progression details.`}
       aria-expanded={expanded}
       onClick={onOpen}
     >
-      <span className="momentum-level-aura" aria-hidden="true" />
-      <span className="momentum-level-grid" aria-hidden="true" />
-
-      <span className="momentum-level-crest" aria-hidden="true">
-        <span className="momentum-level-ring">
-          <span className="momentum-level-core">
-            <small>LV</small>
-            <strong>{progression.level}</strong>
-          </span>
-        </span>
+      <span className="momentum-level-crest" aria-hidden="true"><MomentumMark /></span>
+      <span className="momentum-level-identity">
+        <strong><small>LV</small> {progression.level}</strong>
+        <span>{summary.globalTitle}</span>
       </span>
-
-      <span className="momentum-level-body">
-        <span className="momentum-level-heading">
-          <span>
-            <small>Momentum rank</small>
-            <strong>{summary.globalTitle}</strong>
-          </span>
-          <span className="momentum-level-total">
-            {summary.totalXP.toLocaleString()}
-            <small> lifetime XP</small>
-          </span>
-        </span>
-
+      <span className="momentum-level-progress">
         <span className="momentum-level-progress-copy">
           <span>{progression.xpIntoLevel} / {progression.xpForLevel} XP</span>
-          <strong>{Math.round(progression.percentage)}%</strong>
+          <strong>{Math.round(percentage)}%</strong>
         </span>
-
-        <span className="momentum-level-bar">
-          <span className="momentum-level-segments" aria-hidden="true">
-            {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
-          </span>
-          <span
-            className="momentum-level-fill"
-            style={{ width: `${progression.percentage}%` }}
-          >
-            <i />
-          </span>
+        <span className="momentum-level-bar" aria-hidden="true">
+          <span className="momentum-level-fill" style={{ width: `${percentage}%` }} />
+          <span className="momentum-level-segments">{Array.from({ length: 16 }, (_, index) => <i key={index} />)}</span>
         </span>
-
-        <span className="momentum-level-footer">
-          <span className="momentum-level-paths" aria-label={`${activeContributions.length} active XP paths`}>
-            {activeContributions.length > 0 ? activeContributions.map((contribution) => (
-              <i key={contribution.pillar} className={`pillar-${contribution.pillar}`} title={`${contribution.pillar}: ${contribution.xp} XP`}>
-                {pillarMarks[contribution.pillar]}
-              </i>
-            )) : <small>Your first action ignites Momentum.</small>}
-          </span>
-          <span>{progression.xpToNextLevel} XP to Level {progression.level + 1} <b>↗</b></span>
+        <span className="momentum-level-next">{progression.xpToNextLevel} XP to Level {progression.level + 1}</span>
+      </span>
+      <span className="momentum-level-summary">
+        <span>{summary.totalXP.toLocaleString()} <small>lifetime XP</small></span>
+        <span className="momentum-level-paths" aria-label={`${activeContributions.length} active XP paths`}>
+          {activeContributions.map((item) => (
+            <span key={item.pillar} title={`${pillarThemes[item.pillar].shortLabel}: ${item.xp} XP`}>
+              <PillarIcon pillar={item.pillar} />
+            </span>
+          ))}
         </span>
       </span>
+      <span className="momentum-level-open" aria-hidden="true">↗</span>
     </button>
   );
 }

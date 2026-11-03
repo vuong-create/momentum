@@ -11,22 +11,16 @@ export default function PixelTerminalClock() {
     return () => window.clearInterval(interval);
   }, []);
 
-  const { hour, minute, period, metadata } = clockParts(now);
+  const { hour, minute, period } = clockParts(now);
 
   return (
-    <div className="pixel-terminal-clock" aria-label={`Current time ${hour}:${minute} ${period}`}>
-      <div className="pixel-terminal-time" aria-hidden="true">
+    <time className="pixel-terminal-clock" dateTime={now.toISOString()} aria-label={`Current time ${hour}:${minute} ${period}`}>
+      <span className="pixel-terminal-time" aria-hidden="true">
         <span>{hour}</span>
         <i>:</i>
-        <span>{minute}</span>
+        <span key={`${hour}:${minute}`} className="pixel-terminal-minute">{minute}</span>
         <small>{period}</small>
-        <b />
-      </div>
-      <div className="pixel-terminal-rule" aria-hidden="true" />
-      <div className="pixel-terminal-meta">
-        <i aria-hidden="true" />
-        <span>Local time · {metadata}</span>
-      </div>
-    </div>
+      </span>
+    </time>
   );
 }
