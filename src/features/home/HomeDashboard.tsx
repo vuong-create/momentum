@@ -54,6 +54,7 @@ import "./home-dashboard.css";
 import "./components/home-todo.css";
 import PixelTerminalClock from "./components/PixelTerminalClock";
 import MomentumXPCard from "./components/MomentumXPCard";
+import "./home-header.css";
 
 const weekDayNames = [
   "Sunday",
@@ -416,49 +417,65 @@ export default function HomeDashboard() {
 
   return (
     <div className="living-home">
-      <header className="living-home-header">
-        <section className="living-home-date-copy" aria-label="Today's date">
-          <span className="living-home-label">
-            Today
-          </span>
+      <header className="home-masthead">
+        <div className="living-home-header">
+          <section className="living-home-date-copy" aria-label="Today's date">
+            <span className="living-home-label">
+              Today <span aria-hidden="true">/</span> {new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(today)}
+            </span>
+            <h1 className="font-pixel">
+              {new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" }).format(today)}
+            </h1>
+          </section>
 
-          <h1 className="font-pixel">
-            {new Intl.DateTimeFormat(
-              "en-US",
-              {
-                month: "long",
-                day: "numeric",
-              }
-            ).format(today)}
-          </h1>
+          <section className="living-home-time" aria-label="Current time">
+            <span className="living-home-label">Local time</span>
+            <PixelTerminalClock />
+          </section>
 
-          <p className="living-home-weekday">
-            {new Intl.DateTimeFormat(
-              "en-US",
-              {
-                weekday: "long",
-              }
-            ).format(today)}
-          </p>
-        </section>
-
-        <section className="living-home-time" aria-label="Current time">
-          <span className="living-home-label">Now</span>
-          <PixelTerminalClock />
-        </section>
-
-        <MomentumXPCard
-          summary={xpSummary}
-          expanded={xpBreakdownOpen}
-          onOpen={() => setXPBreakdownOpen(true)}
-        />
-      </header>
-
-      <section className="living-home-atmosphere" aria-label="Daily reflection">
-        <div className="daily-words"><article className="daily-quote"><div><blockquote className="font-quote">“{quote.text}”</blockquote><cite className="font-quote">— {quote.author}</cite></div><button type="button" aria-label={`${quoteSaved ? "Remove" : "Save"} quote by ${quote.author}`} className={`daily-quote-save${quoteSaved ? " daily-quote-save-active" : ""}`} onClick={() => toggleQuote(quote)}>{quoteSaved ? "♥ Saved" : "♡ Save"}</button></article>
-          <article className="daily-idiom"><div className="daily-idiom-mark" aria-hidden="true">語</div><div><strong lang="zh-Hant">{idiom.text}</strong><span>{idiom.pinyin}</span><p>{idiom.meaning}</p></div><button type="button" aria-label={`${idiomSaved ? "Remove" : "Save"} Chinese idiom ${idiom.text}`} className={`daily-quote-save${idiomSaved ? " daily-quote-save-active" : ""}`} onClick={() => toggleQuote(idiomQuote)}>{idiomSaved ? "♥ Saved" : "♡ Save"}</button></article>
+          <MomentumXPCard
+            summary={xpSummary}
+            expanded={xpBreakdownOpen}
+            onOpen={() => setXPBreakdownOpen(true)}
+          />
         </div>
-      </section>
+
+        <section className="living-home-atmosphere" aria-label="Daily reflection">
+          <div className="daily-words">
+            <article className="daily-quote">
+              <blockquote className="font-quote">“{quote.text}”</blockquote>
+              <div className="daily-reflection-footer">
+                <cite>— {quote.author}</cite>
+                <button
+                  type="button"
+                  aria-pressed={quoteSaved}
+                  aria-label={`${quoteSaved ? "Remove" : "Save"} quote by ${quote.author}`}
+                  className={`daily-quote-save${quoteSaved ? " daily-quote-save-active" : ""}`}
+                  onClick={() => toggleQuote(quote)}
+                >
+                  {quoteSaved ? "♥ Saved" : "♡ Save"}
+                </button>
+              </div>
+            </article>
+            <article className="daily-idiom">
+              <div className="daily-idiom-heading">
+                <strong lang="zh-Hant">{idiom.text}</strong>
+                <button
+                  type="button"
+                  aria-pressed={idiomSaved}
+                  aria-label={`${idiomSaved ? "Remove" : "Save"} Chinese idiom ${idiom.text}`}
+                  className={`daily-quote-save${idiomSaved ? " daily-quote-save-active" : ""}`}
+                  onClick={() => toggleQuote(idiomQuote)}
+                >
+                  {idiomSaved ? "♥ Saved" : "♡ Save"}
+                </button>
+              </div>
+              <span>{idiom.pinyin}</span>
+              <p>{idiom.meaning}</p>
+            </article>
+          </div>
+        </section>
+      </header>
 
       <main className="living-home-main">
         <HomeTodo

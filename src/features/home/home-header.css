@@ -1,0 +1,175 @@
+/* Header-only refinement. Task density, weekly progress, and Thoughts remain
+   owned by their existing styles in home-dashboard.css and home-todo.css. */
+.home-masthead {
+  --header-line: #303039;
+  --header-muted: #a8a9b5;
+  --header-violet: #b5a5e4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 290px);
+  align-items: start;
+  gap: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.living-home-header {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px 20px;
+  align-items: start;
+}
+
+.living-home-date-copy { min-width: 0; }
+
+.home-masthead .living-home-label {
+  margin-bottom: 10px;
+  color: var(--header-muted);
+  font-size: 10px;
+  font-weight: 450;
+  letter-spacing: .13em;
+}
+
+.living-home-date-copy .living-home-label > span { margin: 0 7px; color: #646470; }
+
+.living-home-date-copy h1 {
+  max-width: 100%;
+  margin: 0;
+  color: #eeedf2;
+  font: 400 clamp(30px, 3.1vw, 42px)/1.1 var(--font-pixel);
+  letter-spacing: -.015em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.living-home-time { min-width: 0; justify-self: end; text-align: right; }
+.living-home-time .living-home-label { color: #9caabd; }
+
+/* A narrow independent reflection panel, not another full-width dashboard row. */
+.living-home-atmosphere {
+  min-width: 0;
+  margin: 0;
+  padding-left: 22px;
+  border-left: 1px solid var(--header-line);
+}
+
+.daily-words { display: grid; gap: 12px; }
+.daily-quote { min-width: 0; }
+.daily-quote blockquote {
+  margin: 0;
+  color: #d2ced9;
+  font-size: 18px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.daily-reflection-footer,
+.daily-idiom-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.daily-reflection-footer { margin-top: 5px; }
+.daily-quote cite { color: var(--header-muted); font: normal 10px/1.4 var(--font-ui); }
+.daily-quote-save {
+  flex-shrink: 0;
+  min-height: 26px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--header-muted);
+  font-size: 10px;
+  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+.daily-quote-save:hover { color: #e5dafa; background: #b5a5e414; }
+.daily-quote-save:active { transform: scale(.95); }
+.daily-quote-save-active { color: #c4b2f0; }
+.daily-idiom { min-width: 0; padding-top: 10px; border-top: 1px solid #ffffff12; }
+.daily-idiom strong { color: #e3bec4; font-size: 18px; font-weight: 450; letter-spacing: .11em; overflow-wrap: anywhere; }
+.daily-idiom > span { display: block; margin-top: 2px; color: #b6959b; font-size: 11px; }
+.daily-idiom p { margin: 5px 0 0; color: var(--header-muted); font-size: 11px; line-height: 1.45; }
+
+/* Progression strip: the original Momentum polyhedron replaces the gauge. */
+.momentum-level-display {
+  grid-column: 1 / -1;
+  position: relative;
+  display: grid;
+  grid-template-columns: 38px minmax(65px, auto) minmax(80px, 1fr) auto 12px;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  min-width: 0;
+  min-height: 76px;
+  padding: 12px 15px;
+  border: 1px solid #51465e;
+  border-radius: 12px;
+  background: #15131b;
+  color: #eeeaf6;
+  text-align: left;
+  box-shadow: inset 0 1px #d2baff09;
+  transition: border-color 180ms ease, box-shadow 200ms ease;
+}
+.momentum-level-display:hover { border-color: #8d7ca8; box-shadow: inset 0 1px #d2baff12, 0 0 22px #a68dd50c; }
+.momentum-level-crest {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 44px;
+  color: #bdacef;
+}
+.momentum-level-crest svg { width: 34px; height: 34px; transition: transform 200ms var(--ease-spring), filter 200ms ease; }
+.momentum-level-display:hover .momentum-level-crest svg { transform: scale(1.08); filter: drop-shadow(0 0 7px #ad91e54d); }
+.momentum-level-identity { display: grid; gap: 4px; }
+.momentum-level-identity > strong { font: 400 25px/1 var(--font-pixel); white-space: nowrap; }
+.momentum-level-identity > strong > small { color: #b6a6d6; font: 10px var(--font-ui); letter-spacing: .1em; }
+.momentum-level-identity > span { color: #c2b7d5; font-size: 11px; }
+.momentum-level-progress { min-width: 0; display: grid; gap: 6px; }
+.momentum-level-progress-copy { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; color: #ccc4d9; font-size: 10px; }
+.momentum-level-progress-copy strong { font-weight: 400; color: #d4c4f3; }
+.momentum-level-bar { position: relative; display: block; height: 6px; overflow: hidden; background: #302938; }
+.momentum-level-fill { display: block; height: 100%; background: #b7a1e6; transition: width 600ms var(--ease-out); }
+.momentum-level-segments { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(16, 1fr); }
+.momentum-level-segments i { border-right: 3px solid #15131b; }
+.momentum-level-next { color: #aba0bb; font-size: 10px; }
+.momentum-level-summary { display: grid; justify-items: end; gap: 8px; color: #d4c9e3; font-size: 11px; }
+.momentum-level-summary small { color: #a99eb7; font-size: 10px; }
+.momentum-level-paths { display: flex; gap: 6px; }
+.momentum-level-paths:empty { display: none; }
+.momentum-level-paths svg { width: 14px; height: 14px; }
+.momentum-level-open { color: #c5b3e7; transition: transform 180ms ease; }
+.momentum-level-display:hover .momentum-level-open { transform: translate(1px, -1px); }
+.home-masthead :is(button, a):focus-visible { outline: 2px solid #b5a5e4; outline-offset: 3px; }
+
+@media (max-width: 1200px) {
+  .home-masthead { grid-template-columns: minmax(0, 1fr) 240px; gap: 22px; }
+  .living-home-header { gap: 16px; }
+  .living-home-date-copy h1 { font-size: 32px; }
+  .momentum-level-summary { display: none; }
+  .momentum-level-display { grid-template-columns: 34px minmax(65px, auto) minmax(80px, 1fr) 12px; gap: 10px; }
+}
+
+@media (max-width: 1000px) {
+  .home-masthead { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .living-home-atmosphere { padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--header-line); }
+  .daily-words { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .daily-idiom { padding: 0 0 0 20px; border-top: 0; border-left: 1px solid var(--header-line); }
+  .momentum-level-summary { display: grid; }
+  .momentum-level-display { grid-template-columns: 38px minmax(65px, auto) minmax(80px, 1fr) auto 12px; }
+}
+
+@media (max-width: 600px) {
+  .living-home-header { grid-template-columns: minmax(0, 1fr) auto; gap: 16px 12px; }
+  .living-home-date-copy h1 { font-size: 26px; }
+  .home-masthead .living-home-label { font-size: 9px; letter-spacing: .06em; }
+  .living-home-date-copy .living-home-label > span { margin-inline: 3px; }
+  .pixel-terminal-time { font-size: 30px; }
+  .momentum-level-summary { display: none; }
+  .momentum-level-display { grid-template-columns: 30px 56px minmax(0, 1fr) 12px; gap: 9px; padding: 12px 10px; }
+  .momentum-level-crest { width: 30px; }
+  .momentum-level-crest svg { width: 29px; }
+  .daily-words { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .daily-idiom { padding: 10px 0 0; border-left: 0; border-top: 1px solid var(--header-line); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .momentum-level-display:hover .momentum-level-crest svg,
+  .momentum-level-display:hover .momentum-level-open { transform: none; }
+}
