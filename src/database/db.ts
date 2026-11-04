@@ -71,6 +71,7 @@ export interface PlannedActivity {
   important?: boolean;
   notes?: string;
   completedAt?: string;
+  completionLoggedAt?: string;
   createdAt?: string;
   updatedAt?: string;
   dismissedAt?: string;

@@ -15,6 +15,7 @@ import {
   calculatePlannedXP,
   getActivityStatus,
   getCompletionDedupeKey,
+  toDateKey,
 } from "./activityLifecycle";
 
 function getXPReward(difficulty: Difficulty) {
@@ -335,8 +336,43 @@ export async function toggleActivityImportance(id: number) {
   });
 }
 
+// A day selected without a time is represented by local noon (not UTC midnight).
+function effectiveTimestamp(day: string, now: Date) {
+  const date = new Date(`${day}T12:00:00`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || toDateKey(date) !== day || day > toDateKey(now)) {
+    throw new Error("Choose a valid completion date no later than today.");
+  }
+  return day === toDateKey(now) ? now.toISOString() : date.toISOString();
+}
+
+async function findCompletionXP(id: number) {
+  return (await db.xpEvents.where("dedupeKey").equals(getCompletionDedupeKey(id)).first()) ??
+    db.xpEvents.where("source").equals(`activity:${id}`).first();
+}
+
+export async function correctCompletionDate(id: number, day: string) {
+  return db.transaction("rw", db.plannedActivities, db.activityEvents, db.xpEvents, async () => {
+    const activity = await requireActivity(id);
+    if (getActivityStatus(activity) !== "completed") throw new Error("Only completed activities can be corrected.");
+    const now = new Date();
+    const effectiveAt = effectiveTimestamp(day, now);
+    const event = await db.activityEvents.where("plannedActivityId").equals(id).filter(e => !e.voidedAt).first();
+    const xp = await findCompletionXP(id);
+    await db.plannedActivities.update(id, {
+      completedAt: effectiveAt,
+      completionLoggedAt: activity.completionLoggedAt ?? activity.completedAt ?? event?.occurredAt,
+      originalScheduledDate: activity.originalScheduledDate ?? activity.scheduledDate,
+      scheduledDate: day, day: getDayName(day), planningWeekStart: undefined,
+      recurrenceOverride: activity.recurrenceRuleId ? true : activity.recurrenceOverride,
+      updatedAt: now.toISOString(),
+    });
+    if (event?.id) await db.activityEvents.update(event.id, { occurredAt: effectiveAt });
+    if (xp?.id && !xp.voidedAt) await db.xpEvents.update(xp.id, { date: effectiveAt });
+  });
+}
+
 export async function completePlannedActivity(
-  id: number
+  id: number, completedOn?: string
 ): Promise<CompletionResult> {
   return db.transaction(
     "rw",
@@ -353,9 +389,7 @@ export async function completePlannedActivity(
         .equals(id)
         .first();
 
-      const existingXP =
-        (await db.xpEvents.where("dedupeKey").equals(dedupeKey).first()) ??
-        (await db.xpEvents.where("source").equals(`activity:${id}`).first());
+      const existingXP = await findCompletionXP(id);
 
       if (
         existingStatus === "completed" &&
@@ -369,12 +403,17 @@ export async function completePlannedActivity(
       }
 
       const now = new Date().toISOString();
+      const effectiveAt = completedOn === undefined ? now : effectiveTimestamp(completedOn, new Date(now));
+      if (completedOn !== undefined && activity.scheduledDate && activity.scheduledDate !== completedOn) {
+        throw new Error("This activity was rescheduled. Check its new date before completing it.");
+      }
       const plannedXP = calculatePlannedXP(activity.xpReward);
 
       await db.plannedActivities.update(id, {
         status: "completed",
         completed: true,
-        completedAt: now,
+        completedAt: effectiveAt,
+        completionLoggedAt: now,
         updatedAt: now,
         dismissedAt: undefined,
         cancelledAt: undefined,
@@ -385,14 +424,14 @@ export async function completePlannedActivity(
       if (existingEvent?.id) {
         activityEventId = existingEvent.id;
         await db.activityEvents.update(activityEventId, {
-          occurredAt: now,
+          occurredAt: effectiveAt,
           voidedAt: undefined,
         });
       } else {
         activityEventId = await db.activityEvents.add({
           plannedActivityId: id,
           pillar: activity.pillar,
-          occurredAt: now,
+          occurredAt: effectiveAt,
           effortTier: activity.difficulty,
           plannedBeforeCompletion: true,
         });
@@ -412,7 +451,7 @@ export async function completePlannedActivity(
           baseXP: plannedXP.baseXP,
           plannedBonusXP: plannedXP.plannedBonusXP,
           finalXP: plannedXP.finalXP,
-          date: now,
+          date: effectiveAt,
           voidedAt: undefined,
         });
       } else {
@@ -430,7 +469,7 @@ export async function completePlannedActivity(
           plannedBonusXP: plannedXP.plannedBonusXP,
           finalXP: plannedXP.finalXP,
           source: `activity:${id}`,
-          date: now,
+          date: effectiveAt,
         });
       }
 
@@ -460,6 +499,7 @@ export async function reopenPlannedActivity(id: number) {
         status: "planned",
         completed: false,
         completedAt: undefined,
+        completionLoggedAt: undefined,
         updatedAt: now,
       });
 

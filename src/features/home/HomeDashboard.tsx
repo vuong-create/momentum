@@ -14,6 +14,7 @@ import {
 } from "../../database/db";
 import {
   createPlannedActivity,
+  completePlannedActivity,
   togglePlannedActivity as toggleActivityLifecycle,
 } from "../activities/services/activityService";
 import {
@@ -334,7 +335,7 @@ export default function HomeDashboard() {
   }
 
   async function togglePlannedActivity(
-    activity: PlannedActivity
+    activity: PlannedActivity, completedOn?: string
   ) {
     if (!activity.id) {
       return;
@@ -343,10 +344,11 @@ export default function HomeDashboard() {
     const trainingSessionId = getTrainingSessionIdFromActivity(activity);
     if (trainingSessionId) {
       if (activity.completed) await reopenTrainingSession(trainingSessionId);
-      else await completeTrainingSession(trainingSessionId);
+      else await completeTrainingSession(trainingSessionId, completedOn);
       return;
     }
-    await toggleActivityLifecycle(activity.id);
+    if (completedOn) await completePlannedActivity(activity.id, completedOn);
+    else await toggleActivityLifecycle(activity.id);
   }
 
   async function toggleQuote(

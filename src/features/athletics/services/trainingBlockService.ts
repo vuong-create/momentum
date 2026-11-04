@@ -397,10 +397,10 @@ export async function moveTrainingSession(sessionId: number, date: string) {
   await movePlannedActivity(session.plannedActivityId, date);
 }
 
-export async function completeTrainingSession(sessionId: number) {
+export async function completeTrainingSession(sessionId: number, completedOn?: string) {
   const session = await db.athleticsPlannedSessions.get(sessionId);
   if (!session?.plannedActivityId || session.deletedAt || session.kind === "recovery" || session.status === "skipped") throw new Error("This training session cannot be completed.");
-  return completePlannedActivity(session.plannedActivityId);
+  return completePlannedActivity(session.plannedActivityId, completedOn);
 }
 
 export async function reopenTrainingSession(sessionId: number) {

@@ -14,7 +14,7 @@ const weekDayNames = [
   "Saturday",
 ];
 
-function toDateKey(date: Date) {
+export function toDateKey(date: Date) {
   return [
     date.getFullYear(),
     String(date.getMonth() + 1).padStart(2, "0"),
