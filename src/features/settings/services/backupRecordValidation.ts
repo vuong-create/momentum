@@ -3,6 +3,7 @@ import { DATA_RELATIONS } from "./dataRelations";
 type RecordData = Record<string, unknown>;
 
 const requiredFields: Record<string, Record<string, "string" | "number" | "boolean" | "array">> = {
+  habits: { title: "string", pillar: "string", periods: "array" },
   plannedActivities: { title: "string", pillar: "string", completed: "boolean", difficulty: "string" },
   financeTransactions: { date: "string", amount: "number", type: "string", merchant: "string", tags: "array" },
   financeAccounts: { name: "string", type: "string", openingBalance: "number" },
@@ -67,6 +68,7 @@ export function validateBackupRecords(data: Record<string, unknown[]>) {
         if (allowed && !allowed.includes(String(value))) throw new Error(`${table} #${id}: ${field} has an unsupported value.`);
       }
       if (typeof record.startDate === "string" && typeof record.endDate === "string" && record.startDate > record.endDate) throw new Error(`${table} #${id}: end date precedes start date.`);
+      if (table === "habits" && (!(record.periods as unknown[]).length || !(record.periods as unknown[]).every(p => isRecord(p) && typeof p.from === "string" && isValidDateKey(p.from) && (Number.isSafeInteger(p.ruleId) || (Number.isInteger(p.target) && Number(p.target) >= 1 && Number(p.target) <= 7))))) throw new Error("Invalid habit schedule.");
       if (table === "financeRecurringTransactions" && record.frequency === "custom" && (!Number.isSafeInteger(record.customInterval) || Number(record.customInterval) < 1 || !record.customUnit)) throw new Error(`${table} #${id}: custom frequency is invalid.`);
     }
   }

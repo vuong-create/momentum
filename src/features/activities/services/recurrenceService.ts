@@ -85,7 +85,7 @@ export function describeRecurrence(pattern: RecurrencePattern) {
     : `Every ${interval} weeks${days ? ` · ${days}` : ""}`;
 }
 
-function matchesRule(rule: RecurrenceRule, dateKey: string) {
+export function matchesRule(rule: RecurrenceRule, dateKey: string) {
   if (!rule.active || dateKey < rule.startDate) return false;
   if (rule.endDate && dateKey > rule.endDate) return false;
 
@@ -283,12 +283,7 @@ export async function instantiateTemplate(
   );
 }
 
-export async function materializeOccurrencesForWeek(weekStartKey: string) {
-  const rules = await db.recurrenceRules
-    .filter((rule) => rule.active && (!rule.endDate || rule.endDate >= weekStartKey))
-    .toArray();
-  if (rules.length === 0) return;
-
+export async function materializeOccurrencesForWeek(weekStartKey: string, only?: {ruleId: number; date: string}) {
   const weekStart = fromDateKey(weekStartKey);
   const dates = Array.from({ length: 7 }, (_, index) =>
     toDateKey(addDays(weekStart, index))
@@ -298,20 +293,24 @@ export async function materializeOccurrencesForWeek(weekStartKey: string) {
     "rw",
     db.plannedActivities,
     db.activityTemplates,
+    db.recurrenceRules,
     async () => {
+      const rules = await db.recurrenceRules.filter(rule => rule.active && (!rule.endDate || rule.endDate >= weekStartKey)).toArray();
       for (const rule of rules) {
-        if (!rule.id) continue;
+        if (!rule.id || (only && rule.id !== only.ruleId)) continue;
         const template = await db.activityTemplates.get(rule.templateId);
         if (!template || template.deletedAt) continue;
 
         for (const dateKey of dates) {
-          if (!matchesRule(rule, dateKey)) continue;
+          if ((only && dateKey !== only.date) || !matchesRule(rule, dateKey)) continue;
           const recurrenceKey = `${rule.id}:${dateKey}`;
           const existing = await db.plannedActivities
             .where("recurrenceKey")
             .equals(recurrenceKey)
             .first();
           if (existing) continue;
+          if (rule.habitId && await db.plannedActivities.where("scheduledDate").equals(dateKey)
+            .filter(a => a.habitId === rule.habitId && !a.deletedAt && a.status !== "cancelled" && a.status !== "dismissed").first()) continue;
 
           const activityId = await createPlannedActivity({
             title: template.title,
@@ -329,6 +328,7 @@ export async function materializeOccurrencesForWeek(weekStartKey: string) {
             rule.id,
             dateKey
           );
+          if (rule.habitId) await db.plannedActivities.update(activityId, { habitId: rule.habitId });
         }
       }
     }

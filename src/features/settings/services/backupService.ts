@@ -65,8 +65,8 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
   if (!isRecord(value.manifest) || !isRecord(value.data)) return value;
   if (value.backupVersion !== MOMENTUM_BACKUP_VERSION) return value;
   const sourceVersion = value.manifest.schemaVersion;
-  if (![26, 27, 28, 29, 30, 31, 32, 33, 34].includes(Number(sourceVersion))) return value;
-  if (database.verno !== 35) return value;
+  if (![26, 27, 28, 29, 30, 31, 32, 33, 34, 35].includes(Number(sourceVersion))) return value;
+  if (database.verno !== 36) return value;
 
   const migrated = structuredClone(value);
   if (!isRecord(migrated) || !isRecord(migrated.manifest) || !isRecord(migrated.data)) {
@@ -79,6 +79,7 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
     }
   }
   for (const tableName of [
+    "habits",
     "dayPresets",
     "weeklyProgressResults",
     "milestoneSnapshots",
@@ -90,7 +91,7 @@ function migrateMomentumBackup(value: unknown, database: Dexie): unknown {
     "athleticsPlannedSessions",
     "financeRecurringTransactions",
   ]) {
-    if (!(tableName in migrated.data)) {
+    if (!(tableName in migrated.data) && (sourceVersion !== 35 || tableName === "habits")) {
       migrated.data[tableName] = [];
       if (isRecord(migrated.manifest.tableCounts)) {
         migrated.manifest.tableCounts[tableName] = 0;

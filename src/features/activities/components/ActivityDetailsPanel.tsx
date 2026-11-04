@@ -70,6 +70,7 @@ import {
 } from "../services/recurrenceService";
 
 import "./activity-controls.css";
+import { trackSeries } from "../../progress/habitService";
 
 type ActivityDetailsPanelProps = {
   activityId: number | null;
@@ -612,14 +613,15 @@ function ActivityDetailsForm({
                   <small>Part of a recurring series</small>
                 </div>
               </div>
-              <div className="activity-edit-scope">
+              {!activity.habitId && <div className="activity-edit-scope">
                 <button type="button" className={editScope === "occurrence" ? "is-selected" : ""} onClick={() => setEditScope("occurrence")}>This occurrence</button>
                 <button type="button" className={editScope === "future" ? "is-selected" : ""} onClick={() => setEditScope("future")}>This and future</button>
-              </div>
+              </div>}
+              {activity.habitId && <small>Edit this habit’s schedule in Planner → Habits.</small>}
             </>
           )}
 
-          {(!activity.recurrenceRuleId || editScope === "future") && scheduledDate && (
+          {!activity.habitId && (!activity.recurrenceRuleId || editScope === "future") && scheduledDate && (
             <RecurrenceControls
               value={recurrence}
               startDate={activity.recurrenceDate ?? scheduledDate}
@@ -649,6 +651,11 @@ function ActivityDetailsForm({
           <button type="button" onClick={handleToggleCompletion}>
             {activity.completed ? "Reopen activity" : "Complete activity"}
           </button>
+          {recurrenceRule?.active && !recurrenceRule.habitId && <button type="button" disabled={saving} onClick={async()=>{
+            setSaving(true);
+            try { await trackSeries(recurrenceRule.id!); experience.playFeedback("task-updated"); onClose(); }
+            finally { setSaving(false); }
+          }}>Track as habit</button>}
           {!activity.completed && (
             <button type="button" onClick={handleDismiss}>
               Dismiss

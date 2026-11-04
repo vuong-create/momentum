@@ -12,7 +12,6 @@ import {
 } from "../../activities/services/activityService";
 import {
   createActivityPlan,
-  materializeOccurrencesForWeek,
 } from "../../activities/services/recurrenceService";
 import { isActivityVisible } from "../../activities/services/activityLifecycle";
 
@@ -202,7 +201,6 @@ function resolveScheduledDate(
 export async function getActivitiesForWeek(
   weekStartKey: string
 ) {
-  await materializeOccurrencesForWeek(weekStartKey);
   const weekStart = fromDateKey(weekStartKey);
   const weekEnd = addDays(weekStart, 6);
 
@@ -235,13 +233,6 @@ export async function getActivitiesForWeek(
 export async function getActivitiesForMonth(monthKey: string) {
   const { gridStart, gridEnd } = getMonthGridBounds(monthKey);
 
-  for (
-    let weekStart = gridStart;
-    weekStart <= gridEnd;
-    weekStart = addWeeks(weekStart, 1)
-  ) {
-    await materializeOccurrencesForWeek(toDateKey(weekStart));
-  }
 
   const startKey = toDateKey(gridStart);
   const endKey = toDateKey(gridEnd);
