@@ -84,6 +84,7 @@ export default function HomeTodoItem({
         aria-label={`Open and edit ${activity.title}`}
       >
         <span className="home-todo-title">
+          {activity.habitId && <span aria-label="Habit" title="Habit">↻ </span>}
           {activity.title}
         </span>
 

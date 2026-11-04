@@ -22,6 +22,7 @@ import {
   restoreActivityTemplate,
 } from "../activities/services/recurrenceService";
 import usePlanner from "./hooks/usePlanner";
+import HabitManager from "../progress/HabitManager";
 import {
   applyDayPreset,
   createDayPresetFromActivities,
@@ -303,6 +304,7 @@ export default function PlannerPage() {
         onSelectDate={setRequestedDateKey}
         onAdd={addActivity}
       />
+      <HabitManager week={planner.weekStartKey} />
 
       <PlannerTemplates
         templates={planner.templates}

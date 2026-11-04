@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import useScheduledWeeks from "../../activities/hooks/useScheduledWeeks";
 
 import { getActivityStatus } from "../../activities/services/activityLifecycle";
 import {
@@ -8,6 +9,7 @@ import {
   buildPlannerMonthDays,
   fromDateKey,
   getActivitiesForMonth,
+  getMonthGridBounds,
   sortActivitiesForFocus,
   toDateKey,
   toMonthKey,
@@ -29,6 +31,8 @@ export default function PlannerMonthOverview({
   onOpenDay,
 }: PlannerMonthOverviewProps) {
   const [monthKey, setMonthKey] = useState(() => getMonthForWeek(activeWeekStartKey));
+  const { gridStart, gridEnd } = getMonthGridBounds(monthKey);
+  useScheduledWeeks(toDateKey(gridStart), toDateKey(gridEnd));
   const liveActivities = useLiveQuery(
     () => getActivitiesForMonth(monthKey),
     [monthKey]

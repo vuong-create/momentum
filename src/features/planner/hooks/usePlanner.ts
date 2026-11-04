@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import useScheduledWeeks from "../../activities/hooks/useScheduledWeeks";
 import { useLiveQuery } from "dexie-react-hooks";
 import type { ActivityTemplate } from "../../../database/db";
 import { listDayPresets } from "../services/dayPresetService";
@@ -43,6 +44,7 @@ export default function usePlanner() {
     void moveUnscheduledActivitiesToDate(toDateKey(new Date()));
   }, []);
 
+  useScheduledWeeks(weekStartKey);
   const liveActivities = useLiveQuery(
     () => getActivitiesForWeek(weekStartKey),
     [weekStartKey]

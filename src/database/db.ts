@@ -48,6 +48,7 @@ export type ActivityDisplayStatus =
   | "missed";
 
 export interface PlannedActivity {
+  habitId?: number;
   id?: number;
   title: string;
   completed: boolean;
@@ -123,6 +124,7 @@ export interface DayPreset {
 }
 
 export interface RecurrenceRule extends RecurrencePattern {
+  habitId?: number;
   id?: number;
   templateId: number;
   startDate: string;
@@ -847,6 +849,7 @@ class MomentumDatabase extends Dexie {
   savedQuotes!: Table<SavedQuote>;
   appSettings!: Table<AppSettings, "preferences">;
   activityTemplates!: Table<ActivityTemplate>;
+  habits!: Table<Habit>;
   recurrenceRules!: Table<RecurrenceRule>;
   libraryBooks!: Table<LibraryBook>;
   libraryWishlistItems!: Table<LibraryWishlistItem>;
@@ -1321,7 +1324,21 @@ class MomentumDatabase extends Dexie {
       athleticsBlockTemplates:
         "++id, &key, updatedAt, deletedAt",
     });
+    this.version(36).stores({ habits: "++id" });
   }
 }
 
 export const db = new MomentumDatabase();
+
+export interface HabitPeriod {
+  from: string;
+  ruleId?: number;
+  target?: number;
+}
+export interface Habit {
+  activityKind?: string;
+  id?: number;
+  title: string;
+  pillar: Pillar;
+  periods: HabitPeriod[];
+}

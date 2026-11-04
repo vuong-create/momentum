@@ -6,6 +6,8 @@ type RelationSpec = {
 };
 
 export const DATA_RELATIONS: RelationSpec[] = [
+  { sourceTable: "plannedActivities", sourceField: "habitId", targetTable: "habits", label: "Planner tasks without their habit" },
+  { sourceTable: "recurrenceRules", sourceField: "habitId", targetTable: "habits", label: "Schedules without their habit" },
   { sourceTable: "athleticsPlannedSessions", sourceField: "blockId", targetTable: "athleticsTrainingBlocks", label: "Training sessions without their block" },
   { sourceTable: "athleticsPlannedSessions", sourceField: "plannedActivityId", targetTable: "plannedActivities", label: "Training sessions without their Planner activity" },
   { sourceTable: "athleticsTrainingBlocks", sourceField: "templateId", targetTable: "athleticsBlockTemplates", label: "Training blocks without their template" },

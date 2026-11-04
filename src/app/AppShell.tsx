@@ -9,6 +9,7 @@ import Layout from "../components/Layout";
 import HomeDashboard from "../features/home/HomeDashboard";
 
 const PlannerPage = lazy(() => import("../features/planner/PlannerPage"));
+const ProgressPage = lazy(() => import("../features/progress/ProgressPage"));
 const JournalPage = lazy(() => import("../features/journal/JournalPage"));
 const ChinesePage = lazy(() => import("../features/chinese/ChinesePage"));
 const AthleticsPage = lazy(() => import("../features/athletics/AthleticsPage"));
@@ -31,6 +32,7 @@ export default function AppShell() {
     <Layout>
       <Suspense fallback={<RouteLoadingState />}>
         <Routes>
+        <Route path="/progress" element={<ProgressPage />} />
         <Route
           path="/"
           element={<HomeDashboard />}

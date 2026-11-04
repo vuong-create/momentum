@@ -6,7 +6,7 @@ import {
 } from "react";
 
 import { useLiveQuery } from "dexie-react-hooks";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   db,
@@ -21,7 +21,7 @@ import {
   isActivityVisible,
   resolveActivityScheduledDate,
 } from "../activities/services/activityLifecycle";
-import { materializeOccurrencesForWeek } from "../activities/services/recurrenceService";
+import useScheduledWeeks from "../activities/hooks/useScheduledWeeks";
 
 import {
   pillarThemes,
@@ -125,15 +125,8 @@ export default function HomeDashboard() {
     setThoughtStatus,
   ] = useState<string | null>(null);
 
-  const liveTasks = useLiveQuery(
-    async () => {
-      await materializeOccurrencesForWeek(
-        toDateKey(getCurrentWeekStart(new Date(`${todayKey}T00:00:00`)))
-      );
-      return db.plannedActivities.toArray();
-    },
-    [todayKey]
-  );
+  useScheduledWeeks(toDateKey(getCurrentWeekStart(new Date(`${todayKey}T00:00:00`))));
+  const liveTasks = useLiveQuery(() => db.plannedActivities.toArray());
 
   const tasks = useMemo(
     () => liveTasks ?? [],
@@ -222,6 +215,7 @@ export default function HomeDashboard() {
             isActivityVisible(activity) &&
             Boolean(scheduledDate) &&
             scheduledDate! < todayKey &&
+            !activity.habitId &&
             !activity.completed
           );
         })
@@ -507,6 +501,7 @@ export default function HomeDashboard() {
           </div>
 
           <div className="home-week-summary">
+            <Link to="/progress">View history ↗</Link>
             <strong>
               {weeklyPercentage}%
             </strong>
