@@ -42,7 +42,7 @@ type HomeTodoProps = {
   onAdd: (input: { title: string; pillar?: Pillar; activityKind?: string }) => Promise<void>;
 
   onToggle: (
-    activity: PlannedActivity
+    activity: PlannedActivity, completedOn?: string
   ) => Promise<void>;
 };
 
@@ -186,7 +186,7 @@ export default function HomeTodo({
   }
 
   async function handleToggle(
-    activity: PlannedActivity
+    activity: PlannedActivity, completedOn?: string
   ) {
     const willComplete = !activity.completed;
 
@@ -203,7 +203,7 @@ export default function HomeTodo({
       );
     }
 
-    await onToggle(activity);
+    await onToggle(activity, completedOn);
     experience.playFeedback(
       willComplete ? "task-completed" : "task-reopened"
     );

@@ -6,7 +6,7 @@ import {
 } from "../../../app/theme";
 import type { Pillar, PlannedActivity } from "../../../database/db";
 import PillarQuickSelect from "../../activities/components/PillarQuickSelect";
-import { getActivityCarryDays } from "../../activities/services/activityLifecycle";
+import { getActivityCarryDays, resolveActivityScheduledDate } from "../../activities/services/activityLifecycle";
 
 import "./unfinished-activities.css";
 
@@ -19,7 +19,7 @@ type UnfinishedActivitiesProps = {
     activity: PlannedActivity,
     scheduledDate: string
   ) => Promise<void>;
-  onComplete: (activity: PlannedActivity) => Promise<void>;
+  onComplete: (activity: PlannedActivity, completedOn: string) => Promise<void>;
   onDelete: (activity: PlannedActivity) => Promise<void>;
   onChangePillar: (activity: PlannedActivity, pillar: Pillar) => Promise<void>;
   onOpenDetails: (activityId: number) => void;
@@ -152,6 +152,8 @@ export default function UnfinishedActivities({
             </button>
           </div>
           {activities.map((activity) => {
+            const date = resolveActivityScheduledDate(activity, todayKey);
+            const dayLabel = date && new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "long" });
             const theme =
               pillarThemes[activity.pillar as PillarKey];
             const isRescheduling = reschedulingId === activity.id;
@@ -191,10 +193,11 @@ export default function UnfinishedActivities({
                 <div className="home-unfinished-actions">
                   <button
                     type="button"
-                    disabled={isBusy || movingAll}
-                    onClick={() => runAction(activity, () => onComplete(activity))}
+                    disabled={isBusy || movingAll || !date}
+                    title={date ? `Credit this activity to ${formatOriginalDate(date)}` : undefined}
+                    onClick={() => date && runAction(activity, () => onComplete(activity, date))}
                   >
-                    Complete now
+                    Did it {dayLabel} ✓
                   </button>
                   <button
                     type="button"
@@ -203,7 +206,7 @@ export default function UnfinishedActivities({
                       runAction(activity, () => onMoveToToday(activity))
                     }
                   >
-                    Move to Today
+                    Reschedule to today
                   </button>
                   <button
                     type="button"

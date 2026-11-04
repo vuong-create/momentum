@@ -41,6 +41,7 @@ import {
   resolveActivityScheduledDate,
 } from "../services/activityLifecycle";
 import {
+  correctCompletionDate,
   deferPlannedActivity,
   dismissPlannedActivity,
   getPlannedActivity,
@@ -155,6 +156,10 @@ function ActivityDetailsForm({
   );
   const [notes, setNotes] = useState(activity.notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [correctingDate, setCorrectingDate] = useState(false);
+  const recordedDay = activity.completedAt ? toDateKey(new Date(activity.completedAt)) : activity.scheduledDate;
+  const [completionDay, setCompletionDay] = useState(recordedDay ?? todayKey);
+  const [dateError, setDateError] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
   const [editScope, setEditScope] = useState<"occurrence" | "future">(
@@ -394,6 +399,50 @@ function ActivityDetailsForm({
     onClose();
   }
 
+  if (correctingDate) {
+    return (
+      <form className="activity-details-form" onSubmit={async (event) => {
+        event.preventDefault();
+        if (!activity.id || saving) return;
+        setSaving(true);
+        setDateError("");
+        try {
+          await correctCompletionDate(activity.id, completionDay);
+          experience.playFeedback("task-updated");
+          onClose();
+        } catch (error) {
+          setDateError(error instanceof Error ? error.message : "Could not save the completion date.");
+        } finally {
+          setSaving(false);
+        }
+      }}>
+        <header className="activity-details-header"><strong>Change completion date</strong></header>
+        <div className="activity-details-scroll">
+          <label className="activity-field">
+            <span>Day you did {activity.title}</span>
+            <input type="date" required autoFocus max={todayKey} value={completionDay}
+              onChange={event => setCompletionDay(event.target.value)} />
+          </label>
+          {activity.originalScheduledDate && activity.originalScheduledDate !== completionDay && activity.originalScheduledDate <= todayKey && (
+            <div className="activity-secondary-actions">
+              <button type="button" onClick={() => setCompletionDay(activity.originalScheduledDate!)}>
+                Use original date · {formatTimestamp(`${activity.originalScheduledDate}T12:00:00`)}
+              </button>
+            </div>
+          )}
+          <p>Updates this entry in your calendar and task ledger. Your XP amount and other tasks stay the same.</p>
+          {dateError && <p role="alert">{dateError}</p>}
+        </div>
+        <footer className="activity-details-footer">
+          <button type="button" onClick={() => setCorrectingDate(false)}>Back</button>
+          <button type="submit" disabled={saving || !completionDay || (completionDay === recordedDay && activity.scheduledDate === completionDay)}>
+            {saving ? "Saving…" : "Save completion date"}
+          </button>
+        </footer>
+      </form>
+    );
+  }
+
   return (
     <form className="activity-details-form" onSubmit={handleSave}>
       <header className="activity-details-header">
@@ -424,6 +473,11 @@ function ActivityDetailsForm({
           />
         </label>
 
+        {activity.completed && (
+          <div className="activity-secondary-actions">
+            <button type="button" onClick={() => setCorrectingDate(true)}>Change completion date</button>
+          </div>
+        )}
         <fieldset className="activity-fieldset">
           <legend>Scheduled day</legend>
           <div className="activity-date-chips">
@@ -584,6 +638,10 @@ function ActivityDetailsForm({
           <span>Created {formatTimestamp(activity.createdAt ?? activity.date)}</span>
           {activity.completedAt && (
             <span>Completed {formatTimestamp(activity.completedAt)}</span>
+          )}
+          {activity.completionLoggedAt && activity.completedAt &&
+            toDateKey(new Date(activity.completionLoggedAt)) !== toDateKey(new Date(activity.completedAt)) && (
+              <span>Logged {formatTimestamp(activity.completionLoggedAt)}</span>
           )}
         </div>
 

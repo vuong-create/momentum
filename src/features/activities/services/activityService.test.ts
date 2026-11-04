@@ -13,6 +13,7 @@ import { getTotalXP } from "../../xp/XPService";
 
 import {
   completePlannedActivity,
+  correctCompletionDate,
   createPlannedActivity,
   deferPlannedActivity,
   dismissPlannedActivity,
@@ -43,6 +44,46 @@ afterAll(async () => {
 });
 
 describe("activity service", () => {
+  it("credits an overdue occurrence to the chosen day without changing the log time or awarding XP twice", async () => {
+    const day = "2020-11-03";
+    const id = await createPlannedActivity({ title: "17E coaching", scheduledDate: day });
+    const thursday = await createPlannedActivity({ title: "17E coaching", scheduledDate: "2020-11-05" });
+    const untouched = await getPlannedActivity(thursday);
+    await completePlannedActivity(id, day);
+    expect((await completePlannedActivity(id, day)).xpAwarded).toBe(0);
+    const expected = new Date(day + "T12:00:00").toISOString();
+    const task = await getPlannedActivity(id);
+    expect(task).toMatchObject({ completedAt: expected, scheduledDate: day, completionLoggedAt: task?.updatedAt });
+    expect(task?.completionLoggedAt).not.toBe(expected);
+    expect(await db.activityEvents.toArray()).toMatchObject([{ occurredAt: expected }]);
+    expect(await db.xpEvents.toArray()).toMatchObject([{ date: expected }]);
+    expect(await getPlannedActivity(thursday)).toEqual(untouched);
+  });
+
+  it("corrects a legacy completion in place and keeps the audit timestamp across repeated corrections", async () => {
+    const id = await createPlannedActivity({ title: "17E coaching", scheduledDate: "2020-11-03" });
+    await movePlannedActivity(id, "2020-11-04");
+    await completePlannedActivity(id);
+    await db.plannedActivities.update(id, { completionLoggedAt: undefined });
+    const before = await getPlannedActivity(id);
+    const [xp] = await db.xpEvents.toArray();
+    const [event] = await db.activityEvents.toArray();
+    for (const day of ["2020-11-02", "2020-11-03"]) {
+      await correctCompletionDate(id, day);
+      const effective = new Date(day + "T12:00:00").toISOString();
+      expect(await getPlannedActivity(id)).toMatchObject({ completed: true, completedAt: effective,
+        scheduledDate: day, completionLoggedAt: before!.completedAt, originalScheduledDate: "2020-11-03", rescheduleCount: 1 });
+      expect(await db.xpEvents.toArray()).toEqual([{ ...xp, date: effective }]);
+      expect(await db.activityEvents.toArray()).toEqual([{ ...event, occurredAt: effective }]);
+    }
+    for (const day of ["2020-02-31", "2999-01-01"]) {
+      await expect(correctCompletionDate(id, day)).rejects.toThrow("valid completion date");
+    }
+    await reopenPlannedActivity(id);
+    await expect(correctCompletionDate(id, "2020-11-03")).rejects.toThrow("completed activities");
+    expect((await getPlannedActivity(id))?.completionLoggedAt).toBeUndefined();
+  });
+
   it("creates and schedules an activity held in an unscheduled week", async () => {
     const activityId = await createPlannedActivity({
       title: "Plan August goals",
