@@ -265,7 +265,7 @@
 }
 
 .navigation-illustration[data-icon="cooking"] {
-  --icon-native: #d0865f;
+  --icon-native: var(--pillar-cooking);
 }
 
 .navigation-illustration[data-icon="finance"] {
@@ -273,7 +273,7 @@
 }
 
 .navigation-illustration[data-icon="journal"] {
-  --icon-native: #b28db7;
+  --icon-native: var(--pillar-journal);
 }
 
 .navigation-illustration[data-icon="settings"] {
