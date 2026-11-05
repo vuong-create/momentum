@@ -5,7 +5,7 @@
 
 .cooking-identity-picker p {
   margin: 0;
-  color: rgba(255, 223, 190, 0.72);
+  color: color-mix(in srgb, var(--pillar-cooking) 72%, transparent);
   font-size: 0.76rem;
   line-height: 1.5;
 }
@@ -32,9 +32,9 @@
 
 .cooking-identity-picker button:hover,
 .cooking-identity-picker button.is-selected {
-  border-color: rgba(242, 167, 102, 0.44);
-  background: rgba(242, 129, 62, 0.11);
-  color: rgba(255, 238, 221, 0.95);
+  border-color: color-mix(in srgb, var(--pillar-cooking) 44%, transparent);
+  background: color-mix(in srgb, var(--pillar-cooking) 11%, transparent);
+  color: color-mix(in srgb, var(--pillar-cooking) 95%, transparent);
 }
 
 .cooking-identity-picker.is-compact button {

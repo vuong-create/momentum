@@ -368,6 +368,7 @@ export default function HomeTodo({
               <HomeTodoItem
                 key={activity.id}
                 activity={activity}
+                todayKey={todayKey}
                 celebrating={
                   celebratingActivityId ===
                   activity.id
@@ -415,6 +416,7 @@ export default function HomeTodo({
                   <HomeTodoItem
                     key={activity.id}
                     activity={activity}
+                    todayKey={todayKey}
                     onToggle={handleToggle}
                     onOpen={setSelectedActivityId}
                     onFocus={(activityId) => navigate(`/focus/${activityId}`)}

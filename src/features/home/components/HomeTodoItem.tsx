@@ -5,12 +5,13 @@ import {
 
 import type { PlannedActivity } from "../../../database/db";
 import type { Pillar } from "../../../database/db";
-import { calculatePlannedXP } from "../../activities/services/activityLifecycle";
+import { calculatePlannedXP, getActivityCarryDays } from "../../activities/services/activityLifecycle";
 import PillarIcon from "../../activities/components/PillarIcon";
 import PillarQuickSelect from "../../activities/components/PillarQuickSelect";
 
 type HomeTodoItemProps = {
   activity: PlannedActivity;
+  todayKey: string;
   overdue?: boolean;
   celebrating?: boolean;
   onToggle: (activity: PlannedActivity) => void;
@@ -35,6 +36,7 @@ function formatTime(time?: string) {
 
 export default function HomeTodoItem({
   activity,
+  todayKey,
   overdue = false,
   celebrating = false,
   onToggle,
@@ -44,6 +46,7 @@ export default function HomeTodoItem({
 }: HomeTodoItemProps) {
   const theme =
     pillarThemes[activity.pillar as PillarKey];
+  const carriedDays = activity.completed ? 0 : getActivityCarryDays(activity, todayKey);
 
   const timeLabel = formatTime(
     activity.scheduledTime
@@ -95,10 +98,15 @@ export default function HomeTodoItem({
         )}
       </button>
 
+      <div className="home-todo-identity">
       <PillarQuickSelect
         value={activity.pillar}
         onChange={(pillar) => onChangePillar(activity, pillar)}
       />
+      {carriedDays > 0 && <span className="home-todo-carry" aria-label={`Carried over ${carriedDays} ${carriedDays === 1 ? "day" : "days"}`}>
+        Day {carriedDays}
+      </span>}
+      </div>
 
       {!activity.completed && (
         <button

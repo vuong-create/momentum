@@ -9,7 +9,7 @@ import { completionDay, habitDayTask, offset, periodOn, sunday, todayKey } from 
 import "./progress.css";
 import { isActivityVisible } from "../activities/services/activityLifecycle";
 
-const colors: Record<Pillar,string> = { core:"#b6a7df", athletics:"#8eb7de", chinese:"#df8c93", cooking:"#d9ae80", finance:"#86b996", happiness:"#c7a6c7" };
+const colors: Record<Pillar,string> = { core:"#b6a7df", athletics:"#8eb7de", chinese:"#df8c93", cooking:"var(--pillar-cooking)", finance:"#86b996", happiness:"var(--pillar-journal)" };
 const label = (day:string, options:Intl.DateTimeFormatOptions) => new Date(day+"T12:00:00").toLocaleDateString("en-US",options);
 export default function ProgressPage() {
   const today = todayKey();
