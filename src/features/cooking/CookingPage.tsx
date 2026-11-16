@@ -33,6 +33,7 @@ import {
   softDeleteGroceryItem,
   toggleGroceryItem,
   updateGroceryItemCategory,
+  updateGroceryItem,
   visibleGroceryItems,
 } from "./services/groceryService";
 import {
@@ -202,7 +203,7 @@ export default function CookingPage() {
           } });
           selectView("groceries");
         }} />}
-        {view === "groceries" && <CookingGroceries items={groceries} onAdd={handleAddGrocery} onToggle={async (item) => { await toggleGroceryItem(item.id!); experience.playFeedback(item.checked ? "task-reopened" : "grocery-checked"); }} onChangeCategory={(item, category: GroceryCategory) => updateGroceryItemCategory(item.id!, category)} onDelete={handleDeleteGrocery} onClearCompleted={handleClearCompleted} />}
+        {view === "groceries" && <CookingGroceries items={groceries} onAdd={handleAddGrocery} onEdit={async (item, input) => { await updateGroceryItem(item.id!, input); experience.playFeedback("task-updated"); }} onToggle={async (item) => { await toggleGroceryItem(item.id!); experience.playFeedback(item.checked ? "task-reopened" : "grocery-checked"); }} onChangeCategory={(item, category: GroceryCategory) => updateGroceryItemCategory(item.id!, category)} onDelete={handleDeleteGrocery} onClearCompleted={handleClearCompleted} />}
         {view === "journal" && <CookingJournal logs={visibleMealLogs} plans={plans} recipes={recipes} onOpenRecipe={(recipeId) => { setRequestedRecipeId(recipeId); selectView("recipes"); }} onSaveNote={async (logId, notes) => { await updateCookingMealNote(logId, notes); experience.playFeedback("task-updated"); }} />}
       </main>
       <ActivityDetailsPanel activityId={selectedActivityId} onClose={() => setSelectedActivityId(null)} onMutation={undo.show} />

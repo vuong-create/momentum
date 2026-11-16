@@ -87,6 +87,17 @@ export async function updateGroceryItemCategory(id: number, category: GroceryCat
   await db.groceryItems.update(id, { category, updatedAt: new Date().toISOString() });
 }
 
+export async function updateGroceryItem(id: number, input: { name: string; quantity?: number; unit?: string }) {
+  const name = normalizeName(input.name);
+  if (!name) throw new Error("A grocery item needs a name.");
+  if (input.quantity !== undefined && (!Number.isFinite(input.quantity) || input.quantity <= 0)) throw new Error("Quantity must be greater than zero.");
+  await db.transaction("rw", db.groceryItems, async () => {
+    const item = await db.groceryItems.get(id);
+    if (!item || item.deletedAt) throw new Error("Grocery item not found.");
+    await db.groceryItems.update(id, { name, quantity: input.quantity, unit: input.unit?.trim() || undefined, updatedAt: new Date().toISOString() });
+  });
+}
+
 export async function softDeleteGroceryItem(id: number) {
   await db.groceryItems.update(id, { deletedAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
 }

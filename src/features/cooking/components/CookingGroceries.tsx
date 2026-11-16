@@ -2,17 +2,20 @@ import { useMemo, useState, type FormEvent } from "react";
 
 import type { GroceryCategory, GroceryItem } from "../../../database/db";
 import { groceryCategories } from "../cookingCatalog";
+import GroceryItemEditor, { type GroceryEdit } from "./GroceryItemEditor";
 
 type CookingGroceriesProps = {
   items: GroceryItem[];
   onAdd: (name: string) => Promise<void>;
+  onEdit: (item: GroceryItem, input: GroceryEdit) => Promise<void>;
   onToggle: (item: GroceryItem) => Promise<void>;
   onChangeCategory: (item: GroceryItem, category: GroceryCategory) => Promise<void>;
   onDelete: (item: GroceryItem) => Promise<void>;
   onClearCompleted: () => Promise<void>;
 };
 
-export default function CookingGroceries({ items, onAdd, onToggle, onChangeCategory, onDelete, onClearCompleted }: CookingGroceriesProps) {
+export default function CookingGroceries({ items, onAdd, onEdit, onToggle, onChangeCategory, onDelete, onClearCompleted }: CookingGroceriesProps) {
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState("");
   const activeCount = items.filter((item) => !item.checked).length;
   const completedCount = items.length - activeCount;
@@ -50,8 +53,10 @@ export default function CookingGroceries({ items, onAdd, onToggle, onChangeCateg
           <div>{group.items.map((item) => <article key={item.id} className={item.checked ? "is-checked" : ""}>
             <button type="button" className="cooking-grocery-check" onClick={() => onToggle(item)} aria-label={`${item.checked ? "Uncheck" : "Check"} ${item.name}`}>{item.checked ? "✓" : ""}</button>
             <span><strong>{item.name}</strong><small>{[item.quantity, item.unit].filter(Boolean).join(" ") || item.sourceRecipeName || "Manual"}</small></span>
+            <button type="button" className="cooking-grocery-edit" aria-label={`Edit ${item.name}`} onClick={() => setEditingId(item.id!)}>Edit</button>
             <select value={item.category} onChange={(event) => onChangeCategory(item, event.target.value as GroceryCategory)} aria-label={`Category for ${item.name}`}>{groceryCategories.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}</select>
             <button type="button" className="cooking-grocery-remove" onClick={() => onDelete(item)} aria-label={`Remove ${item.name}`}>×</button>
+            {editingId === item.id && <GroceryItemEditor item={item} onCancel={() => setEditingId(null)} onSave={async (input) => { await onEdit(item, input); setEditingId(null); }} />}
           </article>)}</div>
         </section>)}
         {!items.length && <div className="cooking-empty-groceries"><span>⌑</span><strong>Your basket is empty.</strong><small>Add an item above or send ingredients from a recipe.</small></div>}

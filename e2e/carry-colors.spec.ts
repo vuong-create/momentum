@@ -39,6 +39,8 @@ test("Library and Cooking use the approved shared identities", async ({ page }) 
     return [style.getPropertyValue("--pillar-journal").trim(), style.getPropertyValue("--pillar-cooking").trim()];
   });
   expect(tokens).toEqual(["#c9c0a5", "#c990a8"]);
-  await expect(page.locator('.navigation-illustration[data-icon="journal"]')).toHaveCSS("--icon-native", "#c9c0a5");
-  await expect(page.locator('.navigation-illustration[data-icon="cooking"]')).toHaveCSS("--icon-native", "#c990a8");
+  await expect(page.locator('.dock-navigation .navigation-illustration[data-icon="journal"]')).toHaveCSS("--icon-native", "#c9c0a5");
+  await expect(page.locator('.mobile-tabs .navigation-illustration[data-icon="journal"]')).toHaveCSS("--icon-native", "#c9c0a5");
+  await expect(page.locator('.dock-navigation .navigation-illustration[data-icon="cooking"]')).toHaveCSS("--icon-native", "#c990a8");
+  await expect(page.locator('.mobile-tabs .navigation-illustration[data-icon="cooking"]')).toHaveCSS("--icon-native", "#c990a8");
 });

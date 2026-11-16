@@ -16,6 +16,7 @@ import {
   addGroceryItem,
   addRecipeIngredientsToGroceries,
   toggleGroceryItem,
+  updateGroceryItem,
   visibleGroceryItems,
 } from "./groceryService";
 import {
@@ -53,6 +54,26 @@ async function createCurry() {
     instructions: ["Brown chicken", "Simmer"],
   });
 }
+
+describe("grocery item edits", () => {
+  it("edits details without losing recipe links or checked state", async () => {
+    const id = await addGroceryItem({ name: "Milk", recipeId: 7, sourceRecipeName: "Pancakes", quantity: 1, unit: "cup" });
+    await toggleGroceryItem(id);
+    const before = (await db.groceryItems.get(id))!;
+    await updateGroceryItem(id, { name: " Oat   milk ", quantity: 1.5, unit: " liters " });
+    expect(await db.groceryItems.get(id)).toMatchObject({ name: "Oat milk", quantity: 1.5, unit: "liters", checked: true, recipeId: 7, sourceRecipeName: "Pancakes", checkedAt: before.checkedAt, createdAt: before.createdAt });
+    await updateGroceryItem(id, { name: "Oat milk" });
+    expect((await db.groceryItems.get(id))?.quantity).toBeUndefined();
+  });
+  it("rejects empty names and invalid quantities without changing the item", async () => {
+    const id = await addGroceryItem({ name: "Milk" });
+    const before = await db.groceryItems.get(id);
+    await expect(updateGroceryItem(id, { name: " " })).rejects.toThrow();
+    await expect(updateGroceryItem(id, { name: "Milk", quantity: -1 })).rejects.toThrow();
+    await expect(updateGroceryItem(id, { name: "Milk", quantity: NaN })).rejects.toThrow();
+    expect(await db.groceryItems.get(id)).toEqual(before);
+  });
+});
 
 describe("cooking services", () => {
   it("creates, normalizes, edits, and soft deletes a recipe", async () => {
