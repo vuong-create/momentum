@@ -7,6 +7,7 @@ import {
 import { NavLink, useLocation } from "react-router-dom";
 
 import useExperience from "../experience/useExperience";
+import { moveNavigationItem, navigationOrderKey, readNavigationOrder } from "./navigationOrder";
 import NavigationIcon, {
   MomentumMark,
   type NavigationIconName,
@@ -66,15 +67,20 @@ function isItemActive(pathname: string, item: NavigationItem) {
 }
 
 export default function Navigation() {
+  const [order, setOrder] = useState(readNavigationOrder);
+  const [dragged, setDragged] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState("");
+  const orderedNavigation = order.map((path) => navigation.find((item) => item.to === path)!);
   const location = useLocation();
   const experience = useExperience();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
-  const activeIndex = navigation.findIndex((item) =>
+  const activeIndex = orderedNavigation.findIndex((item) =>
     isItemActive(location.pathname, item)
   );
-  const activeItem = navigation[activeIndex];
-  const hoveredItem = hoveredIndex === null ? null : navigation[hoveredIndex];
+  const activeItem = orderedNavigation[activeIndex];
+  const hoveredItem = hoveredIndex === null ? null : orderedNavigation[hoveredIndex];
   const navigationStyle = {
     "--rail-active-y": `${itemPositions[Math.max(activeIndex, 0)]}px`,
     "--rail-hover-y": `${itemPositions[hoveredIndex ?? 0]}px`,
@@ -88,7 +94,7 @@ export default function Navigation() {
   }
 
   function handlePointerMove(event: PointerEvent<HTMLElement>) {
-    if (!experience.motionEnabled || event.pointerType === "touch") return;
+    if (dragged || !experience.motionEnabled || event.pointerType === "touch") return;
 
     itemRefs.current.forEach((item) => {
       if (!item) return;
@@ -108,6 +114,18 @@ export default function Navigation() {
 
   function playNavigationFeedback() {
     experience.playFeedback("navigation");
+  }
+
+  function reorder(from: string, to: string) {
+    const next = moveNavigationItem(order, from, to);
+    setOrder(next);
+    setHoveredIndex(null);
+    resetMagneticItems();
+    const label = navigation.find((item) => item.to === from)?.label;
+    let message = `${label} moved to position ${next.indexOf(from) + 1}.`;
+    try { localStorage.setItem(navigationOrderKey, JSON.stringify(next)); }
+    catch { message += " Order could not be saved for next time."; }
+    setAnnouncement(message);
   }
 
   return (
@@ -149,21 +167,33 @@ export default function Navigation() {
             aria-hidden="true"
           />
 
-          {navigation.map((item, index) => (
+          {orderedNavigation.map((item, index) => (
             <div
-              className={`dock-item-slot${item.dividerBefore ? " has-divider" : ""}`}
+              className={`dock-item-slot${index === 2 ? " has-divider" : ""}${dropTarget === item.to ? " is-drop-target" : ""}${dragged === item.to ? " is-dragging" : ""}`}
               key={item.to}
+              onDragOver={(event) => { if (dragged && dragged !== item.to) { event.preventDefault(); event.dataTransfer.dropEffect = "move"; setDropTarget(item.to); } }}
+              onDrop={(event) => { if (!dragged) return; event.preventDefault(); reorder(dragged, item.to); setDragged(null); setDropTarget(null); }}
             >
-              {item.dividerBefore && <span className="dock-divider" aria-hidden="true" />}
+              {index === 2 && <span className="dock-divider" aria-hidden="true" />}
               <NavLink
                 ref={(node) => { itemRefs.current[index] = node; }}
                 to={item.to}
                 end={item.end}
                 aria-label={item.label}
+                title={`${item.label} — drag to reorder, or use Alt + Arrow Up / Down`}
+                draggable
+                onDragStart={(event) => { setDragged(item.to); setHoveredIndex(null); resetMagneticItems(); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", item.to); }}
+                onDragEnd={() => { setDragged(null); setDropTarget(null); }}
+                onKeyDown={(event) => {
+                  if (!event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+                  event.preventDefault();
+                  const target = order[index + (event.key === "ArrowUp" ? -1 : 1)];
+                  if (target) reorder(item.to, target);
+                }}
                 onPointerEnter={() => setHoveredIndex(index)}
                 onFocus={() => setHoveredIndex(index)}
                 onBlur={() => setHoveredIndex(null)}
-                onClick={playNavigationFeedback}
+                onClick={(event) => { if (dragged) event.preventDefault(); else playNavigationFeedback(); }}
                 className={({ isActive }) =>
                   [
                     "dock-item",
@@ -182,6 +212,7 @@ export default function Navigation() {
             </div>
           ))}
         </nav>
+        <span className="dock-reorder-status" role="status">{announcement}</span>
 
         <div className="dock-footer">
           <NavLink

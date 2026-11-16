@@ -1,3 +1,4 @@
+import { activityDisplayTitle } from "../../activities/services/activityDisplay";
 import {
   pillarThemes,
   type PillarKey,
@@ -74,7 +75,7 @@ export default function HomeTodoItem({
         type="button"
         className="home-todo-check"
         onClick={() => onToggle(activity)}
-        aria-label={activity.completed ? `Mark ${activity.title} incomplete` : `Complete ${activity.title}`}
+        aria-label={activity.completed ? `Mark ${activityDisplayTitle(activity)} incomplete` : `Complete ${activityDisplayTitle(activity)}`}
       >
         <span className="home-todo-pillar-icon"><PillarIcon pillar={activity.pillar as PillarKey} /></span>
         <span className="home-todo-check-mark">✓</span>
@@ -84,11 +85,11 @@ export default function HomeTodoItem({
         type="button"
         className="home-todo-open"
         onClick={() => activity.id && onOpen(activity.id)}
-        aria-label={`Open and edit ${activity.title}`}
+        aria-label={`Open and edit ${activityDisplayTitle(activity)}`}
       >
         <span className="home-todo-title">
           {activity.habitId && <span aria-label="Habit" title="Habit">↻ </span>}
-          {activity.title}
+          {activityDisplayTitle(activity)}
         </span>
 
         {timeLabel && (
@@ -113,7 +114,7 @@ export default function HomeTodoItem({
           type="button"
           className="home-todo-focus"
           onClick={() => activity.id && onFocus(activity.id)}
-          aria-label={`Focus on ${activity.title}`}
+          aria-label={`Focus on ${activityDisplayTitle(activity)}`}
         >
           Focus
         </button>
@@ -123,7 +124,7 @@ export default function HomeTodoItem({
         type="button"
         className="home-todo-edit"
         onClick={() => activity.id && onOpen(activity.id)}
-        aria-label={`Edit ${activity.title}`}
+        aria-label={`Edit ${activityDisplayTitle(activity)}`}
       >
         Edit
       </button>

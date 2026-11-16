@@ -1,3 +1,4 @@
+import { activityDisplayTitle } from "../../activities/services/activityDisplay";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -114,7 +115,7 @@ export default function TaskLedger({ onOpenActivity }: TaskLedgerProps) {
               {visible.map((entry) => (
                 <button type="button" className="task-ledger-row" role="row" key={entry.activity.id} onClick={() => { setOpen(false); onOpenActivity(entry.activity.id!); }}>
                   <span>{formatDate(entry.ledgerDate)}</span>
-                  <span><strong>{entry.activity.title}</strong>{entry.activity.notes && <small>{entry.activity.notes}</small>}</span>
+                  <span><strong>{activityDisplayTitle(entry.activity)}</strong>{entry.activity.notes && <small>{entry.activity.notes}</small>}</span>
                   <span>{pillarThemes[entry.activity.pillar].shortLabel}{entry.cookingIdentity && <small>{entry.cookingIdentity === "task" ? "Prep / kitchen" : entry.cookingIdentity}</small>}</span>
                   <span>{sourceLabel(entry.source)}</span>
                   <span className={entry.xpVoided ? "is-voided" : ""}>{entry.xp ? `+${entry.xp}` : "—"}</span>

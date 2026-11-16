@@ -1,3 +1,4 @@
+import { activityDisplayTitle } from "../../activities/services/activityDisplay";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -133,8 +134,8 @@ export default function PlannerTask({
         onClick={() => onComplete(activity)}
         aria-label={
           activity.completed
-            ? `Mark ${activity.title} incomplete`
-            : `Complete ${activity.title}`
+            ? `Mark ${activityDisplayTitle(activity)} incomplete`
+            : `Complete ${activityDisplayTitle(activity)}`
         }
       >
         <span className="planner-task-pillar-icon"><PillarIcon pillar={activity.pillar as PillarKey} /></span>
@@ -155,7 +156,7 @@ export default function PlannerTask({
               setEditing(false);
             }
           }}
-          aria-label={`Rename ${activity.title}`}
+          aria-label={`Rename ${activityDisplayTitle(activity)}`}
         />
       ) : (
         <button
@@ -167,9 +168,9 @@ export default function PlannerTask({
             event.preventDefault();
             setEditing(true);
           }}
-          aria-label={`Open details for ${activity.title}`}
+          aria-label={`Open details for ${activityDisplayTitle(activity)}`}
         >
-          <strong>{activity.title}</strong>
+          <strong>{activityDisplayTitle(activity)}</strong>
           <div className="planner-task-meta">
             {activity.scheduledTime && (
               <span>{formatActivityTime(activity.scheduledTime)}</span>
@@ -201,7 +202,7 @@ export default function PlannerTask({
             className="planner-task-action planner-task-details"
             onClick={() => setMenuOpen((current) => !current)}
             aria-expanded={menuOpen}
-            aria-label={`Actions for ${activity.title}`}
+            aria-label={`Actions for ${activityDisplayTitle(activity)}`}
           >
             ···
           </button>
