@@ -1,3 +1,4 @@
+import { activityDisplayTitle } from "../../activities/services/activityDisplay";
 import {
   pillarThemes,
   type PillarKey,
@@ -131,7 +132,7 @@ export default function PlannerDayCard({
                   type="button"
                   className="planner-day-preview-toggle"
                   onClick={() => onComplete(activity)}
-                  aria-label={`Complete ${activity.title}`}
+                  aria-label={`Complete ${activityDisplayTitle(activity)}`}
                 />
                 <button
                   type="button"
@@ -140,7 +141,7 @@ export default function PlannerDayCard({
                     activity.id && onOpenDetails(activity.id, day.dateKey)
                   }
                 >
-                  <strong>{activity.title}</strong>
+                  <strong>{activityDisplayTitle(activity)}</strong>
                   <span>
                     <i />
                     {theme.shortLabel}

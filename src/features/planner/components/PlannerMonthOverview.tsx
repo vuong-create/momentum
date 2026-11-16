@@ -1,3 +1,4 @@
+import { activityDisplayTitle } from "../../activities/services/activityDisplay";
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import useScheduledWeeks from "../../activities/hooks/useScheduledWeeks";
@@ -107,7 +108,7 @@ export default function PlannerMonthOverview({
                       key={activity.id}
                       className={`pillar-${activity.pillar}${getActivityStatus(activity) === "completed" ? " is-completed" : ""}`}
                     >
-                      <i />{activity.title}
+                      <i />{activityDisplayTitle(activity)}
                     </span>
                   ))}
                   {remaining > 0 && <small>+{remaining} more</small>}

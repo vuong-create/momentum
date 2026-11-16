@@ -548,3 +548,6 @@
     transform: scale(1.05);
   }
 }
+.dock-item-slot.is-dragging { opacity: 0.4; }
+.dock-item-slot.is-drop-target .dock-item { outline: 1px solid var(--color-text-secondary); outline-offset: 3px; }
+.dock-reorder-status { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

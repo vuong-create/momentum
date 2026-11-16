@@ -201,7 +201,7 @@ function septemberSessionSeeds(): SessionSeed[] {
 }
 
 function activityKind(sessionId: number) { return `athletics-plan-session:${sessionId}`; }
-function sessionActivityTitle(session: Pick<AthleticsPlannedSession, "kind" | "name" | "focus">) { return session.kind === "volleyball" ? session.name || "Volleyball" : `${session.name} · ${session.focus}`; }
+function sessionActivityTitle(session: Pick<AthleticsPlannedSession, "kind" | "name" | "focus">) { return session.name || (session.kind === "volleyball" ? "Volleyball" : "Workout"); }
 function sessionActivityNotes(session: Pick<AthleticsPlannedSession, "phaseName" | "phaseGuidance" | "notes">) { return `${session.phaseName} · ${session.phaseGuidance}${session.notes ? `\n${session.notes}` : ""}`; }
 export function getTrainingSessionIdFromActivity(activity: Pick<PlannedActivity, "activityKind">) {
   const match = activity.activityKind?.match(/^athletics-plan-session:(\d+)$/); return match ? Number(match[1]) : null;
@@ -424,7 +424,7 @@ export async function updateTrainingBlockTemplate(
     db.plannedActivities.toArray(),
   ]);
   const targets = sessions.filter((session) => session.kind === "gym" && session.name === sessionName && session.status !== "skipped" && !session.deletedAt && getActivityStatus(activities.find((activity) => activity.id === session.plannedActivityId) ?? { completed: false } as PlannedActivity) !== "completed");
-  const focus = input.focus.trim() || sessionName;
+  const focus = input.focus.trim();
   const exercises = input.exercises.filter((item) => item.name.trim()).map((item) => ({ ...item, name: item.name.trim(), prescribedSets: Math.max(1, Math.round(item.prescribedSets)), targetLabel: `${Math.max(1, Math.round(item.prescribedSets))} × ${item.repRange?.trim() || "complete"}`, alternatives: item.alternatives?.includes(item.name.trim()) ? item.alternatives : undefined }));
   if (!exercises.length) throw new Error("Keep at least one exercise in the template.");
   const now = new Date().toISOString();
@@ -432,7 +432,7 @@ export async function updateTrainingBlockTemplate(
   await db.transaction("rw", db.athleticsPlannedSessions, db.plannedActivities, async () => {
     for (const session of targets) {
       await db.athleticsPlannedSessions.update(session.id!, { focus, exercises: cloneExercises(exercises), updatedAt: now });
-      if (session.plannedActivityId) await db.plannedActivities.update(session.plannedActivityId, { title: `${session.name} · ${focus}`, notes: `${session.phaseName} · ${session.phaseGuidance}${session.notes ? `\n${session.notes}` : ""}`, updatedAt: now });
+      if (session.plannedActivityId) await db.plannedActivities.update(session.plannedActivityId, { title: sessionActivityTitle(session), notes: sessionActivityNotes(session), updatedAt: now });
     }
   });
   return targets.length;
