@@ -54,3 +54,24 @@
 .athletics-page .athletics-schedule-block>div p{font-size:11px;color:var(--control-muted)}
 .athletics-page .athletics-builder>footer>span{font-size:12px}
 @media(max-width:700px){.athletics-page .athletics-week-board{grid-template-columns:repeat(7,minmax(100px,1fr))}}
+.athletics-occurrence-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:20px 0; }
+.athletics-occurrence-toolbar p, .athletics-occurrence-form p { margin:0; font-size:12px; color:var(--control-muted); line-height:1.5; }
+.athletics-occurrence-toolbar button, .athletics-occurrence-form button, .athletics-delete-confirmation button { min-height:40px; padding:8px 14px; }
+.athletics-occurrence-form { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:20px; margin-bottom:20px; border:1px solid var(--color-border-default); border-radius:16px; background:#101315; }
+.athletics-occurrence-form header, .athletics-occurrence-form footer, .athletics-occurrence-form .is-wide { grid-column:1/-1; }
+.athletics-occurrence-form h3 { margin:0 0 6px; }
+.athletics-occurrence-form label { display:grid; gap:6px; font-size:12px; color:var(--control-text); }
+.athletics-occurrence-form input:not([type=checkbox]), .athletics-occurrence-form select, .athletics-occurrence-form textarea { min-width:0; width:100%; min-height:42px; padding:9px; color:var(--control-text); background:#0b0d0f; border:1px solid var(--color-border-default); border-radius:8px; font:inherit; color-scheme:dark; }
+.athletics-occurrence-form textarea { min-height:100px; resize:vertical; }
+.athletics-occurrence-form .occurrence-checkbox { display:flex; align-items:center; }
+.athletics-occurrence-form footer { display:flex; justify-content:flex-end; gap:10px; }
+.athletics-occurrence-message { padding:10px 14px; color:var(--control-text); font-size:12px; }
+.athletics-block-day.is-drop-target { outline:1px solid var(--pillar-athletics); outline-offset:-2px; background:rgba(111,157,232,.08); }
+.athletics-block-day button[draggable=true] { cursor:grab; }
+.athletics-block-day button.is-dragging { opacity:.45; }
+.athletics-block-day.is-outside-block { opacity:.4; }
+.athletics-block-day .athletics-add-day-session { margin-top:8px; width:100%; min-height:32px; color:var(--control-muted); background:transparent; border-style:dashed; }
+.athletics-delete-confirmation { padding:14px 24px; border-top:1px solid var(--color-border-default); }
+.athletics-delete-confirmation p { font-size:12px; color:var(--control-text); line-height:1.5; }
+.athletics-delete-confirmation button { margin-right:8px; }
+@media(max-width:700px) { .athletics-occurrence-toolbar { flex-direction:column; align-items:stretch; } .athletics-occurrence-form { grid-template-columns:1fr; } .athletics-occurrence-form input, .athletics-occurrence-form select, .athletics-occurrence-form textarea { font-size:16px; } }

@@ -7,8 +7,8 @@ describe("dated workout labels", () => {
     expect(activityDisplayTitle(workout)).toBe("Upper A · 11/16/26");
     expect(datedWorkoutLabel("Lower B", "2027-01-03")).toBe("Lower B · 01/03/27");
   });
-  it("keeps the original workout date after carryover", () => {
-    expect(activityDisplayTitle({ ...workout, originalScheduledDate: "2026-11-16", scheduledDate: "2026-11-18" })).toBe("Upper A · 11/16/26");
+  it("shows the actual workout date after moving", () => {
+    expect(activityDisplayTitle({ ...workout, originalScheduledDate: "2026-11-16", scheduledDate: "2026-11-18" })).toBe("Upper A · 11/18/26");
   });
   it("omits the old embedded description from generated workout labels", () => {
     expect(activityDisplayTitle({ ...workout, title: "Upper A · Explosive athletic day" })).toBe("Upper A · 11/16/26");
