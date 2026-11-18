@@ -9,9 +9,9 @@ export function datedWorkoutLabel(name: string, date: string) {
 
 export function activityDisplayTitle(activity: Pick<PlannedActivity, "title" | "activityKind" | "originalScheduledDate" | "scheduledDate" | "date">) {
   if (!/^athletics-plan-session:\d+$/.test(activity.activityKind ?? "")) return activity.title;
-  // Carrying a workout forward should not erase which session it originally was.
+  // Workout labels follow the actual day; the original date remains audit data.
   // Older generated titles embedded the workout description after a separator.
   // Keep those saved records intact while displaying the same compact label.
   const name = activity.title.split(" · ")[0];
-  return datedWorkoutLabel(name, activity.originalScheduledDate || activity.scheduledDate || activity.date);
+  return datedWorkoutLabel(name, activity.scheduledDate || activity.originalScheduledDate || activity.date);
 }

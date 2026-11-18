@@ -6,6 +6,9 @@ import { db, type AthleticsPlannedSession, type PlannedActivity } from "../../da
 import useExperience from "../../experience/useExperience";
 import { getActivityStatus } from "../activities/services/activityLifecycle";
 import { getXPBreakdown } from "../xp/XPService";
+import ActivityUndoToast from "../activities/components/ActivityUndoToast";
+import useActivityUndo from "../activities/hooks/useActivityUndo";
+import { addBlockSession, deleteBlockSession, restoreBlockSession } from "./services/trainingOccurrenceService";
 import AthleticsBlockTemplates from "./components/AthleticsBlockTemplates";
 import AthleticsTrainingCalendar from "./components/AthleticsTrainingCalendar";
 import { updatePlannedExerciseChoice } from "./services/athleticsService";
@@ -14,6 +17,7 @@ import {
   acknowledgeTrainingWeek,
   createAthleticsBlockTemplate,
   ensureAthleticsBlockTemplates,
+  getSessionScheduledDate,
   moveTrainingSession,
   reopenTrainingSession,
   scheduleAthleticsTrainingBlock,
@@ -42,6 +46,8 @@ function getInitialView(): AthleticsView {
 export default function AthleticsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const experience = useExperience();
+  const undo = useActivityUndo();
+  const [undoError, setUndoError] = useState("");
   const [view, setView] = useState<AthleticsView>(getInitialView);
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const [celebratingWeeks, setCelebratingWeeks] = useState<number[]>([]);
@@ -91,7 +97,7 @@ export default function AthleticsPage() {
   }
 
   async function closeSession(session: AthleticsPlannedSession) {
-    await completeTrainingSession(session.id!);
+    await completeTrainingSession(session.id!, getSessionScheduledDate(session, plannedActivities));
     experience.playFeedback("workout-completed");
     handleSelectSession(null);
   }
@@ -109,8 +115,10 @@ export default function AthleticsPage() {
     <nav className="athletics-tabs" aria-label="Athletics sections">{tabs.map((tab) => <button key={tab.id} type="button" className={displayView === tab.id ? "is-selected" : ""} onClick={() => selectView(tab.id)}><span>{tab.mark}</span>{tab.label}</button>)}</nav>
 
     <main className="athletics-content">
-      {displayView === "calendar" && <AthleticsTrainingCalendar block={currentTrainingBlock} sessions={blockSessions} activities={plannedActivities} now={experience.now} selectedSessionId={routedSessionId ?? selectedSessionId} celebratingWeeks={celebratingWeeks} onBuild={() => selectView("templates")} onSelect={handleSelectSession} onComplete={closeSession} onReopen={async (session) => { await reopenTrainingSession(session.id!); experience.playFeedback("task-reopened"); }} onSaturdayChoice={async (session, choice) => { await setSaturdayTrainingChoice(session.id!, choice); experience.playFeedback("task-updated"); }} onMove={async (session, date) => { await moveTrainingSession(session.id!, date); experience.playFeedback("task-updated"); }} onSkip={async (session) => { await skipTrainingSession(session.id!); experience.playFeedback("task-dismissed"); handleSelectSession(null); }} onExerciseChoice={async (sessionId, exerciseId, name) => { await updatePlannedExerciseChoice(sessionId, exerciseId, name); experience.playFeedback("task-updated"); }} />}
+      {displayView === "calendar" && <AthleticsTrainingCalendar block={currentTrainingBlock} template={blockTemplates.find((item) => item.id === currentTrainingBlock?.templateId)} onAdd={async (input) => { if (!currentTrainingBlock?.id) throw new Error("No current block."); await addBlockSession(currentTrainingBlock.id, input); experience.playFeedback("task-added"); }} onDelete={async (session) => { const snapshot = await deleteBlockSession(session.id!); experience.playFeedback("task-dismissed"); undo.show({ message: `${session.name} removed from this block`, undo: () => restoreBlockSession(snapshot) }); }} sessions={blockSessions} activities={plannedActivities} now={experience.now} selectedSessionId={routedSessionId ?? selectedSessionId} celebratingWeeks={celebratingWeeks} onBuild={() => selectView("templates")} onSelect={handleSelectSession} onComplete={closeSession} onReopen={async (session) => { await reopenTrainingSession(session.id!); experience.playFeedback("task-reopened"); }} onSaturdayChoice={async (session, choice) => { await setSaturdayTrainingChoice(session.id!, choice); experience.playFeedback("task-updated"); }} onMove={async (session, date) => { await moveTrainingSession(session.id!, date); experience.playFeedback("task-updated"); }} onSkip={async (session) => { await skipTrainingSession(session.id!); experience.playFeedback("task-dismissed"); handleSelectSession(null); }} onExerciseChoice={async (sessionId, exerciseId, name) => { await updatePlannedExerciseChoice(sessionId, exerciseId, name); experience.playFeedback("task-updated"); }} />}
       {displayView === "templates" && <AthleticsBlockTemplates templates={blockTemplates} block={currentTrainingBlock} sessions={blockSessions} activities={plannedActivities} onSaveTemplate={async (id, input) => { await updateAthleticsBlockTemplate(id, input); experience.playFeedback("task-updated"); }} onCreateTemplate={async (input) => { const id = await createAthleticsBlockTemplate(input); experience.playFeedback("task-added"); return id; }} onUpdateBlock={async (id, input) => { const count = await updateCurrentTrainingBlock(id, input); experience.playFeedback("task-updated"); return count; }} onSchedule={async (templateId, input) => { await scheduleAthleticsTrainingBlock(templateId, input); selectView("calendar"); experience.playFeedback("task-added"); }} />}
     </main>
+    {undoError && <p role="alert">{undoError}</p>}
+    <ActivityUndoToast notice={undo.notice} onDismiss={undo.dismiss} onUndo={async () => { try { await undo.undo(); } catch (cause) { setUndoError(cause instanceof Error ? cause.message : "Could not restore session."); } }} />
   </div>;
 }

@@ -10,7 +10,7 @@ import {
   type AthleticsTrainingBlock,
   type PlannedActivity,
 } from "../../../database/db";
-import { cancelPlannedActivity, completePlannedActivity, createPlannedActivity, movePlannedActivity, reopenPlannedActivity } from "../../activities/services/activityService";
+import { cancelPlannedActivity, completePlannedActivity, createPlannedActivity, reopenPlannedActivity } from "../../activities/services/activityService";
 import { getActivityDisplayStatus, getActivityStatus, isActivityVisible } from "../../activities/services/activityLifecycle";
 import {
   lowerAExercises,
@@ -208,7 +208,7 @@ export function getTrainingSessionIdFromActivity(activity: Pick<PlannedActivity,
 }
 export function isTrainingSessionActivity(activity: Pick<PlannedActivity, "activityKind">) { return getTrainingSessionIdFromActivity(activity) !== null; }
 
-async function createSessionActivity(session: AthleticsPlannedSession & { id: number }) {
+export async function createSessionActivity(session: AthleticsPlannedSession & { id: number }) {
   const id = await createPlannedActivity({
     title: sessionActivityTitle(session),
     scheduledDate: session.date,
@@ -285,7 +285,10 @@ export async function setActiveTrainingBlock(blockId: number) {
 }
 
 export function getTrainingBlockDefinition(block: AthleticsTrainingBlock, sessions: AthleticsPlannedSession[]): AthleticsBlockDefinitionInput {
-  const blockSessions = sessions.filter((session) => session.blockId === block.id && !session.deletedAt);
+  // Reconstruct the weekly design from original slots, not one-off calendar changes.
+  const blockSessions = sessions.filter((session) => session.blockId === block.id &&
+    (session.manualOverride ? Boolean(session.templateActivityId) : !session.deletedAt))
+    .map((session) => ({ ...session, date: session.templateDate ?? session.date, weekNumber: session.templateWeekNumber ?? session.weekNumber }));
   const weekCount = Math.max(1, ...blockSessions.map((session) => session.weekNumber));
   const firstWeek = blockSessions.filter((session) => session.weekNumber === 1).sort((a, b) => a.date.localeCompare(b.date));
   const days = Array.from({ length: 7 }, (_, dayOffset) => {
@@ -302,12 +305,18 @@ export function getTrainingBlockDefinition(block: AthleticsTrainingBlock, sessio
 
 export async function updateCurrentTrainingBlock(blockId: number, input: AthleticsBlockDefinitionInput) {
   const block = await db.athleticsTrainingBlocks.get(blockId); if (!block || block.deletedAt) throw new Error("Training block not found.");
-  const sessions = await db.athleticsPlannedSessions.where("blockId").equals(blockId).filter((session) => !session.deletedAt).toArray();
+  const sessions = await db.athleticsPlannedSessions.where("blockId").equals(blockId).toArray();
   const plannerActivities = await db.plannedActivities.toArray(); const days = normalizeTemplateDays(input.days); const weekCount = Math.max(1, ...sessions.map((session) => session.weekNumber), input.weekCount); const phases = normalizePhases(input.phases, weekCount); const timestamp = new Date().toISOString(); let updated = 0;
   await db.transaction("rw", db.athleticsTrainingBlocks, db.athleticsPlannedSessions, db.plannedActivities, async () => {
     await db.athleticsTrainingBlocks.update(blockId, { name: input.name.trim() || block.name, goal: input.goal.trim(), endDate: addDays(block.startDate, weekCount * 7 - 1), updatedAt: timestamp });
     const matched = new Set<string>();
     for (const session of sessions) {
+      // Deleted/manual occurrences reserve their original template slots.
+      if (session.manualOverride) {
+        if (session.templateActivityId) matched.add(`${session.templateWeekNumber ?? session.weekNumber}:${session.templateActivityId}`);
+        continue;
+      }
+      if (session.deletedAt) continue;
       const plannerActivity = plannerActivities.find((item) => item.id === session.plannedActivityId);
       const calendarOffset = ((daysBetween(block.startDate, session.date) % 7) + 7) % 7; const day = days[calendarOffsetToTemplateDay(calendarOffset, block.weekStartsOn)];
       const desired = day.activities.find((item) => item.id === session.templateActivityId) ?? day.activities.find((item) => item.name === session.name && !matched.has(`${session.weekNumber}:${item.id}`));
@@ -393,8 +402,8 @@ export async function skipTrainingSession(sessionId: number) {
 }
 
 export async function moveTrainingSession(sessionId: number, date: string) {
-  const session = await db.athleticsPlannedSessions.get(sessionId); if (!session?.plannedActivityId) throw new Error("This session is not linked to Planner.");
-  await movePlannedActivity(session.plannedActivityId, date);
+  const { moveBlockSession } = await import("./trainingOccurrenceService");
+  await moveBlockSession(sessionId, date);
 }
 
 export async function completeTrainingSession(sessionId: number, completedOn?: string) {
