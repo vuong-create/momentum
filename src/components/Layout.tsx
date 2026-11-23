@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import Navigation from "./Navigation";
+import AppUpdateNotice from "../features/app-install/AppUpdateNotice";
 import "../styles/app-shell.css";
 
 type LayoutProps = {
@@ -40,6 +41,7 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       <Navigation />
+      <AppUpdateNotice />
 
       <main className="momentum-main">
         <div className="momentum-content">

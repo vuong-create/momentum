@@ -1,0 +1,12 @@
+.app-install-panel { grid-column: 1 / -1; }
+.app-install-panel p, .app-install-panel dd { color: #b9b8bf; line-height: 1.65; font-size: 14px; }
+.app-install-panel dl { display: grid; gap: 8px; margin: 22px 0; }
+.app-install-panel dt { color: #eeedf1; font-size: 14px; font-weight: 600; }
+.app-install-panel dd { margin: 0 0 12px; }
+.app-install-data-note { padding: 16px; border: 1px solid #3b354b; border-radius: 12px; background: #18151e; }
+.app-update-notice { position: fixed; z-index: 180; right: 24px; bottom: 24px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; max-width: min(540px, calc(100vw - 32px)); padding: 16px; background: #19171f; border: 1px solid #51465f; border-radius: 16px; box-shadow: 0 12px 40px #0008; color: #f3f0fa; }
+.app-update-notice strong { font-size: 14px; }
+.app-update-notice p { margin: 4px 0 0; color: #c6bfce; font-size: 13px; }
+.app-update-notice button { min-height: 40px; padding: 8px 12px; font: inherit; font-size: 14px; border: 1px solid #5a5069; border-radius: 9px; background: #26212e; color: #f3f0fa; cursor: pointer; }
+.app-update-notice button:focus-visible { outline: 2px solid #c5aff4; outline-offset: 3px; }
+@media(max-width:600px) { .app-update-notice { right: 16px; bottom: 16px; } .app-update-notice > div { width: 100%; } }

@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import useExperience from "../../experience/useExperience";
 import DataBackupPanel from "./components/DataBackupPanel";
+import InstallAppPanel from "../app-install/InstallAppPanel";
 
 import "./settings.css";
 
@@ -216,6 +217,7 @@ export default function SettingsPage() {
         </aside>
 
         <DataBackupPanel />
+        <InstallAppPanel />
       </div>
     </section>
   );
