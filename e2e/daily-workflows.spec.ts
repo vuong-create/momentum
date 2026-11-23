@@ -24,7 +24,7 @@ test("save the visible draft, schedule it, and complete its workout from Home", 
   await expect(page.locator(".athletics-block-header")).toContainText("November Reliability");
   await expect(page.locator(".athletics-block-week").first().locator(".athletics-block-day")).toHaveCount(7);
   await page.getByRole("link", { name: "Home", exact: true }).click();
-  await page.getByRole("button", { name: "Complete Upper A · Chest + Back Hypertrophy", exact: true }).click();
+  await page.getByRole("button", { name: "Complete Upper A · 11/02/26", exact: true }).click();
   await page.getByRole("link", { name: "Athletics", exact: true }).click();
   await expect(page.locator(".athletics-block-week").first().locator("button.status-completed")).toContainText("Upper A");
 });

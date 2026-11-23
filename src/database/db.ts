@@ -419,6 +419,11 @@ export interface AthleticsPlannedSession {
   notes?: string;
   templateDayId?: string;
   templateActivityId?: string;
+  /** Current Block changes are preserved by subsequent template saves. */
+  manualOverride?: boolean;
+  /** Original template occurrence identity, retained across week moves. */
+  templateWeekNumber?: number;
+  templateDate?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
